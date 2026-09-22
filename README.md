@@ -151,6 +151,8 @@ bash scripts/06-boot-vm.sh
 ## Document status
 
 - `README.md` (this file): what the code in `scripts/` does today.
+- `docs/HOW_IT_WORKS.md`: a ground-up tour for newcomers: the boot chain, what each
+  script sets up, what happens at boot, and where the plan goes.
 - `PLAN.md`: the current design and roadmap (v2), with verified/unknown tags.
 - `spikes/`: evidence for the plan; each spike has a README with results.
 - `TODO.md`: ordered next steps.
