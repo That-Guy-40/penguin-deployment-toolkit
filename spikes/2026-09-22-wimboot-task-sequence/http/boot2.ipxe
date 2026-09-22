@@ -1,0 +1,13 @@
+#!ipxe
+set base http://10.0.2.2:8090
+echo === spike 2: apply-image task sequence (curl.exe injected) ===
+kernel ${base}/winpe/wimboot || shell
+initrd --name bootmgfw.efi   ${base}/winpe/bootmgfw.efi
+initrd --name BCD            ${base}/winpe/BCD
+initrd --name boot.sdi       ${base}/winpe/boot.sdi
+initrd --name boot.wim       ${base}/winpe/boot.wim
+initrd --name winpeshl.ini   ${base}/ts/winpeshl.ini
+initrd --name deploy.cmd     ${base}/ts/deploy2.cmd
+initrd --name curl.exe       ${base}/tools/curl.exe
+initrd --name libcurl-x64.dll ${base}/tools/libcurl-x64.dll
+boot || shell

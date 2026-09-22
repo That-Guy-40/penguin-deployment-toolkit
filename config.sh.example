@@ -1,0 +1,102 @@
+#!/bin/bash
+# config.sh - User-editable configuration for Windows 11 VM installation
+#
+# This is the template used by 00-bootstrap.sh to create config.sh. Edit the copy
+# (config.sh), not this file. Keep this template in sync when you add settings.
+
+# Windows 11 ISO path (must exist before running 02-extract-winpe.sh onward).
+# Leave empty and run scripts/00b-download-iso.sh to build + set it automatically.
+ISO_PATH=""
+
+# Windows 11 download options (used by 00b-download-iso.sh)
+WIN_RELEASE="24H2"      # e.g. 24H2, 23H2
+WIN_EDITION="Pro"       # Pro, Home, Education, Enterprise
+WIN_LANG="English"      # "English" = en-US; "English International" = en-GB
+
+# VM configuration
+VM_NAME="win11-vm"
+VM_MEMORY="4G"          # RAM: 4GB
+VM_CPUS="4"             # Number of virtual CPUs
+VM_DISK_SIZE="128G"     # Virtual disk size
+
+# Network configuration
+HTTP_PORT="8080"        # Port for nginx HTTP server
+VM_TFTP_DIR="pxe"       # TFTP root directory (relative to project root)
+
+# TPM configuration
+TPM_STATE_DIR="vms/${VM_NAME}-swtpm"
+
+# QEMU/UEFI paths (usually don't need changing)
+#
+# Secure Boot: Windows 11 requires the firmware to be Secure Boot *capable*.
+# The plain OVMF_CODE_4M.fd build is NOT Secure Boot capable, so Win11 setup
+# rejects it. We therefore use the Secure-Boot build (OVMF_CODE_4M.secboot.fd,
+# byte-identical to OVMF_CODE_4M.ms.fd) paired with the *empty* vars template
+# (OVMF_VARS_4M.fd). Empty vars = "Setup Mode": Secure Boot is exposed/capable
+# but NOT enforcing, so our self-built (unsigned) pxe/ipxe.efi still loads.
+#
+# To run with Secure Boot *enforcing* instead (stricter, matches a real PC):
+#   1. sign pxe/ipxe.efi:  sbsign --key sb.key --cert sb.crt --output ipxe.efi ipxe.efi
+#   2. enroll sb.crt into a copy of OVMF_VARS_4M.ms.fd (needs python3-virt-firmware:
+#      virt-fw-vars --input OVMF_VARS_4M.ms.fd --output vars.fd --add-db <guid> sb.crt)
+#   3. point OVMF_VARS_TEMPLATE at that vars.fd
+OVMF_CODE="/usr/share/OVMF/OVMF_CODE_4M.secboot.fd"
+OVMF_VARS_TEMPLATE="/usr/share/OVMF/OVMF_VARS_4M.fd"
+IPXE_ROM="/usr/lib/ipxe/qemu/efi-virtio.rom"
+
+# Project directories (auto-computed)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR" && pwd)"
+VMS_DIR="$PROJECT_ROOT/vms"
+HTTP_DIR="$PROJECT_ROOT/http"
+ANSWER_DIR="$PROJECT_ROOT/answer"
+
+# Validate ISO path only — used by scripts that need the ISO (02 onward)
+validate_config() {
+    if [[ -z "$ISO_PATH" ]]; then
+        echo "ERROR: ISO_PATH is not set" >&2
+        return 1
+    fi
+    if [[ ! -f "$ISO_PATH" ]]; then
+        echo "ERROR: ISO not found: $ISO_PATH" >&2
+        return 1
+    fi
+    if ! file "$ISO_PATH" 2>/dev/null | grep -qi "iso"; then
+        echo "WARNING: $ISO_PATH may not be an ISO9660 image" >&2
+    fi
+}
+
+# Validate VM-related paths — used by scripts 05/06
+validate_vm_config() {
+    if [[ ! -f "$OVMF_CODE" ]]; then
+        echo "ERROR: OVMF_CODE not found: $OVMF_CODE" >&2
+        return 1
+    fi
+    if [[ ! -f "$OVMF_VARS_TEMPLATE" ]]; then
+        echo "ERROR: OVMF_VARS template not found: $OVMF_VARS_TEMPLATE" >&2
+        return 1
+    fi
+    if [[ ! -f "$IPXE_ROM" ]]; then
+        echo "ERROR: iPXE ROM not found: $IPXE_ROM" >&2
+        return 1
+    fi
+}
+
+# Validate HTTP port availability — used by script 04
+validate_http_config() {
+    if ss -tuln 2>/dev/null | grep -q ":${HTTP_PORT} "; then
+        echo "ERROR: Port $HTTP_PORT is already in use" >&2
+        return 1
+    fi
+    for dir in pxe http answer; do
+        if [[ ! -d "$PROJECT_ROOT/$dir" ]]; then
+            echo "ERROR: Directory not found: $PROJECT_ROOT/$dir" >&2
+            return 1
+        fi
+    done
+
+    return 0
+}
+
+# Usage: source config.sh
+# Or run: bash -c 'source config.sh && validate_config'

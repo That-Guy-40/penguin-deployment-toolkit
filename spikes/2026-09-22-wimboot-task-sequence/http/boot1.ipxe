@@ -1,0 +1,12 @@
+#!ipxe
+set base http://10.0.2.2:8090
+echo === spike: WinPE with wimboot-injected task sequence ===
+kernel ${base}/winpe/wimboot || shell
+initrd --name bootmgfw.efi ${base}/winpe/bootmgfw.efi
+initrd --name BCD          ${base}/winpe/BCD
+initrd --name boot.sdi     ${base}/winpe/boot.sdi
+initrd --name boot.wim     ${base}/winpe/boot.wim
+initrd --name winpeshl.ini ${base}/ts/winpeshl.ini
+initrd --name deploy.cmd   ${base}/ts/deploy.cmd
+initrd --name http.js      ${base}/ts/http.js
+boot || shell

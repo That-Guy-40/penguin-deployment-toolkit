@@ -1,0 +1,11 @@
+#!ipxe
+echo === iPXE chainloader (spike) ===
+:retry_dhcp
+dhcp && goto got_dhcp
+echo DHCP failed, retrying in 3s...
+sleep 3
+goto retry_dhcp
+:got_dhcp
+chain http://10.0.2.2:8090/boot.ipxe?mfr=${manufacturer:uristring}&product=${product:uristring}&uuid=${uuid}&serial=${serial:uristring}&mac=${net0/mac}&chip=${net0/chip}&busid=${net0/busid}
+echo chain failed - entering shell
+shell

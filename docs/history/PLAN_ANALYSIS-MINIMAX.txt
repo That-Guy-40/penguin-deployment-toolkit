@@ -1,0 +1,52 @@
+*** HISTORICAL (raw review transcript, ends mid-sentence). Reviews an earlier
+*** state of the plan; superseded by README.md. Kept for history. ***
+
+What the plan does:
+1. Set up a Windows 11 VM install via PXE boot from Linux using:
+   - iPXE → HTTP → wimboot → WinPE → Windows Setup
+   - QEMU/KVM with UEFI (OVMF) + TPM (swtpm)
+   - nginx for HTTP serving of boot files
+   - wimlib to inject autounattend.xml into boot.wim
+Analysis:
+1. Boot chain - Looks correct. The chain is standard: iPXE → wimboot → WinPE → setup.exe
+
+2. QEMU built-in TFTP + bootfile - This is valid for user-mode networking. The iPXE ROM on the virtio-net NIC will make a DHCP request, and QEMU's built-in TFTP server will serve boot.ipxe based on the bootfile parameter.
+3. DHCP → TFTP → boot.ipxe - The built-in TFTP returns boot.ipxe, which then iPXE loads and executes.
+4. HTTP base IP 10.0.2.2 - This is the default gateway address in QEMU user-mode networking, and the plan correctly points the HTTP server to the host.
+5. wimboot approach - wimboot is the standard way to boot WinPE over HTTP. It's been reliable for years.
+6. autounattend.xml - Injecting it into boot.wim is the cleanest approach.
+7. TPM - Required for Windows 11, swtpm handles this.
+8. OVMF - Standard UEFI firmware.
+9. Script ordering - Dependencies are logical: 01 → 02 → 03 → 04 → 05 → 06
+, but 04 depends on 02 and 03 running first.
+I see a few critical gaps. The autounattend.xml template is referenced but doesn't exist yet—I need to provide one since it's essential for unattended installs. The scripts also lack error handling; they should check exit codes, verify dependencies like the ISO file, and provide meaningful error messages. The VM creation script should generate a fresh OVMF_VARS.fd for each VM rather than reusing one.
+The ISO path is hardcoded when it should come from config.sh. There's no verification that nginx's port 8080 won't conflict with something else, and no mechanism to clean up background processes like swtpm if the user reruns the script. If setup.exe fails or gets stuck in the WinPE boot, there's no recovery plan—just a hard reboot. The autounattend.xml itself needs careful review since Windows Setup behavior differs significantly between boot.wim and install.wim passes, with different answer file locations depending on the Windows version being installed.
+Looking at the technical implementation, the wimboot parameters for boot files match standard conventions, and the QEMU networking configuration with user-mode TFTP and bootfile should work correctly. However, I'm noticing the swtpm socket path gets passed directly from the VM name without sanitization, which could be a security concern. I should also consider whether an unattended setup for Windows 11 might trigger the Microsoft account requirement during initial configuration—typically that needs to be disabled either through Sysprep or an answer file, and there may be specific registry keys required. I'm realizing the answer file for boot.wim needs to go to \Windows\System32\oobe\unattend.xml specifically, while \autounattend.xml would work for install.wim in the install phase. But there's a timing issue—Windows PE typically auto-launches setup.exe, so I need to verify whether wimboot actually stops that default behavior or lets it run. If setup does auto-launch, the autounattend.xml path becomes more critical. I should also check that HTTP ports align between the iPXE script and nginx config, and verify that libguestfs-xso or similar tools are available for Windows ISO handling.
+Now I have a thorough understanding of the plan. Let me evaluate it critically.
+# Questions
+Who should create the autounattend.xml file?
+Design and write it for me
+Should the plan include the physical machine script?
+Yes, include it
+Thinking: Now let me do a thorough evaluation of the plan and write the enhanced plan.
+Let me think about potential issues:
+1. OVMF_VARS: The plan uses a raw copy of OVMF_VARS.fd. This is fine for a fresh VM each time, but if the VM already exists, it might want to persist UEFI settings. The script should either use a pre-created OVMF_VARS or copy the template fresh each time.
+2. TPM ownership: swtpm creates a new TPM state each time. This is fine.
+3. QEMU user-net TFTP: The -netdev user,tftp=pxe,bootfile=boot.ipxe syntax - the tftp= option takes a DIRECTORY, not a path alias.
+Wait, I need to clarify how QEMU's user-net TFTP actually works. The -netdev user option with tftp= specifies a directory to serve, and bootfile= provides the filename clients request. But there's a potential issue: bootfile=boot.ipxe might need to be an absolute path or relative to the TFTP root, depending on QEMU's behavior. Let me reconsider whether the current syntax will actually work as intended. I see the real issue now—when QEMU acts as the TFTP server for the iPXE ROM, it serves files from the specified directory, so the bootfile path needs to be relative to that root. The boot.ipxe script then uses iPXE commands to chain-load the kernel from an HTTP URL, which is where the actual boot files are served.
+There's also a critical TPM problem: the TPM emulator persists its state across reboots within the VM, but if the .qcow2 disk gets recreated between runs, Windows will detect the TPM state is out of sync with the disk and trigger bitlocker recovery. I need to either clear the TPM state when recreating the disk or document this as a known limitation.
+Looking at the script ordering, extracting the WinPE image and injecting the autounattend file should happen before setting up the HTTP server, which seems right. But I'm noticing a potential issue with the swtpm state directory—if I use vms/${VM_NAME}-swtpm as the path, that places it inside the project directory, which might not be ideal depending on where the VM state should live.
+I should also check the ISO variable handling in the scripts. The boot script uses $ISO_PATH from config.sh, but I need to make sure that variable is properly set and accessible across all the scripts, especially if they're being sourced or sourced individually.
+Looking at the autounattend.xml setup, I need to understand what the Windows ISO actually contains to make sure I'm extracting the right files from the right locations. The architecture seems sound overall - the HTTP server can handle large files, and wimlib-imagex update should properly inject the answer file into the boot image. One thing I'm considering is whether to add error checking to the scripts so they can be safely re-run if needed, though that's probably optional. Now I'll write out the enhanced plan and document all these clarifications and improvements.
+Good clarifications. Let me now do a thorough evaluation of the plan and write an enhanced version with my findings.
+Here is my analysis across several dimensions:
+Soundness: Overall — YES, this plan is fundamentally sound. The boot chain is correct, the technical decisions are well-reasoned for a VM-first approach, and the separation of concerns (one script per step) is good. That said, I found several issues, gaps, and improvements worth addressing before writing the final plan.
+Issues I found (critical first)
+1. OVMF_VARS.fd must be copied fresh from the template each run. If 05-create-vm.sh reuses an existing OVMF_VARS.fd, NVRAM vars from a prior boot (boot order, TPM ownership, etc.) can persist and interfere. The script needs cp /usr/share/OVMF/OVMF_VARS.fd vms/${VM_NAME}-OVMF_VARS.fd every time.
+2. TPM state must be wiped on disk recreation. If someone re-runs 05-create-vm.sh (recreates the .qcow2) without wiping the TPM state dir, Windows will see a "TPM state changed" and trigger BitLocker recovery on an encrypted disk. 05-create-vm.sh should rm -rf vms/${VM_NAME}-swtpm before creating the new TPM state.
+3. QEMU user-net TFTP syntax: -netdev user,tftp=pxe,bootfile=boot.ipxe — tftp= takes a directory path (not a label). The example in the plan is a bit ambiguous. The working directory when QEMU runs needs to be the project root so tftp=pxe resolves to ./pxe/. The script should either cd to the project root first or use an absolute path: tftp=$(pwd)/pxe.
+4. No autounattend.xml exists. The plan references answer/autounattend.xml but doesn't design or create it. You've confirmed I should design and write it — I'll include a proper one.
+5. Missing config.sh creation. Scripts depend on config.sh but no script creates it. I'll add a 00-bootstrap.sh or
+▣  Council · MiniMax M2.5 Free · 6m 50s
+IT seems this session stalled, can you pick back up?
+Thinking: The user says the session stalled. Let me pick up where I left off - I was in the middle of evaluating the plan and had identified several issues. I had also received answers to my clarifying questions. Let me continue by writing the MINIMAX_PLAN.md file with all my findings, proposed changes, and the enhanced plan.

@@ -1,0 +1,25 @@
+# Host-specific configuration (copy config.sh.example -> config.sh)
+config.sh
+
+# Large or downloaded inputs (rebuilt/fetched by the scripts)
+*.iso
+tools/uupdump-work/
+build/
+http/winpe/
+http/images/
+http/drivers/*.wim
+http/tools/
+pxe/ipxe.efi
+pxe/wimboot
+pxe/boot.ipxe
+pxe/dnsmasq.conf
+http/boot.ipxe
+
+# Runtime state
+run/
+vms/
+*.qcow2
+*.log
+
+# Editor / agent settings
+.claude/
