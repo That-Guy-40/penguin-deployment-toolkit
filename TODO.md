@@ -28,16 +28,35 @@ Ordered; the top item is the next thing to do. Details and rationale live in
 - [ ] Phase 2: split the task sequence into steps with beacons and per-model /
   per-UUID config directories; recovery partition + WinRE (`reagentc`) are
   required, with a first-boot `reagentc /info` check (PLAN.md §4).
-- [ ] Phase 3: post-install (winget DSC at first logon, log upload, final beacon).
-- [ ] Phase 4: real hardware over the network via iPXE (the goal): `pxe-lan`
+- [ ] Phase 3: post-install (winget DSC at first logon, log upload, final
+  beacon); reference-VM build + `prepare-capture` (sysprep) for a role.
+- [ ] Phase 4: image capture from a reference VM → `http/images/<role>.wim`:
+  Linux-side `bin/capture-image` (qemu-img convert + wimlib NTFS capture) first,
+  WinPE-side `capture.cmd` for physical reference machines; round-trip deploy
+  of the captured image is the exit criterion; sidecar metadata per image
+  (PLAN.md §4). Capture groundwork is threaded into Phases 1–3 (image-per-role
+  layout, wimlib Windows binaries, `30-apply` reads image from role config,
+  `capture.cmd` gated by `MODE=capture`, sysprep step).
+- [ ] Phase 5: real hardware over the network via iPXE (the goal): `pxe-lan`
   on the real LAN, machine allow-list gating destructive steps, per-model driver
   packs, Secure Boot, measured PXE→desktop time; one physical model deployed
   repeatably (PLAN.md §4).
-- [ ] Phase 5: deployable by others as infrastructure: `INSTALL.md`,
+- [ ] Phase 6: deployable by others as infrastructure: `INSTALL.md`,
   `bin/preflight` (PASS/FAIL/UNKNOWN rows, with deliberate failing rows),
   systemd units for `serve`/`pxe-lan`, pinned and verified inputs, and a
   from-scratch run of `INSTALL.md` on a clean machine before tagging a release
   (PLAN.md §3.1).
+
+## Later / optional (after Phase 6; spike first, then layer on)
+
+- [ ] Streaming apply without the temp file: pipable WIM made on Linux,
+  `curl … | wimlib-imagex.exe apply - 1 W:\` in WinPE. Spike: time it against
+  download-then-`dism` on the same VM; adopt only if faster or needed for small
+  disks (PLAN.md §4 "Later / optional").
+- [ ] A 50-line Python dispatcher rendering `boot.ipxe`/`deploy.cmd` per
+  identity instead of static `http/machines/` directories. Spike beside nginx
+  for one machine; adopt only when hand-editing directories becomes the pain
+  (PLAN.md §4 "Later / optional").
 
 ## Questions to explore through spikes
 
@@ -66,6 +85,12 @@ README stating the result (verified / unknown), like
   then, do not use `onstart` tasks as network probes.
 - [ ] **LAN throughput of a 3.5 GB WIM over HTTP versus SMB** (expected: no
   difference that matters; measure once on the physical run).
+- [ ] **Linux-side image capture.** Sysprep a reference VM, `qemu-img convert`
+  its disk to raw, cut out the Windows partition, `wimlib-imagex capture` it in
+  NTFS mode with a WimScript exclusion list, then deploy the result to a fresh
+  VM and confirm it boots and reaches the "deployed" beacon. Decides whether
+  role images can be built without WinPE or an upload path (PLAN.md §4 Phase 4,
+  open question 5).
 
 ## Housekeeping
 

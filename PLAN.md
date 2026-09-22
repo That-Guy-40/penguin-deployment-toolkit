@@ -226,6 +226,9 @@ The repo must work on a machine that is not this one. Concretely:
 `/beacon` location and a log format that keeps query strings, `vm-boot` with
 `e1000e` + AHCI, `fetch-tools` for curl. Keep the old `setup.exe` path only as a
 documented fallback in `docs/history/`.
+*Capture groundwork:* `http/images/` holds one WIM per role (`<role>.wim`, the
+ISO's `install.wim` becomes `base.wim`); `fetch-tools` also pins the wimlib
+Windows binaries (`wimlib-imagex.exe`) for the WinPE-side capture variant.
 
 **Phase 2 — task sequence.** Split `deploy2.cmd` into steps (`00-net`, `10-identify`,
 `20-disk`, `30-apply`, `40-drivers`, `50-boot`, `60-unattend`, `90-reboot`), each
@@ -237,11 +240,45 @@ and `gpt attributes=0x8000000000000001`), the task sequence copies
 `W:\Windows\System32\Recovery\Winre.wim` to `R:\Recovery\WindowsRE\` and runs
 `reagentc /setreimage /path R:\Recovery\WindowsRE /target W:\Windows`, and a
 first-boot check confirms `reagentc /info` reports WinRE enabled (beacon).
+*Capture groundwork:* `30-apply` reads the image name from the machine/role
+config (so a captured role image is a one-line change), and a second task
+sequence `capture.cmd` exists beside `deploy.cmd`: boot WinPE, **no wipe**,
+capture `W:\` with `wimlib-imagex.exe capture` (or `dism /capture-image`) and
+push the WIM to the server. It is only served to machines whose config says
+`MODE=capture`.
 
 **Phase 3 — post-install.** winget DSC per role at first logon; upload
 `C:\Windows\Panther\*.log` and DISM logs; final "deployed" beacon.
+*Capture groundwork:* the same post-install path builds the **reference VM**
+for a role (deploy `base.wim` + role DSC), and a `prepare-capture` step runs
+`sysprep /generalize /oobe /shutdown` (with an `unattend.xml` that keeps the
+DSC-installed software and drops the lab account) so the VM is left ready to
+capture.
 
-**Phase 4 — real hardware over the network (the goal).** Everything above
+**Phase 4 — image capture from a reference VM (role images).** Two capture
+paths, Linux-side first:
+
+- *Linux-side (preferred, no upload, no WinPE):* after sysprep shutdown,
+  `bin/capture-image <vm> <role>`: `qemu-img convert -O raw` the disk, find the
+  Windows partition offset with `parted`/`sgdisk`, and run `wimlib-imagex
+  capture` on the NTFS volume (wimlib's libntfs-3g mode accepts a regular file
+  containing an NTFS volume) with a WimScript config that excludes pagefile,
+  hiberfil, swapfile, `$Recycle.Bin`, `System Volume Information`. Output
+  `http/images/<role>.wim`, LZX, with `--check`. **[unknown, spike first]**
+- *WinPE-side (for physical reference machines):* the `capture.cmd` task
+  sequence from Phase 2 (`wimlib-imagex.exe capture W:\` or
+  `dism /capture-image`), uploaded with `curl -T` to an upload location on
+  the server (`serve` gains a PUT endpoint, e.g. nginx `dav` or a tiny
+  receiver). **[unknown]**
+- *Round-trip test (exit criterion):* deploy `<role>.wim` to a fresh VM with
+  the normal task sequence; it must reach the "deployed" beacon with the role's
+  software present and WinRE enabled. Keep `base.wim` deployable at all times so
+  a bad capture never blocks deployments.
+- Keep images honest: record in `http/images/<role>.json` the source VM, date,
+  base build, DSC file hash and wimlib version; `stage-image` refuses to serve a
+  WIM whose sidecar is missing.
+
+**Phase 5 — real hardware over the network (the goal).** Everything above
 exists so this phase is small:
 
 - `pxe-lan` (proxy-DHCP + TFTP) on the real LAN alongside the existing DHCP
@@ -258,15 +295,25 @@ exists so this phase is small:
 - Exit criterion: one physical model deployed repeatably from power-on to a
   configured desktop, documented in `INSTALL.md` "boot a real machine".
 
-**Phase 5 — deployable by others.** `INSTALL.md`, `bin/preflight`, systemd units,
+**Phase 6 — deployable by others.** `INSTALL.md`, `bin/preflight`, systemd units,
 pinned/verified inputs, and a from-scratch run of the install instructions on a
 clean machine (see 3.1). Cut a tagged release when that run passes.
 
-**Later / optional.** Streaming apply without the temp file
-(`curl … | wimlib-imagex.exe apply - 1 W:\` with a pipable WIM made on Linux);
-image capture from a reference VM (`sysprep` + `wimlib-imagex.exe capture` in
-WinPE) to build role images; a 50-line dispatcher (Python) that renders
-`boot.ipxe`/`deploy.cmd` per identity instead of static directories.
+**Later / optional — after Phase 6, each spiked before it is layered on.**
+Neither is needed for the goal; both are attractive once the static design is
+in production and its limits are felt.
+
+- *Streaming apply without the temp file.* On Linux make a pipable WIM
+  (`wimexport --pipable` / `wimoptimize --pipable`), and in WinPE run
+  `curl … | wimlib-imagex.exe apply - 1 W:\`. Saves the 3.5 GB write + read on
+  the target and the space for it. Spike: measure end-to-end time against the
+  download-then-`dism` path on the same VM; layer on only if it is faster or
+  needed for small disks. **[unknown]**
+- *A 50-line dispatcher.* A small Python service that renders `boot.ipxe` and
+  `deploy.cmd` per identity (`uuid`, `product`, MAC) instead of static
+  per-model directories, and records beacons in a file. Spike: run it beside
+  nginx for one machine; layer on only when the directory scheme in
+  `http/machines/` becomes the thing people edit by hand most. **[unknown]**
 
 ## 5. Open questions
 
@@ -279,6 +326,9 @@ WinPE) to build role images; a 50-line dispatcher (Python) that renders
    key and enrol it, or chain through a signed shim?
 4. Physical-LAN throughput of a 3.5 GB WIM over HTTP versus SMB (expected: no
    difference that matters; measure once).
+5. Linux-side capture: does `wimlib-imagex capture` in NTFS mode on a raw
+   partition extracted from a sysprepped qcow2 produce a WIM that deploys and
+   boots (Phase 4 round-trip)? What must the WimScript exclude?
 
 ## 6. Things deliberately not done
 
