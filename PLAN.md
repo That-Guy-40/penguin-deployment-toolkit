@@ -230,7 +230,13 @@ documented fallback in `docs/history/`.
 **Phase 2 — task sequence.** Split `deploy2.cmd` into steps (`00-net`, `10-identify`,
 `20-disk`, `30-apply`, `40-drivers`, `50-boot`, `60-unattend`, `90-reboot`), each
 reporting a beacon and aborting to a shell on failure. Per-machine/-model config
-by product slug, then by UUID. Recovery partition + WinRE (`reagentc`) optional.
+by product slug, then by UUID. **Recovery partition + WinRE are required, not
+optional:** `diskpart.txt` adds the recovery partition after the Windows
+partition (MS layout: ESP, MSR, Windows, Recovery with the `de94bba4…` GPT type
+and `gpt attributes=0x8000000000000001`), the task sequence copies
+`W:\Windows\System32\Recovery\Winre.wim` to `R:\Recovery\WindowsRE\` and runs
+`reagentc /setreimage /path R:\Recovery\WindowsRE /target W:\Windows`, and a
+first-boot check confirms `reagentc /info` reports WinRE enabled (beacon).
 
 **Phase 3 — post-install.** winget DSC per role at first logon; upload
 `C:\Windows\Panther\*.log` and DISM logs; final "deployed" beacon.

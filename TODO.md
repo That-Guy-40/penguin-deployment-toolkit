@@ -26,7 +26,8 @@ Ordered; the top item is the next thing to do. Details and rationale live in
 ## After that
 
 - [ ] Phase 2: split the task sequence into steps with beacons and per-model /
-  per-UUID config directories.
+  per-UUID config directories; recovery partition + WinRE (`reagentc`) are
+  required, with a first-boot `reagentc /info` check (PLAN.md §4).
 - [ ] Phase 3: post-install (winget DSC at first logon, log upload, final beacon).
 - [ ] Phase 4: real hardware over the network via iPXE (the goal): `pxe-lan`
   on the real LAN, machine allow-list gating destructive steps, per-model driver

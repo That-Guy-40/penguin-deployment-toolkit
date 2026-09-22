@@ -158,8 +158,8 @@
       <UserAccounts>
         <LocalAccounts>
           <LocalAccount wcm:action="add">
-            <Name>sqs</Name>
-            <DisplayName>sqs</DisplayName>
+            <Name>deploy</Name>
+            <DisplayName>deploy</DisplayName>
             <!-- Blank password — change after first login -->
             <Password>
               <Value></Value>
@@ -172,7 +172,7 @@
 
       <AutoLogon>
         <Enabled>true</Enabled>
-        <Username>sqs</Username>
+        <Username>deploy</Username>
         <LogonCount>1</LogonCount>
         <Password>
           <Value></Value>

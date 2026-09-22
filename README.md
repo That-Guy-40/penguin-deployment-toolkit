@@ -45,7 +45,7 @@ dnsmasq as proxy-DHCP/TFTP.
 | `scripts/06-boot-vm.sh` | starts swtpm and QEMU (`HEADLESS=1` for no window; serial log at `/tmp/qemu-serial.log`) |
 | `scripts/07-setup-physical.sh` | rebuilds `ipxe.efi`/`boot.ipxe` for the LAN IP, writes `pxe/dnsmasq.conf` (proxy-DHCP + TFTP), prints how to start it |
 | `scripts/99-teardown.sh` | stops QEMU/swtpm/our nginx/our dnsmasq, unmounts the ISO; `--purge` also deletes VM state and generated configs |
-| `answer/autounattend.xml` | answer file: wipe disk 0 (GPT: 512 MB EFI, 16 MB MSR, rest NTFS), local admin **`sqs` with a blank password**, autologon once, OOBE hidden, `WIN11-VM`, UTC |
+| `answer/autounattend.xml` | answer file: wipe disk 0 (GPT: 512 MB EFI, 16 MB MSR, rest NTFS), local admin **`deploy` with a blank password**, autologon once, OOBE hidden, `WIN11-VM`, UTC |
 | `pxe/` | TFTP root: `ipxe.efi`, `wimboot`; `boot.ipxe` and `dnsmasq.conf` are generated here |
 | `http/` | nginx document root: `winpe/` (boot files; `wimboot` is a symlink to `pxe/wimboot`), `boot.ipxe` |
 | `build/ipxe/` | iPXE source checkout and build output (cache; safe to delete) |
