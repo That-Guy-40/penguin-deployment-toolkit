@@ -148,8 +148,8 @@ post-install.
   `winget install --id … ` list, with a fallback that installs the App Installer
   msixbundle first (fresh images sometimes ship a winget that cannot run until
   updated). Untested.
-- Progress and logs go back to the server with `curl` (beacons; DISM/Setup logs
-  via `curl -T` once nginx has an upload location or a tiny receiver exists).
+- Progress and logs go back to the server with `curl`: beacons now, DISM/Setup
+  logs via `curl -T` to the `PUT /uploads/` endpoint added in Phase 3.
 
 ### 2.9 Lab: QEMU VM with hardware WinPE already understands **[verified]**
 
@@ -160,29 +160,34 @@ finishes downloading.
 ## 3. Target layout (modular)
 
 ```
-Windows-install-via-Linux/
-├── config.sh                 # host settings (port, IPs, paths)
+penguin-deployment-toolkit/
+├── config.sh                 # host settings (port, IPs, paths); from config.sh.example
 ├── bin/                      # one verb per script, no numbering
+│   ├── preflight             # PASS/FAIL/UNKNOWN per prerequisite (with known-failing rows)
 │   ├── build-ipxe            # ipxe.efi with the chain URL (+identity query)
 │   ├── stage-winpe           # 7z-extract boot.wim/bootmgfw/BCD/boot.sdi from the ISO
-│   ├── stage-image           # extract/curate install.wim (wimexport/optimize)
-│   ├── pack-drivers          # vendor pack dir -> drivers/<model>.wim (wimcapture)
-│   ├── fetch-tools           # curl.exe + dll (+ any other injected tools)
-│   ├── serve                 # rootless nginx (static + /beacon)
-│   ├── pxe-lan               # dnsmasq proxy-DHCP for physical targets (today's 07)
-│   ├── vm-create / vm-boot   # lab VM
+│   ├── stage-image           # ISO -> images/base.wim (wimexport/optimize) + sidecar .json
+│   ├── pack-drivers          # vendor pack dir -> drivers/<product-slug>.wim (wimcapture)
+│   ├── fetch-tools           # pinned + hash-checked curl.exe/dll, wimlib-imagex.exe, wimboot
+│   ├── serve                 # rootless nginx: static + GET /beacon + PUT /uploads/
+│   ├── pxe-lan               # dnsmasq proxy-DHCP + TFTP for physical targets (today's 07)
+│   ├── vm-create / vm-boot   # lab VM (e1000e + AHCI; virtio once drvload is settled)
+│   ├── capture-image         # sysprepped VM disk -> images/<role>.wim (Linux-side, Phase 4)
 │   └── teardown
 ├── http/                     # everything the target can see, all static
-│   ├── boot.ipxe             # iPXE script (default)
+│   ├── boot.ipxe             # default iPXE script: identify, then chain per machines/ config
 │   ├── winpe/                # pristine boot.wim, bootmgfw.efi, BCD, boot.sdi, wimboot
-│   ├── tools/                # curl.exe, libcurl-x64.dll
-│   ├── ts/                   # task sequence: winpeshl.ini, deploy.cmd, steps/*.cmd, diskpart.txt
-│   ├── images/               # install.wim (or per-role WIMs)
-│   ├── drivers/              # <product-slug>.wim driver packs
+│   ├── tools/                # curl.exe, libcurl-x64.dll, wimlib-imagex.exe (+ its dlls)
+│   ├── ts/                   # winpeshl.ini, deploy.cmd, capture.cmd, steps/*.cmd, diskpart/*.txt
+│   ├── images/               # base.wim, <role>.wim, each with a <name>.json sidecar
+│   ├── drivers/              # <product-slug>.wim driver packs (+ drvload/ for WinPE-side drivers)
 │   ├── unattend/             # <role>.xml Panther unattend files
-│   ├── post/                 # winget DSC yaml / first-logon scripts
-│   └── machines/             # <uuid>.cfg or <product-slug>/ overrides (role, image, drivers)
+│   ├── post/                 # <role>.dsc.yaml (winget) + first-logon scripts
+│   ├── machines/             # <uuid>.cfg / <mac>.cfg: MODE, ROLE, IMAGE, DRIVERS (see Phase 2)
+│   └── uploads/              # PUT target for logs and captured WIMs (never served back)
+├── systemd/                  # unit files for serve and pxe-lan (Phase 6)
 ├── INSTALL.md                # server install for other people (see 3.1)
+├── TODO.md                   # ordered next steps
 ├── docs/history/             # superseded plans and reviews
 └── spikes/                   # dated experiments with their evidence
 ```
@@ -218,6 +223,12 @@ The repo must work on a machine that is not this one. Concretely:
   `boot.ipxe` requires an explicit opt-in before anything destructive.
 - Tested from scratch: a "clean box" run (fresh VM or container) of `INSTALL.md`
   is part of releasing; the walkthrough's first command must work.
+- Licensing: pick a licence for this repo (MIT is the default suggestion);
+  third-party pieces (iPXE and wimboot are GPL, curl is MIT-style, virtio-win
+  is GPL/BSD, Windows media is Microsoft's) are **fetched, never vendored**, so
+  the repo contains only our scripts and docs. `INSTALL.md` says that users
+  bring their own Windows licence/keys (the answer files ship without a product
+  key).
 
 ## 4. Roadmap
 
@@ -230,11 +241,15 @@ documented fallback in `docs/history/`.
 ISO's `install.wim` becomes `base.wim`); `fetch-tools` also pins the wimlib
 Windows binaries (`wimlib-imagex.exe`) for the WinPE-side capture variant.
 
-**Phase 2 — task sequence.** Split `deploy2.cmd` into steps (`00-net`, `10-identify`,
-`20-disk`, `30-apply`, `40-drivers`, `50-boot`, `60-unattend`, `90-reboot`), each
-reporting a beacon and aborting to a shell on failure. Per-machine/-model config
-by product slug, then by UUID. **Recovery partition + WinRE are required, not
-optional:** `diskpart.txt` adds the recovery partition after the Windows
+**Phase 2 — task sequence.** Split `deploy2.cmd` into steps (`00-net`,
+`10-identify`, `20-disk`, `30-apply`, `35-updates` (optional `dism /add-package`
+for an LCU, see 2.7), `40-drivers`, `45-winre`, `50-boot`, `60-unattend`,
+`90-reboot`), each reporting a beacon and aborting to a shell on failure.
+Per-machine/-model config by product slug, then by UUID/MAC, with one
+`MODE` per machine defined here and used everywhere: `deploy` (wipe and
+install), `capture` (no wipe, capture `W:\`), `shell` (diagnostic prompt; the
+default for any machine not listed). **Recovery partition + WinRE are required,
+not optional:** `diskpart.txt` adds a 1 GB recovery partition after the Windows
 partition (MS layout: ESP, MSR, Windows, Recovery with the `de94bba4…` GPT type
 and `gpt attributes=0x8000000000000001`), the task sequence copies
 `W:\Windows\System32\Recovery\Winre.wim` to `R:\Recovery\WindowsRE\` and runs
@@ -248,7 +263,11 @@ push the WIM to the server. It is only served to machines whose config says
 `MODE=capture`.
 
 **Phase 3 — post-install.** winget DSC per role at first logon; upload
-`C:\Windows\Panther\*.log` and DISM logs; final "deployed" beacon.
+`C:\Windows\Panther\*.log` and DISM logs; final "deployed" beacon. The upload
+path is defined here and reused by Phase 4: `serve` adds `PUT /uploads/<id>/…`
+using nginx's `http_dav_module` (present in Ubuntu's nginx build **[verified]**;
+`client_max_body_size 0`, `dav_methods PUT`, write-only, never listed or served
+back), and the client side is `curl -T`.
 *Capture groundwork:* the same post-install path builds the **reference VM**
 for a role (deploy `base.wim` + role DSC), and a `prepare-capture` step runs
 `sysprep /generalize /oobe /shutdown` (with an `unattend.xml` that keeps the
@@ -269,9 +288,8 @@ paths, Linux-side first:
   `http/images/<role>.wim`, LZX, with `--check`. **[unknown, spike first]**
 - *WinPE-side (for physical reference machines):* the `capture.cmd` task
   sequence from Phase 2 (`wimlib-imagex.exe capture W:\` or
-  `dism /capture-image`), uploaded with `curl -T` to an upload location on
-  the server (`serve` gains a PUT endpoint, e.g. nginx `dav` or a tiny
-  receiver). **[unknown]**
+  `dism /capture-image`), uploaded with `curl -T` to the Phase 3 `PUT
+  /uploads/` endpoint. **[unknown]**
 - *Round-trip test (exit criterion):* deploy `<role>.wim` to a fresh VM with
   the normal task sequence; it must reach the "deployed" beacon with the role's
   software present and WinRE enabled. Keep `base.wim` deployable at all times so
