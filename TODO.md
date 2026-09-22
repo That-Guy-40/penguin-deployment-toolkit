@@ -16,10 +16,21 @@ Ordered; the top item is the next thing to do. Details and rationale live in
     (`winpeshl.ini`, `deploy.cmd`, steps, `diskpart.txt`) is served from `http/ts/`
     and injected by wimboot at boot (see `spikes/2026-09-22-wimboot-task-sequence/`).
   - [ ] `fetch-tools`: download the Windows `curl.exe` + `libcurl-x64.dll` into `http/tools/`.
-  - [ ] `serve`: rootless nginx with a `/beacon` location and a log format that
-    keeps query strings; `build-ipxe`: chain URL carries the iPXE identity query.
+  - [ ] `serve`: rootless nginx with a `/beacon` location logged to
+    `run/beacons.log` (`$time_iso8601 $msec $remote_addr $args`), `$request_time`
+    in the access log, and `PUT /uploads/<id>/<run>/…` (dav, `create_full_put_path`,
+    write-only); `build-ipxe`: chain URL carries the iPXE identity query.
+  - [ ] Beacon contract from PLAN.md §3.2 in the spike's `deploy2.cmd`: `id`
+    (lowercase SMBIOS UUID), `run` token minted at `ts-start`, `step`/`ev`/`rc`;
+    step output to `X:\pdt\ts.log`, DISM `/LogPath`, both pushed with `curl -T`
+    after each step and on failure.
+  - [ ] `bin/lint` (every `%SRV%`/`initrd` path referenced by `boot.ipxe` and the
+    task sequence exists under `http/`; sidecars present; driver packs contain
+    an `.inf`), `bin/status [--watch]`, `bin/await <id> <step> [timeout]`,
+    `bin/logs <id>`; all read-only over `run/beacons.log` and `http/uploads/`.
   - [ ] `vm-boot`: `e1000e` NIC + AHCI disk (inbox WinPE drivers), headless option,
-    QEMU monitor on TCP for screenshots.
+    QEMU monitor on TCP; `vm-shot` (screendump → png) and `vm-type` (sendkey)
+    from the spike's `shot.sh`.
   - [ ] Move the v1 `setup.exe` flow to `docs/history/` as the documented fallback;
     update `README.md` to describe the new layout.
 
@@ -28,8 +39,15 @@ Ordered; the top item is the next thing to do. Details and rationale live in
 - [ ] Phase 2: split the task sequence into steps with beacons and per-model /
   per-UUID config directories; recovery partition + WinRE (`reagentc`) are
   required, with a first-boot `reagentc /info` check (PLAN.md §4).
+  Driving/introspection (§3.2): `env.cmd` so every `steps\NN-*.cmd` runs
+  standalone from the shell and `deploy NN` resumes; `ev=start` + `ev=ok|fail`
+  per step; `STOP_BEFORE`/`STOP_AFTER` and `MODE=shell` in the machine cfg;
+  `bin/timeline <id>` reproduces the §2.4 stage table from `beacons.log`.
 - [ ] Phase 3: post-install (winget DSC at first logon, log upload, final
   beacon); reference-VM build + `prepare-capture` (sysprep) for a role.
+  Carry `id`/`run` into `unattend.xml` so the installed OS continues the same
+  timeline; upload Panther, DISM, `reagentc /info` and winget logs to
+  `/uploads/<id>/<run>/`; a reliable "I booted" probe (see spikes).
 - [ ] Phase 4: image capture from a reference VM → `http/images/<role>.wim`:
   Linux-side `bin/capture-image` (qemu-img convert + wimlib NTFS capture) first,
   WinPE-side `capture.cmd` for physical reference machines; round-trip deploy
@@ -40,12 +58,14 @@ Ordered; the top item is the next thing to do. Details and rationale live in
 - [ ] Phase 5: real hardware over the network via iPXE (the goal): `pxe-lan`
   on the real LAN, machine allow-list gating destructive steps, per-model driver
   packs, Secure Boot, measured PXE→desktop time; one physical model deployed
-  repeatably (PLAN.md §4).
+  repeatably (PLAN.md §4). `pxe-lan` runs dnsmasq with `--log-dhcp`; physical
+  debugging is `status`/`logs`, never a screen (PLAN.md §3.2).
 - [ ] Phase 6: deployable by others as infrastructure: `INSTALL.md`,
   `bin/preflight` (PASS/FAIL/UNKNOWN rows, with deliberate failing rows),
   systemd units for `serve`/`pxe-lan`, pinned and verified inputs, and a
   from-scratch run of `INSTALL.md` on a clean machine before tagging a release
-  (PLAN.md §3.1).
+  (PLAN.md §3.1); `bin/test-deploy` (vm-create → vm-boot → `await` each step →
+  `vm-shot`) is that run; `INSTALL.md` gets a "watching an install" section.
 
 ## Later / optional (after Phase 6; spike first, then layer on)
 
@@ -78,6 +98,10 @@ README stating the result (verified / unknown), like
   expected? Then try (a) `sbsign` with our own key enrolled in db, (b) chaining
   through a signed shim; pick one and document the enrolment steps for real
   firmware.
+- [ ] **Remote shell over HTTP for `MODE=shell` / failed physical machines**
+  (PLAN.md §5 question 6). A `cmd` loop polling `machines/<uuid>/cmd.txt` with
+  `curl`, running it, and `PUT`ting the output; try it on the VM first, measure
+  whether a 2 s poll is usable, decide on a kill switch. No new binaries.
 - [ ] **Every-boot beacon via a scheduled task never fired.** Find out why
   (`schtasks` registration failed at first logon, or the `onstart` task ran
   before the network was up). Try a network-triggered task or a startup script

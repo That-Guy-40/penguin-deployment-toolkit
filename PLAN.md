@@ -101,7 +101,7 @@ Stock WinPE has no `curl.exe`, no PowerShell and no `bitsadmin`/`certutil`
 (usable for text fetches; `http.js` in the spike) and, once injected, the
 official Windows `curl.exe` build handles binaries at full speed. One nginx
 serves boot files, images, driver packs, task-sequence text and receives
-progress "beacons" (`GET /beacon?stage=…`, visible in the access log). No Samba,
+progress "beacons" (`GET /beacon?…`, one line per event; contract in §3.2). No Samba,
 no credentials, works through QEMU user-net (`10.0.2.2`) and on a LAN.
 
 ### 2.6 Drivers: packs are WIMs built on Linux; injection happens in WinPE **[verified]**
@@ -149,7 +149,7 @@ post-install.
   msixbundle first (fresh images sometimes ship a winget that cannot run until
   updated). Untested.
 - Progress and logs go back to the server with `curl`: beacons now, DISM/Setup
-  logs via `curl -T` to the `PUT /uploads/` endpoint added in Phase 3.
+  logs via `curl -T` to the `PUT /uploads/` endpoint (§3.2).
 
 ### 2.9 Lab: QEMU VM with hardware WinPE already understands **[verified]**
 
@@ -169,7 +169,10 @@ penguin-deployment-toolkit/
 │   ├── stage-image           # ISO -> images/base.wim (wimexport/optimize) + sidecar .json
 │   ├── pack-drivers          # vendor pack dir -> drivers/<product-slug>.wim (wimcapture)
 │   ├── fetch-tools           # pinned + hash-checked curl.exe/dll, wimlib-imagex.exe, wimboot
-│   ├── serve                 # rootless nginx: static + GET /beacon + PUT /uploads/
+│   ├── serve                 # rootless nginx: static + GET /beacon + PUT /uploads/ (3.2)
+│   ├── lint                  # every file boot.ipxe/the task sequence reference exists; cfg + sidecars parse (3.2)
+│   ├── status / timeline / await   # read beacons.log: fleet view, per-run step timings, block until a step (3.2)
+│   ├── vm-shot / vm-type     # QEMU monitor screendump / sendkey into the lab VM (3.2)
 │   ├── pxe-lan               # dnsmasq proxy-DHCP + TFTP for physical targets (today's 07)
 │   ├── vm-create / vm-boot   # lab VM (e1000e + AHCI; virtio once drvload is settled)
 │   ├── capture-image         # sysprepped VM disk -> images/<role>.wim (Linux-side, Phase 4)
@@ -178,13 +181,14 @@ penguin-deployment-toolkit/
 │   ├── boot.ipxe             # default iPXE script: identify, then chain per machines/ config
 │   ├── winpe/                # pristine boot.wim, bootmgfw.efi, BCD, boot.sdi, wimboot
 │   ├── tools/                # curl.exe, libcurl-x64.dll, wimlib-imagex.exe (+ its dlls)
-│   ├── ts/                   # winpeshl.ini, deploy.cmd, capture.cmd, steps/*.cmd, diskpart/*.txt
+│   ├── ts/                   # winpeshl.ini, deploy.cmd, capture.cmd, env.cmd, steps/*.cmd, diskpart/*.txt
 │   ├── images/               # base.wim, <role>.wim, each with a <name>.json sidecar
 │   ├── drivers/              # <product-slug>.wim driver packs (+ drvload/ for WinPE-side drivers)
 │   ├── unattend/             # <role>.xml Panther unattend files
 │   ├── post/                 # <role>.dsc.yaml (winget) + first-logon scripts
-│   ├── machines/             # <uuid>.cfg / <mac>.cfg: MODE, ROLE, IMAGE, DRIVERS (see Phase 2)
+│   ├── machines/             # <uuid>.cfg / <mac>.cfg: MODE, ROLE, IMAGE, DRIVERS, STOP_AFTER… (Phase 2, 3.2)
 │   └── uploads/              # PUT target for logs and captured WIMs (never served back)
+├── run/                      # STATE_DIR: nginx pid, access.log, beacons.log (append-only; the "database")
 ├── systemd/                  # unit files for serve and pxe-lan (Phase 6)
 ├── INSTALL.md                # server install for other people (see 3.1)
 ├── TODO.md                   # ordered next steps
@@ -230,6 +234,97 @@ The repo must work on a machine that is not this one. Concretely:
   bring their own Windows licence/keys (the answer files ship without a product
   key).
 
+### 3.2 Driving and introspecting installs
+
+An install runs on a machine nobody is logged into, across three environments
+in turn (firmware + iPXE, WinPE, the installed OS), and the only channel back is
+HTTP to `serve`. Today's failure mode is "it sat there for twenty minutes, then a
+screenshot". Every phase below adds steps that must be watched, stopped before,
+and re-run without a full reboot, and Phase 5 adds machines that have no screen
+we can capture. The tooling for that is small and static, and it is built *with*
+each phase, not after (see the *introspection groundwork* notes in §4).
+
+Principles: the server clock is the only clock (WinPE and real RTCs are not
+trusted); one line per event, greppable; static files are the control channel
+(no dispatcher, no database); every step is re-runnable by hand from the WinPE
+shell; nothing new goes into WinPE beyond `curl.exe` (a `cscript` helper at most).
+
+**Events (beacons).** One contract, used by iPXE-era log lines, the task
+sequence, `unattend.xml` and first-logon scripts alike:
+
+```
+GET /beacon?id=<uuid>&run=<token>&step=<name>&ev=start|ok|fail[&rc=<n>][&msg=<text>][&k=v…]
+```
+
+- `id` is the SMBIOS UUID, lowercase (iPXE `${uuid}`, WinPE `wmic csproduct`;
+  the tools normalise case). `run` is a token the task sequence mints at
+  `ts-start` (`%RANDOM%`-based is enough) and repeats on every later event and
+  upload path, so two boots of the same machine never interleave.
+- Every step sends `ev=start` *and* `ev=ok|fail`. A `start` with nothing after
+  it is the answer to "where is it stuck" (in DISM, in a download) without a
+  screenshot. The first event of a run also carries `mode`, `product`, `mac`.
+- `serve` logs `location = /beacon` to its own file with its own format:
+  `log_format beacon '$time_iso8601 $msec $remote_addr $args'` →
+  `run/beacons.log` **[read]**. Append-only, never rotated away; boot-file
+  requests stay in the access log. Two synthetic events are derived from the
+  access log by the tools, not sent by anyone: `ipxe` (the `boot.ipxe?…`
+  request with identity) and `wim` (`boot.wim` served in full, with
+  `$request_time` in the access-log format so transfer rate falls out for free;
+  open question 4).
+
+**Logs.** Everything a step prints goes to `X:\pdt\ts.log` (console shows only
+banners), DISM is pointed at `X:\pdt\dism.log` with `/LogPath` **[read]**, and
+`deploy.cmd` pushes both after every step and on failure:
+
+```
+curl -sS -T X:\pdt\ts.log %SRV%/uploads/%ID%/%RUN%/ts.log
+```
+
+The endpoint is defined once, here, and implemented by `serve` in Phase 1:
+`PUT /uploads/<id>/<run>/…` via nginx's `http_dav_module` (present in Ubuntu's
+nginx build **[verified]**), with `dav_methods PUT`, `create_full_put_path on`,
+`client_max_body_size 0` **[read]**; write-only, never listed or served back.
+Phase 3 adds the installed-OS files to it (`C:\Windows\Panther\setupact.log`,
+`setuperr.log`, `Logs\DISM\dism.log`, `reagentc /info` output, winget's
+`DiagOutputDir`); Phase 4 uses it for captured WIMs.
+
+**Driving.** `deploy.cmd` is a ten-line loop over `steps\NN-*.cmd`; all state
+(server URL, `ID`, `RUN`, `MODE`, drive letters, the machine cfg) lives in
+`env.cmd`, which every step `call`s first, so `steps\40-drivers` works typed at
+the shell exactly as it does in the sequence, and `deploy 40` resumes from a
+step. Control keys in the machine cfg (`http/machines/<uuid>.cfg`, fetched
+once at `ts-start`): `STOP_BEFORE=<step>` / `STOP_AFTER=<step>` drop to the
+shell with `env.cmd` loaded (this is how a new step is developed: run up to it,
+try it by hand, then let the sequence own it); `MODE=shell` is the default for
+unknown machines and still identifies, beacons and pushes logs, so a strange
+box that PXE-boots shows up in `status` as "shell, waiting". On failure: `fail`
+beacon with `step`+`rc`, push logs, shell. The VM screen (`vm-shot`) and blind
+typing (`vm-type`, QEMU `sendkey`) stay the last resort for VMs; physical boxes
+have no equivalent, which is why logs are pushed and not merely kept.
+
+**Server-side tools (read-only, over `beacons.log` + `uploads/`).**
+
+- `lint`: parse `boot.ipxe`, `deploy.cmd`, `steps/*` and `machines/*` for every
+  `%SRV%/…` and `initrd` path and check the file exists under `http/`; check
+  each `images/*.wim` has its sidecar and driver packs contain an `.inf`
+  (`wimlib-imagex dir`). A 404 today shows up three minutes into a boot.
+- `status [--watch]`: one row per `id`: product, mode, last step and event, age,
+  run; `fail` and stale `start` rows highlighted. `timeline <id> [run]`: the
+  step table from §2.4 with durations, computed, not typed. `logs <id>`: what
+  was uploaded for the last run.
+- `await <id> <step> [timeout]`: block until that event lands (exit non-zero
+  on `fail` or timeout). It is the primitive that makes the lab scriptable:
+  `vm-boot && await $ID firstlogon 900 && vm-shot done` is the Phase 4
+  round-trip test and the Phase 6 clean-box check, not a person watching.
+
+**Not done, and why.** No EMS/SAC console over serial in WinPE (would need BCD
+edits and only helps VMs, which already have `vm-shot`; physical targets have no
+serial port); no sshd/VNC in WinPE (new binaries and accounts for something
+`STOP_BEFORE` + pushed logs cover); no live web dashboard (`status --watch` is a
+terminal; if the *Later* dispatcher ever lands, it hosts the same view over the
+same log). The one open item is a curl-polling remote shell for `MODE=shell`
+machines (open question 6).
+
 ## 4. Roadmap
 
 **Phase 1 — restructure (next).** Move the verified spike into the layout above:
@@ -240,6 +335,11 @@ documented fallback in `docs/history/`.
 *Capture groundwork:* `http/images/` holds one WIM per role (`<role>.wim`, the
 ISO's `install.wim` becomes `base.wim`); `fetch-tools` also pins the wimlib
 Windows binaries (`wimlib-imagex.exe`) for the WinPE-side capture variant.
+*Introspection groundwork (§3.2):* `serve` writes `run/beacons.log` and
+implements `PUT /uploads/`; the spike's `deploy2.cmd` beacons gain `id`/`run`
+and push `ts.log`; `bin/lint`, `bin/status`, `bin/await` and `bin/vm-shot`
+exist before Phase 2 starts splitting steps, because they are how Phase 2 is
+debugged.
 
 **Phase 2 — task sequence.** Split `deploy2.cmd` into steps (`00-net`,
 `10-identify`, `20-disk`, `30-apply`, `35-updates` (optional `dism /add-package`
@@ -261,13 +361,17 @@ sequence `capture.cmd` exists beside `deploy.cmd`: boot WinPE, **no wipe**,
 capture `W:\` with `wimlib-imagex.exe capture` (or `dism /capture-image`) and
 push the WIM to the server. It is only served to machines whose config says
 `MODE=capture`.
+*Introspection groundwork:* `env.cmd` + re-runnable steps, `start`/`ok`/`fail`
+per step, `STOP_BEFORE`/`STOP_AFTER` in the machine cfg, logs pushed after each
+step; `bin/timeline` reproduces the §2.4 table from `beacons.log`.
 
 **Phase 3 — post-install.** winget DSC per role at first logon; upload
-`C:\Windows\Panther\*.log` and DISM logs; final "deployed" beacon. The upload
-path is defined here and reused by Phase 4: `serve` adds `PUT /uploads/<id>/…`
-using nginx's `http_dav_module` (present in Ubuntu's nginx build **[verified]**;
-`client_max_body_size 0`, `dav_methods PUT`, write-only, never listed or served
-back), and the client side is `curl -T`.
+`C:\Windows\Panther\*.log`, DISM logs, `reagentc /info` and winget logs to the
+`PUT /uploads/` endpoint from §3.2 (`curl -T`); final "deployed" beacon. The
+installed OS carries `id` and `run` forward (the task sequence writes them into
+`unattend.xml` before copying it to Panther) so the run's timeline continues
+across the reboot, and a reliable "I booted" probe replaces the `onstart` task
+that never fired (TODO, spikes).
 *Capture groundwork:* the same post-install path builds the **reference VM**
 for a role (deploy `base.wim` + role DSC), and a `prepare-capture` step runs
 `sysprep /generalize /oobe /shutdown` (with an `unattend.xml` that keeps the
@@ -288,8 +392,8 @@ paths, Linux-side first:
   `http/images/<role>.wim`, LZX, with `--check`. **[unknown, spike first]**
 - *WinPE-side (for physical reference machines):* the `capture.cmd` task
   sequence from Phase 2 (`wimlib-imagex.exe capture W:\` or
-  `dism /capture-image`), uploaded with `curl -T` to the Phase 3 `PUT
-  /uploads/` endpoint. **[unknown]**
+  `dism /capture-image`), uploaded with `curl -T` to the `PUT /uploads/`
+  endpoint (§3.2). **[unknown]**
 - *Round-trip test (exit criterion):* deploy `<role>.wim` to a fresh VM with
   the normal task sequence; it must reach the "deployed" beacon with the role's
   software present and WinRE enabled. Keep `base.wim` deployable at all times so
@@ -311,13 +415,20 @@ exists so this phase is small:
 - Secure Boot: reproduce rejection of unsigned `ipxe.efi` in the VM with the
   enforcing vars, then sign with our own key or chain a signed shim, and document
   the enrolment steps for real firmware (open question 3).
-- Measure: PXE→desktop time and image transfer rate on the LAN (open question 4).
+- Measure: PXE→desktop time and image transfer rate on the LAN (open question 4):
+  `timeline` and the `wim` transfer event give both without extra instrumentation.
+- Physical debugging has no screen: `pxe-lan` logs DHCP/TFTP (`dnsmasq
+  --log-dhcp`) so "never reached iPXE" is distinguishable from "iPXE never
+  chained"; everything after that is `status`/`logs` (§3.2).
 - Exit criterion: one physical model deployed repeatably from power-on to a
   configured desktop, documented in `INSTALL.md` "boot a real machine".
 
 **Phase 6 — deployable by others.** `INSTALL.md`, `bin/preflight`, systemd units,
 pinned/verified inputs, and a from-scratch run of the install instructions on a
-clean machine (see 3.1). Cut a tagged release when that run passes.
+clean machine (see 3.1). The clean-box run is `bin/test-deploy` (vm-create,
+vm-boot, `await` each step, `vm-shot` at the end) so it is a command, not a
+checklist; `INSTALL.md` has a "watching an install" section built on `status`,
+`timeline`, `logs`. Cut a tagged release when that run passes.
 
 **Later / optional — after Phase 6, each spiked before it is layered on.**
 Neither is needed for the goal; both are attractive once the static design is
@@ -349,6 +460,11 @@ in production and its limits are felt.
 5. Linux-side capture: does `wimlib-imagex capture` in NTFS mode on a raw
    partition extracted from a sysprepped qcow2 produce a WIM that deploys and
    boots (Phase 4 round-trip)? What must the WimScript exclude?
+6. Remote shell for physical machines in `MODE=shell` or after a failure: a
+   `cmd` loop that polls `http/machines/<uuid>/cmd.txt` with `curl`, runs it,
+   and `PUT`s the output back. Same trust boundary as editing `deploy.cmd`
+   (whoever writes to `http/` already runs code as SYSTEM in WinPE), no new
+   binaries. Is a 2 s poll usable, and does it need a kill switch? **[unknown]**
 
 ## 6. Things deliberately not done
 
@@ -358,3 +474,5 @@ in production and its limits are felt.
   the task sequence).
 - No web app or database: static files, nginx, and an access log are the
   "database". Revisit only if per-machine dispatch outgrows directories.
+- No serial console, sshd or VNC inside WinPE; introspection is pushed logs and
+  beacons over the HTTP channel that already exists (§3.2).
