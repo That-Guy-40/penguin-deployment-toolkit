@@ -261,8 +261,10 @@ paths, Linux-side first:
 - *Linux-side (preferred, no upload, no WinPE):* after sysprep shutdown,
   `bin/capture-image <vm> <role>`: `qemu-img convert -O raw` the disk, find the
   Windows partition offset with `parted`/`sgdisk`, and run `wimlib-imagex
-  capture` on the NTFS volume (wimlib's libntfs-3g mode accepts a regular file
-  containing an NTFS volume) with a WimScript config that excludes pagefile,
+  capture` on the NTFS volume. The man page documents this libntfs-3g mode
+  for block devices; whether it accepts a regular raw file is the first thing
+  the spike checks (fallbacks: a loop device or `qemu-nbd`, both needing root,
+  or a udisks loop mount). Use a WimScript config that excludes pagefile,
   hiberfil, swapfile, `$Recycle.Bin`, `System Volume Information`. Output
   `http/images/<role>.wim`, LZX, with `--check`. **[unknown, spike first]**
 - *WinPE-side (for physical reference machines):* the `capture.cmd` task
