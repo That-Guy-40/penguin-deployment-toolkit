@@ -1,0 +1,46 @@
+--- a/phase1/socwrap.sh	2026-09-24 04:50:56.512551082 +0000
++++ b/phase1/socwrap.sh	2026-09-24 04:50:56.529567903 +0000
+@@ -405,9 +405,9 @@
+         if command -v stdbuf >/dev/null 2>&1; then
+             _tee_cmd=(stdbuf -oL tee -a "$OPT_LOG")
+         fi
+-        "${_tee_cmd[@]}" <&5 &
++        "${_tee_cmd[@]}" <&5 4>&- &
+     else
+-        cat <&5 &
++        cat <&5 4>&- &
+     fi
+     local cat_pid=$!
+ 
+@@ -416,7 +416,7 @@
+     (
+         while kill -0 "$socat_pid" 2>/dev/null; do sleep 0.05; done
+         kill -USR1 $$ 2>/dev/null
+-    ) &
++    ) 4>&- &
+     local monitor_pid=$!
+ 
+     # Enable bash history mechanism (disabled by default in non-interactive
+@@ -482,7 +482,10 @@
+ 
+     # Restore signal handling
+     trap 'exit 130' INT
+-    trap - USR1
++    # Ignore (not reset) USR1: the monitor may still fire after the loop has
++    # ended, and the default USR1 action would kill the script mid-teardown.
++    trap '' USR1
++    kill "$monitor_pid" 2>/dev/null || true
+ 
+     # Persist history, then disable the history mechanism we enabled earlier
+     history -w "$OPT_HISTFILE" 2>/dev/null || true
+@@ -492,8 +495,8 @@
+     exec 4>&-
+ 
+     # Reap socat and capture its exit code
+-    wait "$socat_pid" 2>/dev/null
+-    rc=$?
++    rc=0
++    wait "$socat_pid" 2>/dev/null || rc=$?
+ 
+     # Clean up remaining background helpers
+     exec 5>&-

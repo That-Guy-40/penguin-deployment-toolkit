@@ -1,0 +1,88 @@
+--- a/phase2/socwrap.sh	2026-09-24 04:50:56.512772191 +0000
++++ b/phase2/socwrap.sh	2026-09-24 04:50:56.530107582 +0000
+@@ -519,7 +519,10 @@
+         # Strip: 0xFF + (DO/DONT/WILL/WONT=0xFB-0xFE) + option_byte  (3-byte)
+         #        0xFF + (other cmds=0xF0-0xFA)                          (2-byte)
+         #        0xFF 0xFF  (escaped literal 0xFF)
+-        printf '%s' 'perl -pe '"'"'s/\xff[\xfb-\xfe][\x00-\xff]//g; s/\xff[\xf0-\xfa]//g; s/\xff\xff/\xff/g'"'"
++        # sysread + autoflush: emit whatever arrived, newline or not, so
++        # prompts such as "login: " show up immediately (perl -p would hold
++        # them until the next newline).
++        printf '%s' 'perl -e '"'"'$|=1; while (sysread(STDIN, my $b, 4096)) { $b =~ s/\xff[\xfb-\xfe][\x00-\xff]//g; $b =~ s/\xff[\xf0-\xfa]//g; $b =~ s/\xff\xff/\xff/g; print $b }'"'"
+     else
+         debug "IAC scrubber: sed (limited — perl preferred)"
+         # sed can't handle raw binary 0xFF portably; best-effort ANSI scrub
+@@ -648,7 +651,7 @@
+     local rc=$1
+     case $rc in
+         0)   debug "socat exited cleanly" ;;
+-        1)   warn "socat: general error (exit 1) — check connection parameters" ;;
++        1)   warn "socat: exited with an error (exit 1) — connection refused, unreachable, or TLS failure? Re-run with -v" ;;
+         2)   warn "socat: syntax/usage error (exit 2)" ;;
+         111) warn "socat: connection refused — is the target listening?" ;;
+         130) debug "socat: interrupted by user (Ctrl-C)" ;;
+@@ -715,15 +718,15 @@
+         scrub_cmd=$(iac_scrub_cmd)
+         if [[ -n "$OPT_LOG" ]]; then
+             debug "Session logging to: $OPT_LOG (with IAC scrub)"
+-            eval "$scrub_cmd" <&5 | "${_tee_cmd[@]}" &
++            { eval "$scrub_cmd" <&5 | "${_tee_cmd[@]}"; } 4>&- &
+         else
+-            eval "$scrub_cmd" <&5 &
++            eval "$scrub_cmd" <&5 4>&- &
+         fi
+     elif [[ -n "$OPT_LOG" ]]; then
+         debug "Session logging to: $OPT_LOG"
+-        "${_tee_cmd[@]}" <&5 &
++        "${_tee_cmd[@]}" <&5 4>&- &
+     else
+-        cat <&5 &
++        cat <&5 4>&- &
+     fi
+     cat_pid=$!
+ 
+@@ -731,7 +734,7 @@
+     (
+         while kill -0 "$socat_pid" 2>/dev/null; do sleep 0.05; done
+         kill -USR1 $$ 2>/dev/null
+-    ) &
++    ) 4>&- &
+     local monitor_pid=$!
+ 
+     # Enable bash history mechanism (disabled by default in non-interactive
+@@ -790,7 +793,10 @@
+ 
+     # Restore signal handling
+     trap 'exit 130' INT
+-    trap - USR1
++    # Ignore (not reset) USR1: the monitor may still fire after the loop has
++    # ended, and the default USR1 action would kill the script mid-teardown.
++    trap '' USR1
++    kill "$monitor_pid" 2>/dev/null || true
+ 
+     # Persist history, then disable the history mechanism we enabled earlier
+     history -w "$OPT_HISTFILE" 2>/dev/null || true
+@@ -800,8 +806,8 @@
+     exec 4>&-
+ 
+     # Reap socat and capture its exit code
+-    wait "$socat_pid" 2>/dev/null
+-    rc=$?
++    rc=0
++    wait "$socat_pid" 2>/dev/null || rc=$?
+ 
+     # Clean up remaining background helpers
+     exec 5>&-
+@@ -1030,6 +1036,12 @@
+                 OPT_SSH_OPTS="$next"
+                 i=$((i + 2))
+                 ;;
++            --)
++                # Everything after -- belongs to the wrapped command: copy it
++                # through untouched and stop scanning for mode flags.
++                remaining_args+=("${args[@]:i}")
++                break
++                ;;
+             *)
+                 remaining_args+=("$arg")
+                 i=$((i + 1))

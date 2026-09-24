@@ -1,0 +1,65 @@
+--- b/phase2/socwrap.sh	2026-09-24 04:50:56.530107582 +0000
++++ c/phase2/socwrap.sh	2026-09-24 04:51:57.017735113 +0000
+@@ -376,14 +376,22 @@
+ # Emits the socat EXEC address for wrapping a local command.
+ # Arguments: the command and all its args (as separate words).
+ #
+-build_exec_addr() {
+-    local -a target=("$@")
++# POSIX-sh single-quote each argument ('it'\''s' style), space-separated.
++_sh_quote() {
++    local out="" a
++    for a in "$@"; do
++        out+="'${a//\'/\'\\\'\'}' "
++    done
++    printf '%s' "${out% }"
++}
+ 
+-    local cmd_str
+-    cmd_str=$(printf '%q ' "${target[@]}")
+-    cmd_str="${cmd_str% }"
++build_exec_addr() {
++    # socat's EXEC splits its command on whitespace and applies its own
++    # quote/backslash rules, so arguments cannot be passed safely inside the
++    # address. They travel in the environment instead (SOCWRAP_ARGV, exported
++    # by build_socat_cmd) and a fixed SYSTEM address re-parses them with sh.
++    local addr='SYSTEM:eval exec \"$SOCWRAP_ARGV\"'
+ 
+-    local addr="EXEC:${cmd_str}"
+     local -a opts=()
+ 
+     if [[ "$OPT_NO_PTY" -eq 0 ]]; then
+@@ -545,7 +553,11 @@
+ 
+     case "$OPT_MODE" in
+         exec)
+-            remote_addr=$(build_exec_addr "${WRAP_TARGET[@]}")
++            # Exported here, not in build_exec_addr: that runs in a $( )
++            # subshell, so an export there would never reach socat.
++            SOCWRAP_ARGV=$(_sh_quote "${WRAP_TARGET[@]}")
++            export SOCWRAP_ARGV
++            remote_addr=$(build_exec_addr)
+             ;;
+         tcp)
+             remote_addr=$(build_tcp_addr)
+@@ -607,6 +619,9 @@
+     printf '      "%s"\n\n' "${SOCAT_CMD[-1]}"
+ 
+     printf '[%s] Mode        : %s\n'   "$SOCWRAP_NAME" "$OPT_MODE"
++    if [[ "$OPT_MODE" == "exec" ]]; then
++        printf '[%s] Command     : %s\n' "$SOCWRAP_NAME" "$SOCWRAP_ARGV"
++    fi
+     printf '[%s] PTY         : %s\n'   "$SOCWRAP_NAME" "$( [[ $OPT_NO_PTY -eq 0 ]] && echo enabled || echo disabled )"
+     printf '[%s] Timeout     : %ss\n'  "$SOCWRAP_NAME" "$OPT_TIMEOUT"
+ 
+--- b/phase1/tests/test_phase1.sh	2026-09-24 04:51:57.004356196 +0000
++++ c/phase1/tests/test_phase1.sh	2026-09-24 04:51:57.017925852 +0000
+@@ -161,7 +161,7 @@
+ 
+     # Simple command: should show EXEC:
+     output=$(bash "$SOCWRAP" --dry-run -- /bin/cat 2>&1)
+-    assert_contains "$output" "EXEC" "--dry-run contains EXEC address"
++    assert_match "$output" "EXEC|SYSTEM" "--dry-run contains EXEC or SYSTEM address"
+ 
+     # With PTY: should have pty,setsid in the EXEC options
+     output=$(bash "$SOCWRAP" --dry-run -- /bin/cat 2>&1)
