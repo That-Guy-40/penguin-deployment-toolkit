@@ -1,58 +1,70 @@
 # socwrap deep dive: phases 1 and 2
 
-`socwrap` puts a readline prompt (line editing, arrow-key history, Ctrl-R,
-history saved to disk) in front of anything interactive: a local REPL, a raw
-TCP socket, a UDP service, a Unix socket, an SSH session, a telnet box or a
-chroot shell. It has no `rlwrap` dependency and does not need a socat built
-with readline.
+`socwrap` gives any line-by-line program the comforts you're used to in
+bash: arrow keys to edit what you're typing, ↑ to bring back earlier
+commands, Ctrl-R to search them, and a history that's still there next
+time. It works for a local program (`python3`, `sqlite3`), a network
+service, a remote login or a locked-down shell. It needs only bash and a
+tool called socat.
 
-This tutorial follows the code of the first two phases:
+This tutorial explains how the first two phases work, down to individual
+lines of code. **You don't need to know the jargon beforehand.** Each
+technical word is explained in plain language the first time it appears,
+and after that it's used freely, so the vocabulary grows as you go.
 
-| Part | File | You will learn |
-|------|------|----------------|
-| 1 | [01-phase1-core-bridge.md](01-phase1-core-bridge.md) | The two-layer architecture: FIFOs, the five processes, the `read -e` loop, signals, history and teardown |
-| 2 | [02-phase2-transport-modes.md](02-phase2-transport-modes.md) | How phase 2 adds TCP, TLS, UDP, Unix, SSH, Telnet and chroot without changing the core loop: two-pass argument parsing, address builders and the telnet IAC scrubber |
-| 3 | [03-field-notes-bugs-and-fixes.md](03-field-notes-bugs-and-fixes.md) | Six bugs and a list of smaller issues found while writing parts 1 and 2, each with a reproduction; tested patches for the six |
-| Labs | [labs/](labs/) | `lab-servers.sh`: throwaway local TCP, UDP, Unix, TLS and fake-telnet servers to point socwrap at |
-| Patches | [patches/](patches/) | `git apply`-ready fixes for the bugs in part 3 (core fixes, plus an optional argv-quoting fix) |
+## The route
 
-## Before you start
+| Part | File | What you'll learn | New words (examples) |
+|------|------|-------------------|----------------------|
+| 0 | [00-building-blocks.md](00-building-blocks.md) | The ideas everything else depends on, explained with everyday comparisons | process, stdin/stdout, file descriptor, pipe, signal, PTY, TCP/UDP, socat |
+| 1 | [01-phase1-core-bridge.md](01-phase1-core-bridge.md) | Phase 1, line by line: how bash and socat are joined, the five cooperating processes, and how it all shuts down | strict mode, subshell, deadlock, polling, race condition, teardown |
+| 2 | [02-phase2-transport-modes.md](02-phase2-transport-modes.md) | Phase 2: connecting to TCP, TLS, UDP, Unix sockets, SSH, telnet and chroot, all without touching Phase 1's core | mode, dispatch, datagram, chroot, IAC, negotiation, regex |
+| 3 | [03-field-notes-bugs-and-fixes.md](03-field-notes-bugs-and-fixes.md) | Six real bugs found while writing this, each with a way to reproduce it, a tested fix, and the lesson behind it | reproduce, patch, errno, regression test |
+| | [GLOSSARY.md](GLOSSARY.md) | Every term, in alphabetical order, linked back to where it's explained | |
+| | [labs/](labs/) | `lab-servers.sh`: practice servers (TCP, UDP, Unix, TLS, pretend telnet) on your own machine | |
+| | [patches/](patches/) | The Part 3 fixes, ready to apply with `git apply` | |
 
-**Source version.** Line numbers refer to socwrap commit
-`08ec3b73579967faf2fae75f2f09318226f916e9` (`phase1/socwrap.sh`, 730 lines;
-`phase2/socwrap.sh`, 1,156 lines). If the file has changed since, search for
-the function name.
+**Where to start:**
 
-**What you need.**
+- New to Linux internals? Start at **Part 0** and go in order.
+- Comfortable with processes, pipes and file descriptors? Skim Part 0's
+  headings, then start at **Part 1**.
+- Just want the bugs? Go to **Part 3**. It links back to the explanations
+  it relies on.
 
-```bash
-bash --version | head -1        # 4.0 or later
-socat -V | head -2              # any recent build; readline support not needed
-getopt --test; echo $?          # must print 4 (util-linux getopt)
-command -v jq perl openssl      # optional, but the labs use them
-```
+## What you need
 
-**Getting the code.**
+- A Linux machine (or a Linux virtual machine or container).
+- `bash` version 4 or later: check with `bash --version`.
+- `socat`: install it with your package manager (`sudo apt install socat`
+  on Debian or Ubuntu).
+- Optional but used in the labs: `jq`, `perl`, `openssl`.
 
 ```bash
 git clone https://github.com/That-Guy-40/socwrap
 cd socwrap
-bash phase1/socwrap.sh --detect
+bash phase1/socwrap.sh --detect        # checks your machine is ready
 ```
 
-**Conventions.** `P1` means `phase1/socwrap.sh` and `P2` means
-`phase2/socwrap.sh`. `P1:367` means line 367 of the phase 1 script.
-Everything shown as output was captured from real runs (bash 5.2.21, socat
-1.8.0.0, Linux x86_64).
+## Notes on accuracy
 
-## The one-paragraph version
+- Line numbers such as `P1:367` (Phase 1, line 367) refer to socwrap commit
+  `08ec3b73579967faf2fae75f2f09318226f916e9`. If the code has moved on,
+  search for the function name instead.
+- Every output shown was captured from a real run (bash 5.2.21, socat
+  1.8.0.0, Linux).
 
-bash's `read -e` builtin is GNU readline, so a plain `while read -e` loop gets
-editing, history and Ctrl-R for free. The script starts `socat - <TARGET>` in
-the background, with its stdin and stdout connected to two named pipes. Each
-line you type is written into the first pipe. A background `cat` copies the
-second pipe to your terminal. A small monitor process sends `SIGUSR1` when
-socat dies, which breaks the loop. Phase 2 keeps that loop exactly as it is.
-It only changes the `<TARGET>` string (`TCP:…`, `OPENSSL:…`, `UDP:…`,
-`UNIX-CONNECT:…`, `EXEC:ssh …`, `EXEC:chroot …`) and, for telnet, puts a
-filter between the output pipe and your screen.
+## The short version
+
+bash has a built-in command, `read -e`, that reads a line using readline,
+the same editing engine bash itself uses. socwrap runs that in a loop. Each
+line you finish is written into a **named pipe** leading to **socat**, and
+socat passes it on to the program or server. Replies come back through a
+second named pipe, and a small background helper copies them to your
+screen. Another helper notices when the other side goes away and wakes up
+the loop.
+
+Phase 2 keeps all of that exactly as it was and only changes what socat
+connects to.
+
+If some of those words were unfamiliar, that's what Part 0 is for.

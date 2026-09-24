@@ -1,83 +1,109 @@
-# Part 3: Field notes, bugs and fixes
+# Part 3: Bugs found along the way, and how to fix them
 
-Reading code closely enough to explain it tends to turn up bugs. These are
-the ones found while writing Parts 1 and 2. **Every item below was
-reproduced on a real run**, not just inferred from reading. Where there's a
-fix, it was tested too, and the patched scripts still pass the project's own
-suites (phase 1: 51/51; phase 2: 129/129, with a stub `ssh` on PATH because
-the reference machine has no ssh client).
+Reading code carefully enough to explain it tends to turn up problems. This
+part collects the ones found while writing Parts 1 and 2.
 
-Why this belongs in a tutorial: each bug shows a Unix idea from Parts 1 and
-2 that's easy to get wrong. Fd inheritance, `set -e` edge cases, signal
-timing, and tools with their own quoting rules.
+Each bug is described the same way:
 
-| # | Bug | Phases | Effect | Patch |
-|---|-----|--------|--------|-------|
-| 1 | [Ctrl-D hangs until the far side hangs up](#bug-1-ctrl-d-hangs-until-the-far-side-hangs-up) | 1, 2 | EOF doesn't end the session in network modes, or with programs that wait for stdin EOF | core |
-| 2 | [Mode flags are stolen from the wrapped command](#bug-2-mode-flags-are-stolen-from-the-wrapped-command) | 2 | `-- bash -c …`, `-- ls -t`, `-- grep -c …` are misparsed | core |
-| 3 | [Arguments containing spaces are split by socat](#bug-3-arguments-containing-spaces-are-split-by-socat) | 1, 2 | `-- cmd 'a b'` reaches the program as two arguments | optional |
-| 4 | [socat errors skip teardown and the exit-code explanation](#bug-4-socat-errors-skip-teardown-and-the-exit-code-explanation) | 1, 2 | "connection refused" advice never shown, helpers not reaped | core |
-| 5 | [Telnet prompts without a newline are held back](#bug-5-telnet-prompts-without-a-newline-are-held-back) | 2 | `login:` isn't shown until after you've typed | core |
-| 6 | [A late SIGUSR1 can kill socwrap during teardown](#bug-6-a-late-sigusr1-can-kill-socwrap-during-teardown) | 1, 2 | exit status 138, sometimes history lost | core |
-| | [Smaller issues](#smaller-issues) | 2 | help text and dry-run mismatches, edge cases | none |
+- **What you'd notice**: the symptom, in plain terms.
+- **Try it**: commands that make it happen on your own machine.
+- **Why it happens**: the cause, using words from Parts 0–2.
+- **The fix**: a small, tested change.
+- **The lesson**: the general idea worth remembering.
 
-Patches, relative to the socwrap repo root at commit `08ec3b7`:
+Two new words to start:
+
+> **New term: reproduce / reproduction.** Making a bug happen on purpose,
+> reliably. A bug you can reproduce is a bug you can prove fixed.
+>
+> **New term: patch (also called a diff).** A file listing the lines to
+> remove (starting `-`) and add (starting `+`) to change a program. `git
+> apply file.patch` makes those changes for you.
+
+**Every bug below was reproduced on a real machine**, not just suspected
+from reading. Every fix was tested, and the fixed scripts still pass the
+project's own test suites (Phase 1: 51 of 51; Phase 2: 129 of 129, with a
+stand-in `ssh` program because the test machine had no real one).
+
+| # | Bug | Phases | Patch |
+|---|-----|--------|-------|
+| 1 | [Ctrl-D hangs until the other side hangs up](#bug-1-ctrl-d-hangs-until-the-other-side-hangs-up) | 1, 2 | core |
+| 2 | [Options meant for the wrapped program get grabbed by socwrap](#bug-2-options-meant-for-the-wrapped-program-get-grabbed-by-socwrap) | 2 | core |
+| 3 | [An argument with a space in it gets split in two](#bug-3-an-argument-with-a-space-in-it-gets-split-in-two) | 1, 2 | optional |
+| 4 | [When socat fails, socwrap skips its clean-up and advice](#bug-4-when-socat-fails-socwrap-skips-its-clean-up-and-advice) | 1, 2 | core |
+| 5 | [Telnet login prompts don't appear until you type](#bug-5-telnet-login-prompts-dont-appear-until-you-type) | 2 | core |
+| 6 | [A late SIGUSR1 can stop socwrap while it shuts down](#bug-6-a-late-sigusr1-can-stop-socwrap-while-it-shuts-down) | 1, 2 | core |
+| | [Smaller issues](#smaller-issues) | 2 | none |
+
+**Applying the patches.** From the top folder of a socwrap copy at commit
+`08ec3b7`:
 
 ```bash
-cd socwrap
 git apply /path/to/tutorials/socwrap/patches/phase1-core-fixes.patch
 git apply /path/to/tutorials/socwrap/patches/phase2-core-fixes.patch
-git apply /path/to/tutorials/socwrap/patches/phase2-argv-quoting.patch   # optional, apply after core
+git apply /path/to/tutorials/socwrap/patches/phase2-argv-quoting.patch   # optional; apply after the core patches
 ```
 
-The patches fix the phase 1 and 2 directories only. Later phases copied the
-same code, so they probably have the same bugs. Checking them is a good
-exercise.
+The patches only change the `phase1` and `phase2` folders. Later phases
+copied the same code, so they probably have the same bugs. Checking that
+is a good exercise.
 
 ---
 
-## Bug 1: Ctrl-D hangs until the far side hangs up
+## Bug 1: Ctrl-D hangs until the other side hangs up
 
-**Symptom.** Press Ctrl-D in a TCP session to a server that keeps its end
-open, or while wrapping `cat` or any program that runs until stdin closes.
-The prompt disappears and socwrap hangs.
+**What you'd notice.** You're connected to a server and press Ctrl-D to
+leave. The prompt disappears but socwrap doesn't exit. It sits there until
+the *server* decides to close the connection. The same happens when
+wrapping `cat`, or any program that waits for its input to end.
 
-**Reproduce.**
+**Try it.**
 
 ```console
+$ # a server that answers each line, then keeps the connection open for 30 s
 $ socat TCP-LISTEN:2352,reuseaddr SYSTEM:'while read l; do echo "srv:$l"; done; sleep 30' &
 $ printf 'one\n' | timeout 8 bash phase2/socwrap.sh -p '' -t 127.0.0.1 2352
 srv:one
-socat[8609] W exiting on signal 15
 $ echo $?
-124                      # killed by timeout after 8.00 s
+124              ← "timeout" had to stop it after 8 seconds
 ```
 
-**Cause.** Teardown depends on this line:
+(`printf 'one\n' |` types a line for you and then sends EOF, just like
+pressing Ctrl-D. `timeout 8` stops the command after 8 seconds, and status
+124 means it had to.)
+
+**Why it happens.** When you're done, socwrap closes its end of the typing
+pipe:
 
 ```bash
-exec 4>&-     # "Close our write end of in_pipe — socat sees EOF on stdin and exits"
+exec 4>&-     # the comment says: "socat sees EOF on stdin and exits"
 ```
 
-A FIFO only reports EOF when **every** write descriptor is closed, in every
-process. The output forwarder (`cat <&5 &`) and the monitor subshell
-(`( … ) &`) were forked **after** `exec 4>"$in_pipe"`, and a fork copies all
-open fds. So both hold their own copy of fd 4 and keep the pipe open.
-`/proc` shows it:
+But recall two facts from Part 0:
+
+- A pipe only gives its reader EOF when **every** writing end is closed.
+- Children **inherit** copies of their parent's file descriptors.
+
+The copier and the watcher were both started *after* fd 4 was opened, so
+each has its own copy of the writing end. socwrap closes its copy, but two
+more are still open. socat never sees EOF, so it never finishes, and
+socwrap waits for it indefinitely.
+
+You can see the extra copies in `/proc`:
 
 ```
-PID   COMM   FDs pointing at the (deleted) FIFOs
-1467  bash   4->…/stdin  5->…/stdout      ← main loop
-1483  bash   4->…/stdin  5->…/stdout      ← monitor: holds the write end
-1482  cat    0->…/stdout 4->…/stdin 5->…  ← forwarder: holds the write end
-1480  socat  0->…/stdin  1->…/stdout
+PID   program  open pipes
+1467  bash     4 → typing pipe, 5 → output pipe     ← the input loop
+1483  bash     4 → typing pipe, 5 → output pipe     ← the watcher: still has the typing pipe open!
+1482  cat      0 → output pipe, 4 → typing pipe, …  ← the copier:  still has it open too!
+1480  socat    0 → typing pipe, 1 → output pipe
 ```
 
-socat never sees EOF, never exits, and `wait "$socat_pid"` blocks until the
-remote end closes. In EXEC mode, typing `exit` still works because the
-*child* ends the session. Only "I'm done, you hang up" is broken.
+(Leaving by typing `exit` still works, because then the *program* ends the
+conversation. Only "I'm done, you hang up" is broken.)
 
-**Fix.** Close fd 4 in each helper as it's started:
+**The fix.** When starting each helper, close its copy of fd 4 straight
+away. `4>&-` after a command means "run this without fd 4":
 
 ```diff
 -        cat <&5 &
@@ -87,19 +113,20 @@ remote end closes. In EXEC mode, typing `exit` still works because the
 +    ) 4>&- &
 ```
 
-The same change goes on the `tee` and telnet-scrubber forwarder variants.
-With the patch, the same reproduction exits in **0.58 s**, which is socat's
-0.5 s half-close timeout plus a little overhead.
+The same change goes on the `tee` and telnet-cleaner versions of the
+copier. With the patch, the example above finishes in **0.58 seconds**
+instead of hanging. (socat waits half a second after EOF for any last
+reply, which accounts for most of that.)
 
-**Lesson.** Background jobs inherit every open fd. When a descriptor's
-*closing* means something (EOF on a pipe, releasing a lock, closing a
-socket), close it explicitly in every child that doesn't need it.
+**The lesson.** Background helpers get copies of every open file
+descriptor. If *closing* something is meant to signal "done", close it in
+every helper that doesn't need it.
 
 ---
 
-## Bug 2: Mode flags are stolen from the wrapped command
+## Bug 2: Options meant for the wrapped program get grabbed by socwrap
 
-**Symptom.**
+**What you'd notice.**
 
 ```console
 $ bash phase2/socwrap.sh --dry-run -- ls -t
@@ -110,14 +137,16 @@ $ bash phase2/socwrap.sh -- python3 -c 'print(1)'
 [socwrap] ERROR: Chroot directory not found: print(1)
 ```
 
-**Cause.** The phase 2 pre-pass
-([Part 2 §3](02-phase2-transport-modes.md#3-two-pass-argument-parsing))
-walks **all** of `"$@"` looking for `-t -u -T -U -s -c`. It never stops at
-`--`, so arguments that belong to the wrapped command are taken as socwrap
-modes. `bash -c`, `python3 -c`, `grep -c`, `ls -t`, `sort -u`, `tar -c`,
-`ssh -T` and `curl -s` are all affected, and they're very common.
+**Why it happens.** Phase 2 reads the command line in two passes
+([Part 2 §3](02-phase2-transport-modes.md#3-reading-the-command-line-in-two-passes)).
+The first pass looks for `-t -u -T -U -s -c` in **every** word you typed.
+It doesn't stop at `--`, which is supposed to mean "the rest belongs to the
+program". So `-c` in `bash -c` is taken as socwrap's chroot option.
+`bash -c`, `python3 -c`, `grep -c`, `ls -t`, `sort -u`, `tar -c` and
+`curl -s` are all affected, and they're common.
 
-**Fix.** Stop at `--` and pass the rest through untouched:
+**The fix.** When the first pass reaches `--`, copy everything from there
+on unchanged and stop looking:
 
 ```diff
              --ssh-opts)
@@ -132,17 +161,18 @@ modes. `bash -c`, `python3 -c`, `grep -c`, `ls -t`, `sort -u`, `tar -c`,
 +                ;;
 ```
 
-`"${args[@]:i}"` is bash array slicing: every element from index `i`
-onwards, **including** the `--` itself, which `getopt` still needs to see.
+`"${args[@]:i}"` means "every item in the array from position `i`
+onwards". That includes the `--` itself, which the second pass (getopt)
+still needs to see.
 
-**Lesson.** A hand-written pre-parser must follow the same `--` convention
-as the real parser that runs after it.
+**The lesson.** If you write your own option reader in front of a standard
+one, it has to follow the same rules, including "stop at `--`".
 
 ---
 
-## Bug 3: Arguments containing spaces are split by socat
+## Bug 3: An argument with a space in it gets split in two
 
-**Symptom.**
+**What you'd notice.**
 
 ```console
 $ printf '\n' | bash phase1/socwrap.sh --no-pty -- printf '[%s]\n' 'a b'
@@ -150,15 +180,20 @@ $ printf '\n' | bash phase1/socwrap.sh --no-pty -- printf '[%s]\n' 'a b'
 [b]
 ```
 
-**Cause.** `build_exec_addr` quotes the argv with bash's `printf '%q'`
-(`a\ b`) and builds `EXEC:printf \[%s\]\\n a\ b`. But socat isn't a shell:
+The program was meant to receive `a b` as **one** argument and print
+`[a b]`. It received two.
 
-1. socat's **address parser** handles quotes and backslashes itself (so
-   `\,` and `\:` protect the separators).
-2. `EXEC:` then **splits the command on whitespace**, and a space escaped at
-   the shell level doesn't survive that.
+**Why it happens.** socwrap puts the program and its arguments inside the
+socat address, using bash's `printf '%q'` to add backslashes the way bash
+would (`a\ b`). But socat isn't bash:
 
-These experiments with socat 1.8.0.0 show it:
+1. socat first reads the address with **its own** rules for quotes and
+   backslashes. (These are what let it tell a comma inside an argument from
+   the commas between options.)
+2. Then `EXEC:` **splits the command at every space**, however it was
+   quoted.
+
+Tried directly with socat 1.8.0.0, every quoting style fails the same way:
 
 ```console
 $ echo | socat - 'EXEC:printf [%s]\\n a\ b'      → [a] [b]
@@ -166,51 +201,59 @@ $ echo | socat - "EXEC:printf [%s]\\\\n 'a b'"   → [a] [b]
 $ echo | socat - 'EXEC:printf [%s]\\n "a b"'     → [a] [b]
 ```
 
-No quoting inside an `EXEC:` address keeps an argument with a space in it
-as one argument. The same thing explains why `--ssh-opts "-p 2222"` works
-**by accident**
-([Part 2 §5.4](02-phase2-transport-modes.md#54-ssh-build_ssh_addr-p2446)):
-the space socwrap failed to split on is split by socat instead.
+No quoting inside an `EXEC:` address keeps a space inside one argument.
+(This is also why `--ssh-opts "-p 2222"` works by accident: see
+[Part 2 §5.4](02-phase2-transport-modes.md#54-ssh-build_ssh_addr-p2446).)
 
-**Fix (optional patch).** Keep the arguments out of the address altogether:
+**The fix (optional patch).** Don't put the arguments in the address at
+all. Pass them to socat in an environment variable, and have a fixed,
+never-changing address unpack them:
 
 ```bash
-# build_socat_cmd, exec branch
-SOCWRAP_ARGV=$(_sh_quote "${WRAP_TARGET[@]}")   # 'printf' '[%s]\n' 'a  b'
+# in build_socat_cmd, exec mode:
+SOCWRAP_ARGV=$(_sh_quote "${WRAP_TARGET[@]}")   # →  'printf' '[%s]\n' 'a  b'
 export SOCWRAP_ARGV
 remote_addr=$(build_exec_addr)
 
-# build_exec_addr
+# in build_exec_addr:
 local addr='SYSTEM:eval exec \"$SOCWRAP_ARGV\"'
 ```
 
-- `_sh_quote` wraps each argument in POSIX single quotes (`it's` becomes
-  `'it'\''s'`). That's safe for `/bin/sh`, unlike `%q`, which can produce
-  bash-only `$'…'` strings.
-- The socat address is now a **constant**. `\"` gets through socat's parser
-  as a literal `"`, so sh runs `eval exec "$SOCWRAP_ARGV"`. That rebuilds
-  the exact argv, and `exec` replaces the shell so no extra process is left
-  behind.
-- The export has to happen in `build_socat_cmd`. `build_exec_addr` runs
-  inside `$( … )`, a subshell, so anything exported there disappears.
+Step by step:
+
+- `_sh_quote` puts each argument in single quotes, the one quoting style
+  every shell understands. (`it's` becomes `'it'\''s'`: close the quote,
+  add an escaped `'`, reopen.)
+- socat's `SYSTEM:` address runs its text with the basic shell `/bin/sh`.
+  Here the text is always the same: `eval exec "$SOCWRAP_ARGV"`. `eval`
+  unpacks the quoted arguments exactly, and `exec` replaces the shell with
+  the program so nothing extra is left running.
+- The `export` has to be in `build_socat_cmd`, not `build_exec_addr`. The
+  builder runs inside `$( … )`, a subshell (Part 1 §4.6), so anything it
+  exports vanishes when it finishes.
 
 Tested with `'a  b'` (two spaces), `x,y`, `it's`, `c:d` and a literal
-`$HOME`: all five arrive intact. `python3 -q` still works with a PTY. Why is
-it optional? `--dry-run` now shows `SYSTEM:eval exec "$SOCWRAP_ARGV"`
-instead of the command. The patch adds a `Command :` line to dry-run output
-to make up for it, and relaxes one phase 1 test from "contains `EXEC`" to
-"contains `EXEC` or `SYSTEM`".
+`$HOME`: all five arrive exactly as typed, and `python3 -q` still works on
+a PTY.
 
-**Lesson.** `printf %q` quotes for **bash**. Before you quote, check who
-will actually parse the string.
+**Why it's optional:** `--dry-run` now shows the fixed
+`SYSTEM:eval exec "$SOCWRAP_ARGV"` instead of your command. The patch adds
+a `Command :` line to the dry-run output to make up for that, and relaxes
+one Phase 1 test from "output contains `EXEC`" to "contains `EXEC` or
+`SYSTEM`".
+
+**The lesson.** `printf '%q'` quotes for **bash**. Before quoting, find out
+which program will actually read the text, and follow *its* rules.
 
 ---
 
-## Bug 4: socat errors skip teardown and the exit-code explanation
+## Bug 4: When socat fails, socwrap skips its clean-up and advice
 
-**Symptom.** `-t 127.0.0.1 1` (nothing listening) shows socat's own error
-and exits. The friendly `connection refused — is the target listening?`
-message never appears:
+**What you'd notice.** Connect to a port where nothing is listening. You
+see socat's own terse error, and then socwrap just exits. The helpful
+`connection refused — is the target listening?` message never appears.
+
+**Try it.**
 
 ```console
 $ printf 'x\n' | bash phase2/socwrap.sh -v -t 127.0.0.1 1
@@ -219,25 +262,34 @@ socat[796] E connect(5, AF=2 127.0.0.1:1, 16): Connection refused
 [socwrap] DEBUG: cleanup() called with exit code 1
 ```
 
-**Cause 1: `set -e` at the `wait`.**
+(Port 1 is almost never in use, so the connection is refused.)
+
+**Why it happens.** Two separate reasons.
+
+*Reason 1: strict mode stops the script at `wait`.*
 
 ```bash
-set -e                                # restored after the loop
+set -e                                # strict mode, back on after the loop
 …
-wait "$socat_pid" 2>/dev/null         # returns socat's status: 1
-rc=$?                                 # never reached
+wait "$socat_pid" 2>/dev/null         # socat failed, so this returns 1…
+rc=$?                                 # …and strict mode stops the script before this line
 ```
 
-A plain command that fails under `set -e` ends the script. So on **any**
-non-zero socat exit, the script jumps straight to the EXIT trap. It skips
-closing fd 5, killing and reaping the forwarder and monitor, and
-`_interpret_exit`.
+Under `set -e`, any plain command that fails ends the script. `wait` returns
+socat's exit status, so whenever socat fails, the script jumps straight to
+its EXIT trap. It skips closing fd 5, stopping the copier and watcher, and
+calling `_interpret_exit`, the function with the helpful messages.
 
-**Cause 2: 111 is never socat's exit status.** 111 is the Linux *errno* for
-ECONNREFUSED. socat exits **1** for a refused connection, so the `111)` arm
-couldn't match even without cause 1.
+*Reason 2: 111 isn't a socat exit status.* In the Linux kernel's list of
+error numbers (**errno**), 111 means "connection refused". But socat
+doesn't exit with that number. It exits with **1** for a refused
+connection. So even without reason 1, the `111)` case could never match.
 
-**Fix.**
+> **New term: errno.** The error number the Linux kernel reports when
+> something fails, such as 111 for "connection refused". It's not the same
+> thing as a program's exit status.
+
+**The fix.**
 
 ```diff
 -    wait "$socat_pid" 2>/dev/null
@@ -246,50 +298,57 @@ couldn't match even without cause 1.
 +    wait "$socat_pid" 2>/dev/null || rc=$?
 ```
 
-A failure on the left of `||` doesn't trigger `set -e`. The phase 2 patch
-also changes the message for exit 1 to something that fits the real cases:
-`connection refused, unreachable, or TLS failure? Re-run with -v`. The
-harmless `111)` arm is left in place.
+Strict mode never triggers on a command to the left of `||` (Part 1 §4.1),
+so the status is saved and the script carries on. The Phase 2 patch also
+changes the message for status 1 to match what actually causes it:
+`connection refused, unreachable, or TLS failure? Re-run with -v`.
 
-**Lesson.** Under `set -e`, capture a status with `cmd || rc=$?`, never with
-`cmd; rc=$?`.
+**The lesson.** Under `set -e`, save a command's status with
+`cmd || rc=$?`, never `cmd; rc=$?`.
 
 ---
 
-## Bug 5: Telnet prompts without a newline are held back
+## Bug 5: Telnet login prompts don't appear until you type
 
-**Symptom.** Connecting to a router with `-T`, you see the banner but no
-`login:` prompt. After you type your username and press Enter, the prompt
-and the echo arrive together.
+**What you'd notice.** You connect to a router with `-T`. The welcome
+message appears, but no `login:` prompt. You type your username blind,
+press Enter, and only then does the prompt appear, with your answer after
+it.
 
-**Reproduce** with the lab's fake telnetd, which sends `login: ` with no
-newline:
+**Try it.** The lab's pretend telnet server sends `login: ` without a line
+ending, just like a real one:
 
 ```console
 $ bash labs/lab-servers.sh start
-$ (sleep 3) | bash phase2/socwrap.sh -p '' -T 127.0.0.1 7004 | <timer that watches for "login: ">
-login: never shown                         # original
-login: visible after 0.02s                 # patched
+$ (sleep 3) | bash phase2/socwrap.sh -p '' -T 127.0.0.1 7004   # and watch for "login: "
 ```
 
-The same effect, reduced to the filter alone:
+Timed with a small script that watches for `login: ` on screen:
+
+```
+original:  login: never shown before input
+patched:   login: visible after 0.02 s
+```
+
+The cleaner on its own shows the same thing:
 
 ```console
-(printf 'login: '; sleep 2; echo) | cat            → first byte after 0.002 s
-(printf 'login: '; sleep 2; echo) | perl -pe '…'   → first byte after 2.00 s
+(printf 'login: '; sleep 2; echo) | cat            → first character after 0.002 s
+(printf 'login: '; sleep 2; echo) | perl -pe '…'   → first character after 2.00 s
 ```
 
-**Cause.** `perl -p` wraps the script in `while (<STDIN>) { …; print }`.
-`<STDIN>` reads a whole **line**, so a partial line (the prompt) waits in
-perl's buffer until a newline arrives. Telnet servers leave the cursor
-after the prompt on purpose, so that newline only comes after you type.
+**Why it happens.** It's **buffering** (Part 1, step 3). `perl -p` reads
+input **one whole line at a time**. Until a line ending arrives, perl holds
+the partial line (`login: `) in its buffer. A telnet server deliberately
+doesn't end the prompt's line, so the cursor waits after it. The line
+ending only arrives after you've typed your name.
 
-**Fix.** Read whatever bytes are available and write them out straight
-away:
+**The fix.** Read whatever bytes have arrived, clean them, and pass them on
+straight away:
 
 ```perl
-$| = 1;                                   # autoflush STDOUT
-while (sysread(STDIN, my $b, 4096)) {     # returns as soon as any bytes arrive
+$| = 1;                                   # don't buffer output: print immediately
+while (sysread(STDIN, my $b, 4096)) {     # read whatever has arrived (up to 4096 bytes)
     $b =~ s/\xff[\xfb-\xfe][\x00-\xff]//g;
     $b =~ s/\xff[\xf0-\xfa]//g;
     $b =~ s/\xff\xff/\xff/g;
@@ -297,23 +356,28 @@ while (sysread(STDIN, my $b, 4096)) {     # returns as soon as any bytes arrive
 }
 ```
 
-One known limit: an IAC sequence split across two reads isn't removed. Over
-TCP this is rare, because servers send negotiation as one small write. A
-thorough fix would keep a trailing incomplete `\xff…` sequence in a buffer
-for the next read.
+`sysread` returns as soon as *any* data is available, not just a full
+line.
 
-**Lesson.** Line-oriented filters (`perl -p`, `sed`, `awk`, `grep`) aren't
-suitable for interactive streams where prompts don't end in a newline.
+One known limit: if a control code happened to be split across two reads,
+it wouldn't be removed. That's rare in practice, because servers send
+negotiation in small single pieces. A complete fix would keep an
+unfinished `FF…` sequence back for the next read.
+
+**The lesson.** Line-by-line tools (`perl -p`, `sed`, `awk`, `grep`) are a
+poor fit for interactive conversations, where prompts don't end a line.
 
 ---
 
-## Bug 6: A late SIGUSR1 can kill socwrap during teardown
+## Bug 6: A late SIGUSR1 can stop socwrap while it shuts down
 
-**Symptom.** Sometimes, when the wrapped program exits right away (or the
-remote end closes as you press Enter), socwrap dies with status **138**
-(128 + SIGUSR1 = 10), and the shell prints `User defined signal 1`.
+**What you'd notice.** Now and then, usually when the program ends straight
+away, socwrap exits with status **138** and your shell prints
+`User defined signal 1`. Sometimes the command you just typed is missing
+from the history file afterwards.
 
-**Reproduce.** Run a program that exits immediately, 30 times:
+**Try it.** Wrap a program that ends at once, 30 times, and count the exit
+statuses:
 
 ```console
 $ for i in $(seq 30); do printf '\n' | bash phase2/socwrap.sh --no-pty -- printf 'x\n' >/dev/null 2>&1; echo $?; done | sort | uniq -c
@@ -321,23 +385,27 @@ $ for i in $(seq 30); do printf '\n' | bash phase2/socwrap.sh --no-pty -- printf
      22 0
 ```
 
-That's 8 out of 30. In a second run of 40 with a real command typed, 7 were
-killed, and **2 of those lost the command from the history file.**
+138 is 128 + 10, and signal 10 is SIGUSR1. So socwrap was stopped by
+SIGUSR1 in 8 of 30 runs. In a second test of 40 runs with a real command
+typed, 7 were stopped, and **2 of those lost the command from the history
+file.**
 
-**Cause.** The loop can end for two reasons: the monitor's `USR1`, or the
-`kill -0 "$cat_pid"` check after the 50 ms sleep. When the second one wins,
-the monitor is still running. Teardown then does:
+**Why it happens.** It's a **race condition** (Part 1, step 7). The input
+loop can end for either of two reasons: the watcher's SIGUSR1, or its own
+"has the copier stopped?" check. When the check wins, the watcher is still
+running and about to send its signal. Meanwhile teardown does:
 
 ```bash
-trap - USR1                       # reset USR1 to its DEFAULT action: terminate
-history -w …                      # ← the monitor's USR1 can land anywhere from here on
+trap - USR1        # USR1 back to its DEFAULT action, which is: stop the process
+history -w …       # ← the watcher's SIGUSR1 can land any time from here on
 ```
 
-and the monitor's delayed `kill -USR1 $$` kills the script, sometimes
-before `history -w` has run.
+Part 0 §7 warned about exactly this: `trap -` doesn't mean "ignore", it
+means "go back to the default", and the default for SIGUSR1 is to stop.
+If the signal lands before `history -w`, the history is lost too.
 
-**Fix.** *Ignore* USR1 during teardown instead of resetting it, and stop the
-monitor straight away:
+**The fix.** *Ignore* SIGUSR1 during teardown, and stop the watcher
+straight away:
 
 ```diff
      trap 'exit 130' INT
@@ -346,44 +414,48 @@ monitor straight away:
 +    kill "$monitor_pid" 2>/dev/null || true
 ```
 
-After the patch: **0 of 50** runs killed and 0 hung, for phase 1 and phase 2.
+After the patch: **0 of 50** runs were stopped and 0 hung, for both Phase 1
+and Phase 2.
 
-**Lesson.** `trap - SIG` means "restore the default", and for most signals
-the default is to die. If a signal can still arrive late, use `trap '' SIG`
-to ignore it.
+**The lesson.** `trap '' SIG` ignores a signal and `trap - SIG` restores the
+default, which usually means stopping. If a signal might still arrive
+late, ignore it.
 
 ---
 
 ## Smaller issues
 
-Not patched. Each one is small, and most are a one-line change.
+These aren't patched. Each is minor, and most need a one-line change.
 
-| Where | Issue |
-|-------|-------|
-| `build_ssh_addr`, `build_chroot_addr` | The PTY options are hard-coded, so **`--no-pty` is ignored** in ssh and chroot modes, although `--help` lists it for "EXEC/SSH/chroot modes". |
-| `run_dry` | `PTY: enabled` and `Timeout:` are printed for every mode, including TCP, UDP and Unix, which never use a PTY or (for Unix) a timeout. |
-| `run_dry` | `Chroot shell:` always shows `OPT_CHROOT_SHELL` (`/bin/sh`), even when a shell was given after the directory. |
-| `preflight` (udp) | No 1–65535 range check (`-u h 99999` is accepted), unlike TCP. |
-| pre-pass `host:port` | Splits at the first and last colons, so IPv6 literals (`::1:80`, `[::1]:80`) don't work. Use the two-word form. |
-| `iac_scrub_cmd` (sed fallback) | The pattern `\^\[\[` matches the literal text `^[[`, not the ESC byte, and nothing matches `0xFF`. **Without perl, telnet scrubbing does nothing**, but the tool only warns that it's "limited". |
-| `iac_scrub_cmd` (perl) | Subnegotiation payloads leak (`IAC SB 18 01 IAC SE` leaves the bytes `\030\001` on screen). A literal `FF FF` followed by `FB`–`FE` is misread, so the next byte is lost. |
-| `build_exec_addr` | The comment on `echo=0` says "socat READLINE handles character display", which is out of date since the move to `read -e`. |
-| `--ssh-opts` | No shell is involved, so `~` isn't expanded (`-i ~/.ssh/key` fails). Use `$HOME/.ssh/key`. |
-| parse_args | `--ssh-opts` appears in both the pre-pass and `getopt`. Only `--ssh-opts=VALUE` reaches the `getopt` branch. |
-| `test_phase2.sh` | Seven SSH dry-run tests fail on machines without an ssh client, because preflight requires `ssh` even for `--dry-run`. Either skip those tests when ssh is absent or let dry-run skip the check. |
-| Test coverage | The suites mostly check `--dry-run` text, so none of bugs 1–6 was caught. Each bug above has a ready-made reproduction that could become a regression test. |
+| Where | What's wrong |
+|-------|--------------|
+| SSH and chroot modes | `pty` is written into their builders, so **`--no-pty` has no effect** there, although `--help` says it applies. |
+| `--dry-run` | `PTY: enabled` and `Timeout:` are shown for every mode, including network and Unix modes where they don't apply. |
+| `--dry-run` | `Chroot shell:` always shows `/bin/sh`, even when you named a different shell. |
+| UDP checks | The port isn't checked to be between 1 and 65535 (`-u host 99999` is accepted), unlike TCP. |
+| `host:port` form | Splits at the first and last colon, so IPv6 addresses such as `::1` don't work in that form. Use `-t HOST PORT`. |
+| Telnet without perl | The fallback `sed` pattern matches the literal text `^[[`, not the escape character, and nothing matches byte 255. **Without perl, nothing is cleaned**, though the warning only says "limited". |
+| Telnet with perl | Subnegotiation contents leak through (the lab shows two stray bytes, `\030\001`). A real byte 255 followed by FB–FE loses the next character. |
+| `build_exec_addr` comment | Says "socat READLINE handles character display", which is out of date since socwrap moved to `read -e`. |
+| `--ssh-opts` | No shell is involved, so `~` isn't expanded. Use `$HOME/.ssh/key`, not `~/.ssh/key`. |
+| Option reading | `--ssh-opts` is handled in both passes. The second copy only runs if you write `--ssh-opts=VALUE`. |
+| Phase 2 tests | Seven SSH `--dry-run` tests fail on machines without `ssh`, because the pre-run checks require it even for a dry run. |
+| Test coverage | The tests mostly check `--dry-run` text, so none of bugs 1–6 was caught. Each "Try it" above could become a **regression test**. |
+
+> **New term: regression test.** A test that reproduces a fixed bug, so
+> that if the bug ever comes back ("regresses"), the test fails.
 
 ---
 
-## Summary of what the patched scripts were checked against
+## Before and after
 
-| Check | Original | Patched |
-|-------|----------|---------|
-| Ctrl-D in TCP mode, server keeps connection open | hangs (killed after 8 s) | exits in 0.58 s |
-| `-- ls -t`, `-- bash -c 'echo from-bash-c'` | mode misparsed | runs the command |
-| `-- printf '[%s]\n' 'a  b' 'x,y' "it's" 'c:d' '$HOME'` | split and mangled | all intact (optional patch) |
-| `-t 127.0.0.1 1` | no socwrap message, helpers never reaped | warning printed, exit 1, helpers reaped |
-| Fake telnetd `login: ` prompt | never shown before input | shown after 0.02 s |
-| Wrapped program exits immediately (×50) | killed by USR1 in 8/30 and 7/40 runs | 0/50 |
-| `phase1/tests/test_phase1.sh` | 51/51 | 51/51 |
-| `phase2/tests/test_phase2.sh` (stub ssh) | 129/129 | 129/129 core, 129/129 with the quoting patch and its test tweak |
+| Check | Original | With the patches |
+|-------|----------|------------------|
+| Ctrl-D while a server keeps the connection open | hangs (stopped by `timeout` after 8 s) | exits in 0.58 s |
+| `-- ls -t` and `-- bash -c 'echo from-bash-c'` | mistaken for socwrap options | runs the command |
+| `-- printf '[%s]\n' 'a  b' 'x,y' "it's" 'c:d' '$HOME'` | split and changed | all arrive intact (optional patch) |
+| Connect where nothing is listening | no advice; helpers not stopped | advice printed, exit 1, helpers stopped |
+| Pretend telnet server's `login: ` | never shown before you type | shown after 0.02 s |
+| Program that ends at once (×50) | stopped by SIGUSR1 in 8 of 30 and 7 of 40 runs | 0 of 50 |
+| `phase1/tests/test_phase1.sh` | 51 / 51 | 51 / 51 |
+| `phase2/tests/test_phase2.sh` (with stand-in ssh) | 129 / 129 | 129 / 129 (the optional patch includes its one test update) |

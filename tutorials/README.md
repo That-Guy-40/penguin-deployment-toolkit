@@ -1,7 +1,8 @@
 # Tutorials
 
 Deep-dive tutorials on That-Guy-40 projects. Each one reads the real source
-line by line and comes with labs you can run on one Linux box.
+line by line and comes with labs you can run on one Linux box. Technical
+terms are introduced one at a time, in plain language, before they're used.
 
 > **Staging note:** this folder is laid out as the root of a standalone
 > `tutorials` repository. It lives here for now because the session that
@@ -17,4 +18,4 @@ line by line and comes with labs you can run on one Linux box.
 
 | Tutorial | Project | What it covers |
 |----------|---------|----------------|
-| [socwrap, phases 1 and 2](socwrap/README.md) | [`socwrap`](https://github.com/That-Guy-40/socwrap) | The two-layer readline/socat bridge (phase 1) and the seven transport modes built on it (phase 2): a code walkthrough, runnable labs, and six bugs found, reproduced and patched along the way |
+| [socwrap, phases 1 and 2](socwrap/README.md) | [`socwrap`](https://github.com/That-Guy-40/socwrap) | Starts from zero: a building-blocks primer (processes, pipes, signals, sockets) and a glossary, then Phase 1 line by line, then Phase 2's network modes, and six real bugs with tested fixes. Assumes no prior jargon. |

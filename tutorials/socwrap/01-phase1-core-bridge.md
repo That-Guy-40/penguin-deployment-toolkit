@@ -1,179 +1,272 @@
 # Part 1: Phase 1, the core bridge
 
-Phase 1 is a single 730-line bash script that proves one idea: **you can put
-GNU readline in front of any line-oriented program using only bash builtins
-and socat.** Every later phase reuses this design, so it pays to understand
-all of it.
+Phase 1 is one bash script, 730 lines long. It proves one idea:
 
-- [1. The problem](#1-the-problem)
-- [2. The architecture in one picture](#2-the-architecture-in-one-picture)
-- [3. Reading the script top to bottom](#3-reading-the-script-top-to-bottom)
-  - [3.1 Strict mode and that unusual IFS](#31-strict-mode-and-that-unusual-ifs)
-  - [3.2 Defaults and environment overrides](#32-defaults-and-environment-overrides)
-  - [3.3 Logging helpers](#33-logging-helpers)
-  - [3.4 Cleanup and global traps](#34-cleanup-and-global-traps)
-  - [3.5 Environment detection](#35-environment-detection)
-  - [3.6 Building the socat address](#36-building-the-socat-address)
-  - [3.7 Dry run](#37-dry-run)
-  - [3.8 `run_socat()`: the heart of socwrap](#38-run_socat-the-heart-of-socwrap)
-  - [3.9 Argument parsing with getopt](#39-argument-parsing-with-getopt)
-  - [3.10 `main()`](#310-main)
-- [4. PTY or no PTY?](#4-pty-or-no-pty)
-- [5. The test harness](#5-the-test-harness)
-- [6. Hands-on exercises](#6-hands-on-exercises)
-- [7. Recap](#7-recap)
+> **You can give any line-by-line program arrow keys, history and Ctrl-R
+> search, using only bash and socat.**
 
----
+Every later phase of socwrap is built on this script, so this part goes
+through it slowly.
 
-## 1. The problem
+**Words from [Part 0](00-building-blocks.md) used here:** shell, script,
+process, parent/child, background process, stdin/stdout/stderr, file
+descriptor (fd), pipe, named pipe (FIFO), EOF, signal, trap, exit status,
+PTY, echo, readline, socat address. If any of these feel shaky, the
+[glossary](GLOSSARY.md) links back to where each is explained.
 
-`nc host 80`, `telnet router`, `sqlite3`, a bare `python3` built without
-readline, `ed`: these programs read raw lines from stdin. They have no arrow
-keys, no history and no Ctrl-R. The usual fix is `rlwrap`, which isn't always
-installed on a jump box, a container or a router shell.
+New words introduced in this part are marked **New term**, as before.
 
-socat has a `READLINE` address that looks like the answer:
+- [1. The idea in one picture](#1-the-idea-in-one-picture)
+- [2. Trying it before reading it](#2-trying-it-before-reading-it)
+- [3. How the script is organised](#3-how-the-script-is-organised)
+- [4. Walking through the code](#4-walking-through-the-code)
+  - [4.1 Safety settings at the top](#41-safety-settings-at-the-top)
+  - [4.2 Settings and where they come from](#42-settings-and-where-they-come-from)
+  - [4.3 Printing messages](#43-printing-messages)
+  - [4.4 Tidying up on the way out](#44-tidying-up-on-the-way-out)
+  - [4.5 Checking the machine: `--detect`](#45-checking-the-machine---detect)
+  - [4.6 Writing the socat address](#46-writing-the-socat-address)
+  - [4.7 Showing the plan without running it: `--dry-run`](#47-showing-the-plan-without-running-it---dry-run)
+  - [4.8 The main event: `run_socat()`](#48-the-main-event-run_socat)
+  - [4.9 Reading the command line](#49-reading-the-command-line)
+  - [4.10 `main()`: the running order](#410-main-the-running-order)
+- [5. PTY or no PTY?](#5-pty-or-no-pty)
+- [6. How the project tests itself](#6-how-the-project-tests-itself)
+- [7. Exercises](#7-exercises)
+- [8. What you now know](#8-what-you-now-know)
 
-```bash
-socat READLINE,history=~/.h TCP:host:80
-```
-
-The project's author ran into a bug with it: **the prompt stays invisible
-until you press the first key.** socat's readline support is also a
-compile-time option that many distributions leave out.
-
-socwrap's answer is to stop asking socat to do readline. bash already links
-GNU readline, and `read -e` exposes it. So:
-
-- **bash does the thinking**: prompt, editing, history.
-- **socat does the plumbing**: connecting to whatever is on the other side.
+Line numbers look like `P1:367`, meaning line 367 of `phase1/socwrap.sh`,
+at socwrap commit `08ec3b7`.
 
 ---
 
-## 2. The architecture in one picture
+## 1. The idea in one picture
+
+socwrap splits the work between two tools, each doing what it's good at:
+
+- **bash does the thinking.** It shows the prompt, lets you edit the line,
+  and keeps the history. It does this with its built-in `read -e` command,
+  which uses the readline library.
+- **socat does the plumbing.** It connects to the program or server on the
+  other side and moves bytes back and forth. That's all.
+
+These two halves are the two **layers** the project keeps mentioning.
+
+> **New term: layer.** One part of a system with a single job, stacked on
+> or beside another. Here: the readline layer (bash) and the transport
+> layer (socat).
+
+They're joined by two named pipes, one for each direction:
 
 ```
-            your terminal
-                 │  keystrokes
-                 ▼
-   ┌──────────────────────────────┐
-   │ main bash process            │  IFS= read -e -r -p "$PROMPT" line
-   │  (readline loop)             │  history -s "$line"
-   └──────────────┬───────────────┘  printf '%s\n' "$line" >&4
-                  │ fd 4 (write end)
-                  ▼
-            [ FIFO  "stdin" ]   ← unlinked right after opening
-                  │
-                  ▼ fd 0
-   ┌──────────────────────────────┐
-   │ socat  -  EXEC:cmd,pty,…     │───────►  wrapped command (own PTY, own session)
-   └──────────────┬───────────────┘◄───────
-                  │ fd 1
-                  ▼
-            [ FIFO  "stdout" ]
-                  │ fd 5 (read end)
-                  ▼
-   ┌──────────────────────────────┐
-   │ output forwarder: cat / tee  │──────► your terminal (and optional log file)
-   └──────────────────────────────┘
+   you type
+      │
+      ▼
+ ┌─────────────────────┐
+ │ bash: the input loop│   shows the prompt, lets you edit,
+ │  (readline)         │   saves history, sends the finished line →
+ └─────────┬───────────┘
+           │ fd 4
+           ▼
+    ═══ named pipe "stdin" ═══
+           │
+           ▼
+ ┌─────────────────────┐          ┌────────────────────────┐
+ │ socat               │ ◄──────► │ the wrapped program    │
+ │                     │          │ (python3, sqlite3, …)  │
+ └─────────┬───────────┘          └────────────────────────┘
+           │
+           ▼
+    ═══ named pipe "stdout" ═══
+           │ fd 5
+           ▼
+ ┌─────────────────────┐
+ │ the copier (cat)    │ ──► your screen (and a log file, if you asked for one)
+ └─────────────────────┘
 
-   ┌──────────────────────────────┐
-   │ monitor subshell             │  while kill -0 $socat_pid; do sleep 0.05; done
-   │                              │  kill -USR1 $$   → breaks the readline loop
-   └──────────────────────────────┘
+ ┌─────────────────────┐
+ │ the watcher         │  checks every 1/20 s: "is socat still running?"
+ │                     │  when it isn't, sends SIGUSR1 to the input loop
+ └─────────────────────┘
 ```
 
-This is the real process tree while wrapping `python3 -q`, captured with
-`ps --forest`:
+> **New term: wrap / wrapped program.** "Wrapping" a program means running
+> it with socwrap in front of it. The wrapped program is the one you're
+> actually talking to, such as `python3`.
+
+This is the real list of processes while socwrap wraps `python3`, captured
+with `ps --forest` (which draws parents and children as a tree):
 
 ```
   PID  PPID COMMAND
- 8832     1 bash phase1/socwrap.sh -H /tmp/hp -- python3 -q     ← readline loop
+ 8832     1 bash phase1/socwrap.sh -H /tmp/hp -- python3 -q     ← the input loop
  8845  8832  \_ socat - EXEC:python3 -q,pty,setsid,echo=0,stderr
- 8847  8832  \_ cat                                             ← output forwarder
- 8848  8832  \_ bash phase1/socwrap.sh …                        ← monitor subshell
- 8877  8848      \_ sleep 0.05                                  ← monitor's poll
+ 8847  8832  \_ cat                                             ← the copier
+ 8848  8832  \_ bash phase1/socwrap.sh …                        ← the watcher
+ 8877  8848      \_ sleep 0.05                                  ← the watcher pausing
 ```
 
-`python3` itself doesn't appear. socat started it with `setsid`, so it runs in
-a new session with its own PTY, outside the process group `ps` was asked about.
+(`PPID` is the parent's PID. `python3` isn't listed because socat
+deliberately starts it in a separate group of processes; see
+[§4.6](#46-writing-the-socat-address).)
 
-Keep this picture in mind: **five cooperating processes, two FIFOs and one
-signal.**
+**Five processes, two named pipes and one signal.** Everything below
+explains how the script sets that up and takes it down again.
 
 ---
 
-## 3. Reading the script top to bottom
+## 2. Trying it before reading it
 
-### 3.1 Strict mode and that unusual IFS
+It helps to see the tool working before reading its code. You need bash
+and socat installed.
+
+```bash
+git clone https://github.com/That-Guy-40/socwrap && cd socwrap
+
+bash phase1/socwrap.sh --detect                 # is this machine ready?
+bash phase1/socwrap.sh -p "py> " -- python3 -q  # python with arrow keys and history
+```
+
+Type `x = 6`, then `x * 7`, then press ↑ twice. Leave with `exit()` or
+Ctrl-D.
+
+The `--` in the command is a common convention. It means "socwrap's own
+options stop here; everything after this is the program to run".
+
+> **New term: option (or flag).** A setting you pass on the command line,
+> like `-p "py> "` (a short option with a value) or `--detect` (a long
+> option). `--` marks the end of a program's own options.
+
+---
+
+## 3. How the script is organised
+
+The script is divided into sections, each a group of **functions**:
+
+> **New term: function.** A named block of code you can run by name, like
+> a small command defined inside the script.
+
+| Section | What it does | Where |
+|---------|--------------|-------|
+| Safety settings | Makes bash stop on errors | P1:20–22 |
+| Settings | Default values, overridable | P1:28–50 |
+| Messages | `err`, `warn`, `info`, `debug`, `die` | P1:57–80 |
+| Tidy-up | Restore the terminal on exit | P1:86–105 |
+| Checks | `detect_env`, `preflight` | P1:111–242 |
+| Address builder | Writes the socat address | P1:259–317 |
+| Running | `run_dry`, `run_socat` | P1:328–514 |
+| Command line | `show_help`, `parse_args` | P1:520–681 |
+| Main | `main` puts it all in order | P1:687–730 |
+
+bash reads the whole file first and only then runs `main "$@"` on the last
+line, so the functions can appear in any order.
+
+---
+
+## 4. Walking through the code
+
+### 4.1 Safety settings at the top
 
 ```bash
 set -euo pipefail          # P1:21
 IFS=$'\n\t'                # P1:22
 ```
 
-`set -euo pipefail` is the standard "unofficial bash strict mode":
+**`set -euo pipefail`** turns on three safety features. People call this
+**strict mode**:
 
-| Flag | Effect |
-|------|--------|
-| `-e` | Exit when any command fails (with the well-known exceptions: inside `if`/`while` conditions and in `&&`/`\|\|` lists) |
-| `-u` | Treat unset variables as errors |
-| `-o pipefail` | A pipeline fails if any part fails, not just the last |
+| Setting | Plain meaning |
+|---------|---------------|
+| `-e` | If a command fails, stop the script instead of carrying on. |
+| `-u` | Using a variable that was never set is an error, which catches typos. |
+| `-o pipefail` | In `a \| b \| c`, count it as failed if **any** step fails, not just the last one. |
 
-`IFS=$'\n\t'` removes **space** from the word-splitting characters. After
-this, an unquoted `$var` holding `a b` stays one word. It's a guard against
-filenames with spaces, but it has two side effects you'll see later:
+> **New term: strict mode.** The `set -euo pipefail` line: make bash stop at
+> the first sign of trouble.
 
-1. `"${array[*]}"` joins with the **first** character of IFS, which is now a
-   newline. So `debug "socat command: ${SOCAT_CMD[*]}"` prints one element per
-   line:
-   ```
-   [socwrap] DEBUG: socat command: socat
-   -
-   EXEC:python3 -q,pty,setsid,echo=0,stderr
-   ```
-2. Any code that *wants* to split on spaces must set IFS locally. The address
-   builders do exactly this (`local IFS=','` at P1:290). In Phase 2,
-   `--ssh-opts` does **not**, which matters in
-   [Part 3, bug 3](03-field-notes-bugs-and-fixes.md#bug-3-arguments-containing-spaces-are-split-by-socat).
+`-e` has exceptions that come up later. It doesn't apply to a command used
+as an `if` or `while` test, or on the left of `||` or `&&`. The difference
+between `cmd; rc=$?` and `cmd || rc=$?` turns out to matter a lot
+([bug 4 in Part 3](03-field-notes-bugs-and-fixes.md#bug-4-when-socat-fails-socwrap-skips-its-clean-up-and-advice)).
 
-### 3.2 Defaults and environment overrides
+**`IFS=$'\n\t'`** needs a bit more explanation. When bash expands an
+unquoted variable, it chops the value into separate words wherever it sees
+certain characters. That's **word splitting**, and the characters are
+listed in a variable called **IFS**. Normally IFS is space, tab and
+newline. This line **removes space**, so a value like `my file.txt` stays
+in one piece.
+
+> **New term: word splitting and IFS.** bash cutting a value into separate
+> words. IFS ("internal field separator") lists the characters it cuts on.
+
+It's a safety measure against filenames with spaces in them. Keep it in
+mind, though, because it has two side effects later on:
+
+1. When the script prints a list, it joins the items with the first
+   character of IFS, which is now a newline. So the `--verbose` output puts
+   each part of the socat command on its own line.
+2. Any code that *does* want to split on spaces has to change IFS itself.
+   Phase 2's `--ssh-opts` doesn't, and only works by luck
+   ([Part 3, bug 3](03-field-notes-bugs-and-fixes.md#bug-3-an-argument-with-a-space-in-it-gets-split-in-two)).
+
+### 4.2 Settings and where they come from
 
 ```bash
-readonly DEFAULT_HISTFILE="${HOME}/.socwrap_history"   # P1:29
+readonly DEFAULT_HISTFILE="${HOME}/.socwrap_history"    # P1:29
 readonly DEFAULT_HISTSIZE=500
 readonly DEFAULT_PROMPT="socwrap> "
 
-OPT_HISTFILE="${SOCWRAP_HISTFILE:-$DEFAULT_HISTFILE}"   # P1:35
+OPT_HISTFILE="${SOCWRAP_HISTFILE:-$DEFAULT_HISTFILE}"    # P1:35
 OPT_HISTSIZE="${SOCWRAP_HISTSIZE:-$DEFAULT_HISTSIZE}"
 OPT_PROMPT="${SOCWRAP_PROMPT:-$DEFAULT_PROMPT}"
 ```
 
-Precedence is **CLI flag > environment variable > built-in default.** The
-environment is read first, and `parse_args` overwrites it if a flag is given.
+- `readonly` means the value can't be changed later.
+- `${A:-B}` means "use A if it's set and not empty, otherwise B".
+- `SOCWRAP_HISTFILE` and the others are **environment variables**, settings
+  you can pass to any program from the shell, like
+  `SOCWRAP_PROMPT="db> " bash socwrap.sh …`.
 
-Two arrays hold the important state:
+> **New term: environment variable.** A named setting passed from a shell
+> to the programs it starts.
+
+So each setting has three possible sources, and the first one found wins:
+**command-line option → environment variable → built-in default.**
+
+Two **arrays** hold the important data:
 
 ```bash
-declare -a SOCAT_CMD=()     # the full socat argv, built later
-declare -a WRAP_TARGET=()   # everything after `--`
+declare -a SOCAT_CMD=()     # the socat command, built later, one word per slot
+declare -a WRAP_TARGET=()   # the program to wrap: everything after --
 ```
 
-The code uses arrays rather than strings so the command's arguments never go
-through word splitting or glob expansion while bash is handling them.
+> **New term: array.** A variable that holds a list of values, each in its
+> own numbered slot. `"${arr[@]}"` gives them back as separate words,
+> exactly as stored.
 
-### 3.3 Logging helpers
+Keeping a command in an array rather than one long string means an
+argument like `my file.txt` stays one argument. It never goes through word
+splitting.
 
-`err`, `warn`, `info` and `debug` (P1:57–80) all write to **stderr**, never to
-stdout. That's deliberate: stdout carries the wrapped program's output, and
-`--detect` prints JSON on stdout that other tools may parse. `debug` checks
-`OPT_VERBOSE` first. `die` calls `err` and then `exit 1`.
+### 4.3 Printing messages
 
-### 3.4 Cleanup and global traps
+`err`, `warn`, `info` and `debug` (P1:57–80) print a tagged message such as
+`[socwrap] WARN: …`. All of them print to **stderr**, never stdout. stdout
+is reserved for the wrapped program's output and for the machine-readable
+`--detect` report, so status messages never get mixed into either.
+
+`debug` only prints when you pass `--verbose`. `die` prints an error and
+stops the script with exit status 1.
+
+### 4.4 Tidying up on the way out
+
+A program on a PTY can leave your terminal in a strange state, for
+example with typing invisible. socwrap makes sure it restores the terminal
+however it ends:
 
 ```bash
 cleanup() {                                  # P1:86
-    local rc=$?
+    local rc=$?                              # remember why we're exiting
     if [[ -n "$SAVED_STTY" ]]; then
         stty "$SAVED_STTY" 2>/dev/null || stty sane 2>/dev/null || true
     else
@@ -182,40 +275,46 @@ cleanup() {                                  # P1:86
     exit $rc
 }
 trap cleanup EXIT
-trap 'exit 130' INT    # 128 + SIGINT(2)
-trap 'exit 143' TERM   # 128 + SIGTERM(15)
-trap 'exit 129' HUP    # 128 + SIGHUP(1)
+trap 'exit 130' INT    # Ctrl-C     → exit status 128+2
+trap 'exit 143' TERM   # kill       → 128+15
+trap 'exit 129' HUP    # window shut → 128+1
 ```
 
-Things to notice:
+- **`stty`** is the tool that reads and changes terminal settings.
+  `stty -g` prints the current settings as one string (saved later, in
+  §4.8), and `stty "$that_string"` puts them back. `stty sane` resets to
+  reasonable defaults, as a fallback.
+- **Every route leads to the EXIT trap.** Ctrl-C, `kill` and a closed
+  window each call `exit`, and `exit` always runs the EXIT trap. So the
+  tidy-up runs every time.
+- `local rc=$?` has to be the very first line. `$?` changes after every
+  command, so it must be saved before anything else runs.
+- `|| true` means "if that failed, never mind". Under strict mode that's
+  how you say a failure is acceptable.
 
-- **One exit path.** INT, TERM and HUP just call `exit N`, and `exit` fires
-  the EXIT trap. So the terminal is restored however the script ends.
-- `local rc=$?` must be the **first** line in `cleanup`. Any command before
-  it would overwrite `$?`.
-- `stty -g` (taken later at P1:378) saves the terminal settings as an opaque
-  string that `stty` can restore exactly. `stty sane` is the fallback.
-- The exit codes follow the shell convention of 128 plus the signal number.
+These are the script's **general** traps. While you're typing, socwrap
+swaps some of them for different ones (§4.8, step 6).
 
-These are the **global** traps. `run_socat` replaces INT and adds USR1 while
-the readline loop runs, then puts them back ([§3.8](#38-run_socat-the-heart-of-socwrap)).
+### 4.5 Checking the machine: `--detect`
 
-### 3.5 Environment detection
+`detect_env()` (P1:153–222) checks what's installed and prints a report.
+Each check is a small helper function:
 
-`detect_env()` (P1:153–222) probes the system with small predicates:
+| Helper | Question it answers | How |
+|--------|---------------------|-----|
+| `_check_socat_available` | Is socat installed? | `command -v socat` finds a program on the search path |
+| `_socat_version` | Which version? | read `socat -V` and pick out the version number |
+| `_socat_has_readline` | Was socat built with readline? | search `socat -V` output for "readline" |
+| `_socat_has_pty` | Can socat make PTYs? | search for `WITH_PTY` or `openpty` |
+| `_bash_version_int` | Is bash new enough? | turns 5.2 into `502`, so it can be compared with `400` (bash 4.0) |
 
-| Helper | How it decides |
-|--------|----------------|
-| `_check_socat_available` | `command -v socat` |
-| `_socat_version` | `socat -V \| awk '/socat version/{print $3; exit}'` |
-| `_socat_has_readline` | `socat -V \| grep -qi readline` |
-| `_socat_has_pty` | `socat -V \| grep -qiE 'WITH_PTY\|openpty'` |
-| `_bash_version_int` | `printf '%d%02d' major minor`, so 5.2 → `502`, easy to compare with `-ge 400` |
+If the `jq` tool is installed, the report comes out as **JSON**, a
+structured text format other programs can read easily. `jq -n --arg …`
+builds the JSON safely, handling quote marks inside values properly.
+Without jq it prints plain `name=value` lines.
 
-With `jq` it builds JSON using `jq -n --arg … --argjson …`. This is the
-correct way to build JSON from shell: `--arg` makes a properly escaped
-string, and `--argjson` passes `true`/`false` through as real booleans.
-Without jq it prints `key=value` lines from a heredoc.
+> **New term: JSON.** A widely used text format for structured data:
+> `{"name": "value", "ready": true}`.
 
 ```console
 $ bash phase1/socwrap.sh --detect
@@ -231,72 +330,92 @@ $ bash phase1/socwrap.sh --detect
 }
 ```
 
-`ready` depends only on socat and bash. `readline_support` is informational,
-which is the whole point of the design.
+`ready` only needs socat and bash 4 or later. `readline_support` is shown
+for interest only. socwrap never uses socat's readline, which is the whole
+point of the design.
 
-`preflight()` (P1:230) is the enforcing version: it `die`s if bash is older
-than 4 or socat is missing.
+A second function, `preflight()` (P1:230), makes the same essential checks
+just before running and stops with an error if bash is too old or socat is
+missing. "Preflight" as in a pilot's checklist before take-off.
 
-### 3.6 Building the socat address
+### 4.6 Writing the socat address
 
-socat always takes two **addresses** and copies bytes between them. socwrap's
-command is always:
+socwrap always runs socat the same way:
 
 ```
-socat  -  <remote-address>
+socat  -  <the other side>
 ```
 
-`-` means "my own stdin and stdout", which will be the two FIFOs.
-`build_exec_addr()` (P1:259–292) builds the remote address:
+`-` means "socat's own stdin and stdout", which will be connected to the
+two named pipes. `build_exec_addr()` (P1:259–292) writes the other side:
 
 ```bash
-cmd_str=$(printf '%q ' "${target[@]}")   # shell-quote every word
-cmd_str="${cmd_str% }"                   # drop trailing space
+cmd_str=$(printf '%q ' "${target[@]}")   # quote each word of the command
+cmd_str="${cmd_str% }"                   # remove the trailing space
 local addr="EXEC:${cmd_str}"
 
 if [[ "$OPT_NO_PTY" -eq 0 ]]; then
-    opts+=("pty")      # give the child a pseudo-terminal
-    opts+=("setsid")   # new session: detach from socwrap's controlling tty
-    opts+=("echo=0")   # PTY must not echo; readline already displayed the line
+    opts+=("pty")      # give the program a fake terminal
+    opts+=("setsid")   # start it in its own separate group of processes
+    opts+=("echo=0")   # the fake terminal must not echo; readline already showed the line
 fi
-opts+=("stderr")       # child's stderr → our stderr (so errors are visible)
+opts+=("stderr")       # let the program's error messages reach your screen
 
 local IFS=','
-printf '%s,%s' "$addr" "${opts[*]}"      # "${opts[*]}" joins with ','
+printf '%s,%s' "$addr" "${opts[*]}"      # join the options with commas
 ```
 
-Result:
+For `python3 -q` the result is:
 
 ```
 EXEC:python3 -q,pty,setsid,echo=0,stderr
 ```
 
-About each option:
+The four address options, one at a time:
 
-- **`pty`**: many programs (python, sqlite3, anything using `isatty()`)
-  behave differently when stdin is a terminal. They print prompts, flush
-  after each line and enable colour. A PTY makes them act as if a person
-  were typing.
-- **`setsid`**: the child gets its own session. Without it, a Ctrl-C in your
-  terminal could go straight to the child's process group.
-- **`echo=0`**: a PTY echoes input back by default. You've already seen the
-  line in readline, so without this every line would appear twice. (The
-  code comment at P1:276 still mentions "socat READLINE", which is left over
-  from before the switch to `read -e`.)
-- **`ctty` is left out on purpose** (P1:279): it opens `/dev/tty`, which fails
-  in containers and detached sessions.
-- `local IFS=','` in a function scopes the IFS change to that function. It's
-  a neat way to join an array with commas.
+- **`pty`** gives the program a fake terminal (Part 0 §9), so python shows
+  its `>>>` prompt and replies straight away instead of saving output up.
+- **`setsid`** puts the program in a new **session**, a separate group of
+  processes with its own terminal. That way Ctrl-C in *your* terminal is
+  handled by socwrap and doesn't hit the program directly. It's also why
+  `python3` didn't appear in the process tree in §1.
 
-The `printf '%q'` quoting is meant to protect arguments with spaces. socat
-**doesn't follow shell quoting rules** in `EXEC:`, though, so this doesn't
-work as intended. See
-[Part 3, bug 3](03-field-notes-bugs-and-fixes.md#bug-3-arguments-containing-spaces-are-split-by-socat).
+  > **New term: session.** A group of processes that share one terminal.
 
-### 3.7 Dry run
+- **`echo=0`** turns off the fake terminal's echo. You've already seen
+  your line in readline, so without this every line would appear twice.
+  (The comment beside it in the code still mentions "socat READLINE", left
+  over from an older version.)
+- **`stderr`** lets the program's error messages through to your screen.
 
-`run_dry()` (P1:328) prints both layers without starting anything, so it's
-the first thing to try when something looks wrong:
+And one thing left out on purpose: socat's `ctty` option. It needs to open
+`/dev/tty`, and that fails inside containers.
+
+Two small bash techniques in this function:
+
+- **`$( … )`** runs a command and captures what it prints. That's
+  **command substitution**. It runs the command in a **subshell**, a
+  temporary copy of the script, so changes made inside don't reach the
+  main script. This detail matters in Part 3.
+
+  > **New term: command substitution / subshell.** `$(cmd)` captures cmd's
+  > output; it runs in a throwaway copy of the shell.
+
+- **`local IFS=','`** changes IFS only inside this function, so
+  `"${opts[*]}"` joins the options with commas. It's a neat way to join a
+  list.
+
+`printf '%q'` is meant to protect arguments containing spaces by adding
+backslashes, as bash would. But socat reads the address with **its own
+rules**, not bash's, so the protection doesn't work. See
+[Part 3, bug 3](03-field-notes-bugs-and-fixes.md#bug-3-an-argument-with-a-space-in-it-gets-split-in-two).
+
+### 4.7 Showing the plan without running it: `--dry-run`
+
+A **dry run** prints what would happen and then stops. `run_dry()`
+(P1:328) prints both layers:
+
+> **New term: dry run.** A rehearsal: show the plan without carrying it out.
 
 ```console
 $ bash phase1/socwrap.sh --dry-run -p "py> " -- python3 -q
@@ -316,85 +435,106 @@ $ bash phase1/socwrap.sh --dry-run -p "py> " -- python3 -q
 [socwrap] PTY          : enabled
 ```
 
-With `--no-pty` the address becomes `EXEC:/bin/bash --norc,stderr`.
+When something doesn't work, try `--dry-run` first.
 
-### 3.8 `run_socat()`: the heart of socwrap
+### 4.8 The main event: `run_socat()`
 
-P1:367–514. We'll go through it in stages.
+This function (P1:367–514) builds the picture from §1, runs your typing
+session, and then takes it all down again. It happens in eight steps.
 
-#### Stage 1: prepare
+#### Step 1: get ready
 
 ```bash
 histdir=$(dirname "$OPT_HISTFILE")
-[[ -d "$histdir" ]] || mkdir -p "$histdir" || warn …
-SAVED_STTY=$(stty -g 2>/dev/null) || true
+[[ -d "$histdir" ]] || mkdir -p "$histdir" || warn …   # make the history folder if needed
+SAVED_STTY=$(stty -g 2>/dev/null) || true               # save terminal settings for later
 ```
 
-The `|| true` matters under `set -e`: when stdin isn't a terminal (in tests
-or a pipeline) `stty -g` fails, and that mustn't kill the script.
+`|| true` is needed because `stty -g` fails when there's no real terminal
+(during automated tests, for example), and strict mode would otherwise
+stop the script.
 
-#### Stage 2: two FIFOs and an ordering puzzle
+#### Step 2: make the two named pipes, in the right order
 
 ```bash
-tmpdir=$(mktemp -d)
-in_pipe="${tmpdir}/stdin";  out_pipe="${tmpdir}/stdout"
-mkfifo "$in_pipe" "$out_pipe"
+tmpdir=$(mktemp -d)                       # a fresh, empty temporary folder
+in_pipe="${tmpdir}/stdin"; out_pipe="${tmpdir}/stdout"
+mkfifo "$in_pipe" "$out_pipe"             # create the two named pipes
 
-"${SOCAT_CMD[@]}" 0<"$in_pipe" 1>"$out_pipe" &    # (A) background socat
+"${SOCAT_CMD[@]}" 0<"$in_pipe" 1>"$out_pipe" &   # (A) start socat in the background
 socat_pid=$!
 
-exec 4>"$in_pipe"     # (B) main shell: write end of in_pipe
-exec 5<"$out_pipe"    # (C) main shell: read end of out_pipe
-rm -rf "$tmpdir"      # (D) unlink both FIFOs
+exec 4>"$in_pipe"      # (B) open the "typing" pipe for writing, as fd 4
+exec 5<"$out_pipe"     # (C) open the "output" pipe for reading, as fd 5
+rm -rf "$tmpdir"       # (D) delete the folder, pipes and all
 ```
 
-**Opening a FIFO blocks until the other end is opened too.** A reader waits
-for a writer, and a writer waits for a reader. Here is how the steps above
-avoid a deadlock:
+Recall from Part 0 that **opening a named pipe waits until the other end
+is opened too.** That makes the order of these lines important:
 
-1. (A) forks. The child applies its redirections **left to right**, so it
-   first opens `in_pipe` for reading and blocks there.
-2. (B) opens `in_pipe` for writing. Now both ends exist, so both opens
-   return.
-3. The child moves on to `1>"$out_pipe"`, opening it for writing, and blocks.
-4. (C) opens `out_pipe` for reading. Both ends exist, so both return, and
-   the child execs socat.
+1. (A) starts socat's process. Before socat itself runs, the new process
+   handles its redirections from left to right. So it first opens
+   `in_pipe` for reading, and **waits**.
+2. (B) opens `in_pipe` for writing. Both ends are now open, so both sides
+   stop waiting.
+3. socat's process moves on to `1>"$out_pipe"`, opens it for writing, and
+   **waits**.
+4. (C) opens `out_pipe` for reading. Both ends are open, both continue, and
+   socat starts.
 
-If (B) and (C) were swapped, the parent would block opening `out_pipe` for
-reading while the child was still blocked opening `in_pipe`. Neither would
-ever move: a deadlock. That's why the code comment says "Order matters".
+Now imagine swapping (B) and (C). The script would wait at `out_pipe`
+while socat's process was still waiting at `in_pipe`. Each would wait for
+the other forever. That's called a **deadlock**, and it's why the code
+comment says "Order matters". (Exercise 2 lets you see it for yourself.)
 
-(D) is a classic Unix trick. Once a FIFO is open, its **directory entry is no
-longer needed**. The kernel keeps the pipe alive while any fd refers to it.
-Deleting the directory right away means nothing is left in `/tmp` if the
-script is killed with SIGKILL, and no other process can open the pipes by
-path. You can see it in `/proc`:
+> **New term: deadlock.** Two processes each waiting for the other, so
+> neither ever moves.
+
+Step (D) uses the other named-pipe fact from Part 0: once a pipe is open,
+its name isn't needed. Deleting a file's name is called **unlinking** it.
+Doing that straight away means nothing is left in `/tmp`, even if socwrap
+is killed abruptly, and no other program can find the pipes by name. On
+Linux you can see the pipes still open but marked deleted:
+
+> **New term: unlink.** Remove a file's name. Anything that already has the
+> file open can keep using it.
 
 ```
-/proc/<socwrap>/fd/4 -> /tmp/tmp.1txpf5uxIl/stdin (deleted)
-/proc/<socwrap>/fd/5 -> /tmp/tmp.1txpf5uxIl/stdout (deleted)
+/proc/<socwrap's PID>/fd/4 -> /tmp/tmp.1txpf5uxIl/stdin (deleted)
+/proc/<socwrap's PID>/fd/5 -> /tmp/tmp.1txpf5uxIl/stdout (deleted)
 ```
 
-#### Stage 3: the output forwarder
+(`/proc` is a folder Linux fills with live information about every
+process. `/proc/PID/fd` lists that process's open file descriptors.)
+
+#### Step 3: start the copier
 
 ```bash
 if [[ -n "$OPT_LOG" ]]; then
-    _tee_cmd=(tee -a "$OPT_LOG")
+    _tee_cmd=(tee -a "$OPT_LOG")                        # copy to the screen AND a log file
     command -v stdbuf >/dev/null && _tee_cmd=(stdbuf -oL tee -a "$OPT_LOG")
     "${_tee_cmd[@]}" <&5 &
 else
-    cat <&5 &
+    cat <&5 &                                           # just copy to the screen
 fi
 cat_pid=$!
 ```
 
-The output path runs **independently of the input loop**. Output from the
-wrapped program shows up whenever it arrives, even while you're halfway
-through typing a line. `stdbuf -oL` makes `tee` line-buffered, so the log
-file stays current. (`tee` writing to a terminal is already fine; the concern
-is the log file.)
+The copier runs **in the background**, separately from your typing. That
+lets the program's output appear the moment it arrives, even while you're
+halfway through a line.
 
-#### Stage 4: the monitor and SIGUSR1
+- `cat` copies its input to its output.
+- `tee` does the same and also appends a copy to a file (`-a` = append).
+- `stdbuf -oL` makes `tee` pass output along **line by line** instead of
+  saving up large chunks first. Saving data up before passing it on is
+  called **buffering**. Without this, the log file could lag behind.
+
+> **New term: buffering.** Collecting data before passing it on, for
+> efficiency. **Line buffering** passes on each complete line. Buffering
+> becomes important again in Part 2.
+
+#### Step 4: start the watcher
 
 ```bash
 (
@@ -404,22 +544,28 @@ is the log file.)
 monitor_pid=$!
 ```
 
-The main loop spends nearly all its time blocked inside `read -e`. It needs
-a way to be told "the other side has gone". So:
+The input loop spends almost all its time waiting for you to type. It needs
+some way to learn "the other side has gone away". So a small background
+process (the **watcher**, called the *monitor* in the code):
 
-- `kill -0 PID` sends no signal. It only checks that the process exists.
-- When socat disappears, the subshell sends `SIGUSR1` to `$$`. In a subshell
-  `$$` is still the **parent** script's PID, which is exactly what's wanted.
-- A signal that arrives while bash is inside `read` makes `read` return
-  early, after bash has run the trap.
+- asks every 1/20 of a second, "is socat still running?" `kill -0` sends
+  no signal at all. It only checks whether the process exists.
+- when socat has gone, sends **SIGUSR1** to the input loop. Inside the
+  parentheses, `$$` still means the main script's PID.
 
-Why poll instead of `wait`? A process can only be reaped once. If the
-monitor were allowed to `wait` on socat, the main script couldn't read
-socat's exit code later. (In fact a subshell can't `wait` for its parent's
-children at all.) Polling every 50 ms is cheap and leaves reaping to
-`run_socat`.
+A signal arriving while bash is waiting inside `read` interrupts the wait.
+That's how the input loop wakes up.
 
-#### Stage 5: turn on history in a non-interactive shell
+Checking again and again like this is called **polling**.
+
+> **New term: polling.** Repeatedly checking whether something has changed,
+> instead of being notified.
+
+Why not simply `wait` for socat? Because a process's exit status can only
+be collected once, and the main script needs it at the end. (A subshell
+can't collect its parent's children anyway.)
+
+#### Step 5: switch history on
 
 ```bash
 set -o history
@@ -427,112 +573,155 @@ HISTSIZE="$OPT_HISTSIZE"; HISTFILESIZE="$OPT_HISTSIZE"
 history -r "$OPT_HISTFILE" 2>/dev/null || true
 ```
 
-A script runs in a **non-interactive** shell, where history is off, so
-`history -s` would do nothing. `set -o history` turns it on. `history -r`
-loads the file, so the up arrow and Ctrl-R work from the first prompt.
+When bash runs a script, history is switched off. It's only meant for
+people typing. These lines turn it on, set the maximum number of entries,
+and **r**ead the saved history file, so ↑ and Ctrl-R work from the very
+first prompt.
 
-#### Stage 6: loop-local traps
+#### Step 6: change what Ctrl-C does while you type
 
 ```bash
-trap 'true' INT               # Ctrl-C cancels the current line only
+trap 'true' INT               # Ctrl-C: do nothing special (readline clears the line)
 local _loop_exit=0
-trap '_loop_exit=1' USR1      # monitor says socat is gone
+trap '_loop_exit=1' USR1      # SIGUSR1 from the watcher: set a flag
 ```
 
-The global `trap 'exit 130' INT` would end the whole session on Ctrl-C. For
-the length of the loop, INT is swapped for a no-op. readline discards the
-half-typed line, `read` returns 130, and the loop shows a fresh prompt. This
-matches how bash itself behaves.
+The general trap from §4.4 would end socwrap on Ctrl-C. While you're
+typing, that would be annoying, so it's replaced with a do-nothing trap.
+readline clears your half-typed line and you get a fresh prompt, just as in
+bash.
 
-#### Stage 7: the readline loop
+The USR1 trap only sets a **flag**, a variable that records "this has
+happened", which the loop checks.
+
+> **New term: flag (variable).** A variable used as an on/off marker.
+
+#### Step 7: the input loop
+
+This is the heart of socwrap:
 
 ```bash
-set +e
+set +e                                           # don't stop on errors inside the loop
 while true; do
-    IFS= read -e -r -p "$OPT_PROMPT" line
+    IFS= read -e -r -p "$OPT_PROMPT" line        # show prompt, let the user edit a line
     rc=$?
-    [[ $_loop_exit -eq 1 ]] && break            # USR1 during read
+    [[ $_loop_exit -eq 1 ]] && break             # the watcher says socat has gone
 
-    if [[ $rc -eq 0 ]]; then
-        [[ -n "$line" ]] && history -s "$line"  # add to in-memory history
-        printf '%s\n' "$line" >&4 || break      # send; EPIPE ⇒ socat gone
-        sleep 0.05                              # let output print before the next prompt
+    if [[ $rc -eq 0 ]]; then                     # got a line
+        [[ -n "$line" ]] && history -s "$line"   # add it to history (if not empty)
+        printf '%s\n' "$line" >&4 || break       # send it into the pipe
+        sleep 0.05                               # give the reply time to print
         [[ $_loop_exit -eq 1 ]] && break
-        kill -0 "$cat_pid" 2>/dev/null || break # forwarder gone ⇒ program exited
+        kill -0 "$cat_pid" 2>/dev/null || break  # copier gone = program finished
     elif [[ $rc -eq 130 ]]; then
-        continue                                # Ctrl-C
+        continue                                 # Ctrl-C: just show a fresh prompt
     else
-        break                                   # Ctrl-D / EOF
+        break                                    # Ctrl-D or another reason to stop
     fi
 done
 set -e
 ```
 
-Line by line:
+The `read` line does most of the work:
 
-- **`IFS=`** keeps leading and trailing whitespace. Indented Python must reach
-  the REPL unchanged.
-- **`-r`** stops backslashes being treated as escapes (`\n` stays as those two
-  characters).
-- **`-e`** uses readline, which is the whole reason for this project.
-- **`-p`** gives readline the prompt, so it redraws correctly when you edit,
-  search or resize.
-- **`set +e` / `set -e`**: `read` returns non-zero on EOF and on signals.
-  Under `-e` that would end the script **before** history is saved.
-- **`history -s`** adds the line to history without running it. Empty lines
-  are skipped.
-- **`sleep 0.05`** is a pragmatic fix for a race. For fast commands such as
-  `pwd`, the reply arrives after `read -e` has already drawn the next prompt,
-  which leaves the output after the prompt. 50 ms is usually enough for
-  `cat` to print first. It's a heuristic: a slow network target will still
-  race, and that's why later phases rework this area.
-- **Why check `cat_pid` rather than `socat_pid`?** When the wrapped program
-  exits (you typed `exit`), socat closes its **stdout** straight away, so
-  `cat` gets EOF and exits. socat itself may stay alive while its stdin is
-  still open. So "cat has gone" is the quicker and more reliable sign that
-  the other end has finished. It saves you from seeing a dead prompt and
-  having to type `exit` twice.
+| Part | Meaning |
+|------|---------|
+| `read … line` | Read one line into the variable `line`. |
+| `-e` | Use **readline**. This is the key to the whole project. |
+| `-p "$OPT_PROMPT"` | Show this prompt. Because readline draws it, the prompt redraws correctly while you edit or search. |
+| `-r` | Take backslashes literally. `\n` stays as those two characters. |
+| `IFS=` | Keep spaces at the start and end of the line. Indented Python has to arrive intact. |
 
-#### Stage 8: teardown
+`read` returns a status:
+
+- **0**: a line was read.
+- **130**: interrupted by Ctrl-C (128 + 2).
+- **anything else**: usually Ctrl-D (EOF), or a signal such as the
+  watcher's SIGUSR1.
+
+Around it:
+
+- **`set +e` … `set -e`** pauses strict mode for the loop. `read` returning
+  non-zero is normal here (Ctrl-D does it), and strict mode would end the
+  script before the history had been saved.
+- **`history -s`** adds the line to history without running it.
+- **`>&4`** writes into the typing pipe. If socat has gone, the write
+  fails and the loop ends.
+- **`sleep 0.05`** is a practical workaround for a **race condition**.
+  After a quick command like `pwd`, the reply and the next prompt compete
+  to reach the screen first. If the prompt wins, the reply appears after
+  it and looks misplaced. Waiting 1/20 s usually lets the reply win. It's
+  a **heuristic**: it works most of the time, and a slow network server
+  can still lose the race.
+
+  > **New term: race condition.** A bug or glitch that depends on which of
+  > two things happens first.
+  >
+  > **New term: heuristic.** A rule of thumb that usually works but isn't
+  > guaranteed.
+
+- **Why check the copier instead of socat?** When the program exits (you
+  typed `exit`), socat closes the output pipe at once, so the copier
+  reaches EOF and stops. socat itself may stay alive a moment longer. "The
+  copier has stopped" is therefore the quicker sign that the session is
+  over, and it saves you seeing a dead prompt and typing `exit` twice.
+
+#### Step 8: take it all down
+
+After the loop the script **tears down** everything it set up: it saves,
+closes and stops things in a sensible order.
+
+> **New term: teardown.** Undoing setup at the end: closing connections,
+> stopping helpers, saving state.
 
 ```bash
-trap 'exit 130' INT;  trap - USR1          # restore global traps
-history -w "$OPT_HISTFILE" 2>/dev/null || true
+trap 'exit 130' INT;  trap - USR1          # put the general traps back
+history -w "$OPT_HISTFILE" 2>/dev/null || true   # write history to disk
 set +o history
-exec 4>&-                                   # EOF to socat's stdin …
-wait "$socat_pid" 2>/dev/null; rc=$?        # … and reap socat
-exec 5>&-
-kill "$cat_pid" "$monitor_pid" 2>/dev/null || true
+exec 4>&-                                   # close the typing pipe → socat should see EOF…
+wait "$socat_pid" 2>/dev/null; rc=$?        # …then collect socat's exit status
+exec 5>&-                                   # close the output pipe
+kill "$cat_pid" "$monitor_pid" 2>/dev/null || true   # stop the helpers
 wait "$cat_pid" 2>/dev/null || true
-case $rc in 0) … ;; 1) warn … ;; 2) warn … ;; esac
+case $rc in 0) … ;; 1) warn … ;; 2) warn … ;; esac   # explain socat's exit status
 return $rc
 ```
 
-The intended sequence: save history, then close the write end of `in_pipe`
-so socat sees EOF, forwards the EOF to the program (which exits), and socat
-exits. Then reap everything.
+The plan: save history, then close the typing pipe so socat gets EOF,
+passes it on to the program, and everything shuts down in turn.
 
-Two of these lines don't do what the comments say.
-[Part 3](03-field-notes-bugs-and-fixes.md) explains both:
+Three of these lines don't work quite as intended. Part 3 covers each one;
+the short versions are:
 
-- `exec 4>&-` **doesn't** deliver EOF, because the forwarder and the monitor
-  inherited fd 4 when they were forked ([bug 1](03-field-notes-bugs-and-fixes.md#bug-1-ctrl-d-hangs-until-the-far-side-hangs-up)).
-- A non-zero `wait` under `set -e` exits the script before
-  `rc=$?` runs ([bug 4](03-field-notes-bugs-and-fixes.md#bug-4-socat-errors-skip-teardown-and-the-exit-code-explanation)).
+- **`exec 4>&-` doesn't produce EOF.** The copier and watcher were started
+  after fd 4 was opened, so each has its own copy (Part 0: children inherit
+  fds). The pipe stays open.
+  → [Bug 1](03-field-notes-bugs-and-fixes.md#bug-1-ctrl-d-hangs-until-the-other-side-hangs-up)
+- **`wait …; rc=$?` under strict mode.** If socat failed, the script stops
+  at `wait` and never gets to `rc=$?`.
+  → [Bug 4](03-field-notes-bugs-and-fixes.md#bug-4-when-socat-fails-socwrap-skips-its-clean-up-and-advice)
+- **`trap - USR1`** resets USR1 to its default, which is "stop". A late
+  signal from the watcher can then kill socwrap in the middle of shutting
+  down.
+  → [Bug 6](03-field-notes-bugs-and-fixes.md#bug-6-a-late-sigusr1-can-stop-socwrap-while-it-shuts-down)
 
-(`exec 5>&-` closes fd 5, which was opened for reading. `>&-` and `<&-` both
-just close the descriptor, so this works.)
+### 4.9 Reading the command line
 
-### 3.9 Argument parsing with getopt
+`parse_args()` (P1:625–681) turns what you typed into settings. It uses a
+standard tool called **getopt**, which understands both short options
+(`-p "x> "`) and long ones (`--prompt "x> "`).
+
+> **New term: getopt.** A tool that tidies up a program's command-line
+> options so a script can go through them one at a time.
 
 ```bash
 getopt --test >/dev/null 2>&1 || getopt_rc=$?
 [[ $getopt_rc -ne 4 ]] && warn "util-linux getopt not found …"
 ```
 
-`getopt --test` exits with **4** only for the enhanced util-linux `getopt`,
-which is the version that supports long options. BSD and macOS `getopt`
-return something else.
+There are two versions of `getopt`. Only the Linux one (from a package
+called util-linux) understands long options, and it answers `--test` with
+exit status **4**. That's how the script tells them apart.
 
 ```bash
 parsed=$(getopt --options "H:n:p:l:dDvVh" \
@@ -541,124 +730,142 @@ parsed=$(getopt --options "H:n:p:l:dDvVh" \
 eval set -- "$parsed"
 ```
 
-`getopt` rewrites the arguments into a normal form: options first, each
-value as a separate quoted word, then `--`, then everything else.
-`eval set --` loads that back into `$1 $2 …`. After that a plain `case`
-loop with `shift`/`shift 2` does the rest, and anything after `--` becomes
-`WRAP_TARGET`.
+- In `"H:n:p:…"` each letter is a short option. A `:` after a letter means
+  it takes a value (`-H FILE`).
+- getopt rewrites the command line in a tidy standard order: options
+  first, each value separate and quoted, then `--`, then everything else.
+- `eval set -- "$parsed"` loads that tidy version back in as the script's
+  arguments.
 
-`-V` and `-h` print and `exit 0` inside the parser, so they never reach
-`main`.
+Then a simple loop goes through them. `case "$1" in` checks the current
+option and `shift` moves on to the next. Whatever follows `--` becomes
+`WRAP_TARGET`, the program to wrap.
 
-### 3.10 `main()`
+### 4.10 `main()`: the running order
 
 ```
-parse_args → [--detect? print, exit] → require a command
-          → [--verbose? banner + detect to stderr]
-          → preflight → build_socat_cmd → [--dry-run? print, exit] → run_socat
+read the command line
+  → asked for --detect?  print the report and stop
+  → no program given?    print help and stop
+  → asked for --verbose? print extra details to stderr
+  → preflight checks
+  → build the socat command
+  → asked for --dry-run? print the plan and stop
+  → run_socat: the real session
 ```
 
-Detect and dry-run both exit before anything is started. That makes them
-safe to use as diagnostics.
+Both `--detect` and `--dry-run` stop before anything is started, so they're
+always safe to try.
 
 ---
 
-## 4. PTY or no PTY?
+## 5. PTY or no PTY?
 
-This is the most common source of confusion with phase 1.
+This question confuses people most, so here it is on its own.
 
 ```bash
-# looks broken: bash's own "bash-5.2$ " prompt appears next to "bash> "
+# Looks wrong: bash's own prompt ("bash-5.2$ ") appears beside socwrap's "bash> "
 bash phase1/socwrap.sh -p "bash> " -- /bin/bash
 
-# recommended
+# Recommended for shells
 bash phase1/socwrap.sh --no-pty -p "bash> " -- /bin/bash --norc --noprofile
 
-# alternative: keep the PTY and blank the shell's prompt
+# Also works: keep the PTY but give bash an empty prompt
 bash phase1/socwrap.sh -p "bash> " -- env PS1='' /bin/bash --norc --noprofile
 ```
 
-With a PTY, bash decides it's interactive (`isatty(0)` is true) and prints
-its own PS1. With `--no-pty`, bash's stdin is a pipe, so it runs as a script
-reader with no prompt and no job control. socwrap's readline does all the
-editing.
+With a PTY, the wrapped bash thinks a person is typing, so it shows its own
+prompt (a variable called `PS1`) next to socwrap's. With `--no-pty`, bash
+sees a plain pipe, assumes it's reading a script, and shows no prompt.
+socwrap's readline does all the editing.
 
-Rule of thumb:
-
-| Wrapped program | Use |
-|-----------------|-----|
-| Shells (`bash`, `sh`, `zsh`) | `--no-pty`, or PTY with `PS1=''` |
-| REPLs that only prompt on a tty (`python3`, `sqlite3`) | default PTY |
-| Plain filters (`cat`, `bc -q`, `ed`) | either works |
+| Wrapping… | Use |
+|-----------|-----|
+| a shell: `bash`, `sh`, `zsh` | `--no-pty` (or a PTY with `PS1=''`) |
+| a program that only prompts on a terminal: `python3`, `sqlite3` | the default (PTY on) |
+| a simple line-by-line tool: `cat`, `bc -q`, `ed` | either |
 
 ---
 
-## 5. The test harness
+## 6. How the project tests itself
 
-`lib/test_lib.sh` is a small TAP-compatible framework. It provides
-`describe`, `assert_eq`, `assert_contains`, `assert_match`,
-`assert_exit_code` and more. Each phase's `tests/test_phaseN.sh` sources it.
+The project checks itself with **automated tests**: scripts that run
+socwrap in many ways and compare what happens with what should happen.
+
+> **New term: automated test / test suite.** A script that checks the
+> program behaves correctly. A **test suite** is a collection of them.
+
+- `lib/test_lib.sh` is a small shared toolkit. `describe` names a group of
+  tests, and `assert_eq`, `assert_contains` and friends each check one
+  thing.
+- Results come out in **TAP** (Test Anything Protocol), a simple
+  line-by-line format (`ok 1 - …` / `not ok 2 - …`) that other tools can
+  read.
+- Each phase has its own suite, and later suites **re-run** the earlier
+  ones against the newer script. So Phase 2 can't quietly break a Phase 1
+  feature.
 
 ```bash
-bash lib/test_lib.sh --self-test        # test the framework itself
+bash lib/test_lib.sh --self-test        # check the toolkit itself
 bash phase1/tests/test_phase1.sh        # 51 tests
-bash phase1/tests/test_phase1.sh --tap  # machine-readable, for CI
+bash phase1/tests/test_phase1.sh --tap  # TAP output
 ```
 
-The suites are **cumulative**: `test_phase2.sh` sources `test_phase1.sh` and
-runs its functions again against the phase 2 script, so a later phase can't
-quietly break an earlier feature. Most checks go through `--dry-run`,
-`--detect` and argument handling. The live-session tests feed stdin from a
-pipe with `timeout` as a safety net, and the harder interactive behaviour is
-in `tests/MANUAL_TESTS.md`.
-
-On the reference machine phase 1 passes **51/51**.
+On the reference machine, Phase 1 passes **51 of 51**. Most tests look at
+`--dry-run` and `--detect` output. The live-session behaviour is harder to
+automate, so it's described as manual steps in `tests/MANUAL_TESTS.md`.
+Part 3 shows what that leaves uncovered.
 
 ---
 
-## 6. Hands-on exercises
+## 7. Exercises
 
-1. **Watch the plumbing.** In one terminal run
-   `bash phase1/socwrap.sh -H /tmp/h -- python3 -q`. In another:
+1. **See the five processes.** Run
+   `bash phase1/socwrap.sh -H /tmp/h -- python3 -q` in one terminal. In a
+   second terminal:
    ```bash
    pid=$(pgrep -f 'H /tmp/h -- python3' | head -1)
    ps -o pid,ppid,comm,args --forest -g "$(ps -o sid= -p "$pid" | tr -d ' ')"
    ls -l /proc/$pid/fd | grep deleted
    ```
-   Find the five processes and the two unlinked FIFOs.
+   Match each line to a box in the picture in §1, and find the two deleted
+   named pipes.
 
-2. **Prove the ordering argument.** Copy the script, swap the
-   `exec 4>` and `exec 5<` lines, and run it. It hangs before the first
-   prompt. Why? (Answer in [§3.8, stage 2](#stage-2-two-fifos-and-an-ordering-puzzle).)
+2. **Cause a deadlock on purpose.** Copy the script, swap the
+   `exec 4>` and `exec 5<` lines, and run the copy. It hangs before showing
+   a prompt. Using [step 2](#step-2-make-the-two-named-pipes-in-the-right-order),
+   explain why.
 
-3. **Ctrl-C versus Ctrl-D.** Type half a line and press Ctrl-C. The line is
-   discarded and the session carries on. Then press Ctrl-C on an empty
-   prompt, and then Ctrl-D. Compare the effects with the traps in
-   [stage 6](#stage-6-loop-local-traps).
+3. **Ctrl-C versus Ctrl-D.** Type half a line and press Ctrl-C: the line is
+   cleared and the session carries on. Now press Ctrl-D on an empty line.
+   Which trap or `read` status explains each?
 
-4. **Race the prompt.** Wrap `bash --norc` with `--no-pty`, run `pwd`
-   several times, then change `sleep 0.05` to `sleep 0` in a copy and try
-   again. How often does the output land after the prompt?
+4. **Watch the race.** Wrap `bash --norc` with `--no-pty` and run `pwd` a
+   few times. Then change `sleep 0.05` to `sleep 0` in a copy. How often
+   does the output now appear after the prompt?
 
-5. **History round-trip.** Use `-H /tmp/myhist -n 3`, type five commands and
-   exit. `cat /tmp/myhist`: why are there only three lines?
+5. **History limits.** Run with `-H /tmp/myhist -n 3`, type five commands,
+   and exit. Look at `/tmp/myhist`. Why are there only three lines?
 
-6. **Double echo.** In a copy, remove `echo=0` from `build_exec_addr` and
-   wrap `python3 -q`. Every line now appears twice. Explain which layer
-   prints each copy.
-
-Continue to **[Part 2: Phase 2, transport modes](02-phase2-transport-modes.md)**.
+6. **Double echo.** In a copy, delete `echo=0` from `build_exec_addr` and
+   wrap `python3 -q`. Every line now shows twice. Which part of the system
+   prints each copy?
 
 ---
 
-## 7. Recap
+## 8. What you now know
 
-- readline comes from `read -e`, so socat only moves bytes.
-- Two FIFOs are opened in a careful order and then unlinked.
-- There are five processes: the loop, socat, the target, the forwarder and
-  the monitor.
-- `SIGUSR1` from the monitor breaks a blocked `read`. INT is scoped to
-  "cancel the line".
-- History is enabled by hand in a non-interactive shell and saved on the way
-  out.
-- `--no-pty` for shells, a PTY for tty-sensitive REPLs.
+- socwrap is **two layers**: bash's `read -e` (readline) for typing, and
+  socat for transport.
+- They're joined by **two named pipes**, opened in a careful order to
+  avoid a **deadlock**, then **unlinked**.
+- **Five processes** cooperate: the input loop, socat, the wrapped program,
+  the copier and the watcher.
+- The watcher **polls** socat and sends **SIGUSR1** to wake the input loop
+  when it's gone.
+- Traps turn Ctrl-C into "clear this line", and history is switched on by
+  hand and saved at **teardown**.
+- Use **`--no-pty`** for shells and a **PTY** for programs that only prompt
+  on a terminal.
+
+**Next: [Part 2, network connections and other modes (Phase 2)](02-phase2-transport-modes.md)**
