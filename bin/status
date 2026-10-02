@@ -6,8 +6,10 @@
   status <id|vm-name>    every event of that machine's latest boot, with timings
 
 Read-only over run/beacons.log and run/access.log. A row whose last event is
-ev=fail is marked FAIL; one stuck on ev=start for more than --stale minutes
-(default 10) is marked STUCK?: that step began and nothing has been heard since.
+ev=fail is marked FAIL. One sitting on ev=start for more than --stale minutes
+(default 10) is marked "busy" if it is still pushing its logs (a long step, such
+as DISM adding updates: follow it with bin/logs <id> --tail 5 ts.log), and
+STUCK? if nothing has been heard from it at all.
 """
 import argparse
 import os
@@ -16,6 +18,14 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
 import _pdt
+
+
+def newest_upload(mid, run):
+    d = os.path.join(_pdt.paths()["HTTP_DIR"], "uploads", mid, run)
+    try:
+        return max(os.path.getmtime(os.path.join(d, f)) for f in os.listdir(d))
+    except (OSError, ValueError):
+        return 0
 
 
 def table(stale_min):
@@ -30,16 +40,19 @@ def table(stale_min):
         last = evs[-1]
         product = next((e["product"] for e in reversed(evs) if e.get("product")), "")
         mode = next((e["mode"] for e in reversed(evs) if e.get("mode")), "")
+        model = next((e["model"] for e in reversed(evs) if e.get("model")), "")
         flag = ""
         if last["ev"] == "fail":
             flag = "FAIL"
         elif last["ev"] == "start" and now - last["t"] > stale_min * 60:
-            flag = "STUCK?"
-        detail = " ".join(f"{k}={last[k]}" for k in ("rc", "msg") if last.get(k))
+            # A running step pushes its logs every 20 s: fresh uploads mean it is
+            # alive and working (a long DISM), not stuck.
+            flag = "busy" if now - newest_upload(mid, last.get("run", "")) < 90 else "STUCK?"
+        detail = " ".join(f"{k}={last[k]}" for k in ("rc", "msg", "before", "after", "status") if last.get(k))
         rows.append((last["t"], [mid, names.get(mid, ""), f'{last["step"]} {last["ev"]}', _pdt.age(now - last["t"]),
-                                 flag, mode, last.get("run", ""), product, detail]))
+                                 flag, mode, last.get("run", ""), product, model, detail]))
     rows.sort(key=lambda r: -r[0])
-    head = ["ID", "VM", "LAST EVENT", "AGE", "", "MODE", "RUN", "PRODUCT", "DETAIL"]
+    head = ["ID", "VM", "LAST EVENT", "AGE", "", "MODE", "RUN", "PRODUCT", "MODEL", "DETAIL"]
     body = [r[1] for r in rows]
     if not body:
         return "no events yet (run/beacons.log and run/access.log are empty)"
@@ -62,7 +75,7 @@ def detail(arg):
     print(f"{mid}  {_pdt.vm_names().get(mid, '')}")
     t0 = prev = evs[0]["t"]
     for e in evs:
-        extra = " ".join(f"{k}={e[k]}" for k in ("mode", "product", "mac", "host", "rc", "msg") if e.get(k))
+        extra = " ".join(f"{k}={e[k]}" for k in ("mode", "model", "product", "mac", "nic", "chip", "bootsrv", "host", "build", "secureboot", "image", "before", "after", "status", "location", "windows_partition", "rc", "msg") if e.get(k))
         print(f'  {e["iso"]}  +{e["t"] - t0:7.1f}s  (+{e["t"] - prev:6.1f}s)  {e["step"]:<11} {e["ev"]:<5} {extra}')
         prev = e["t"]
 

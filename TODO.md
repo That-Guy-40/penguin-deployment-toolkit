@@ -5,42 +5,25 @@ Ordered; the top item is the next thing to do. Details and rationale live in
 
 ## Next
 
-- [ ] **Phase 2 (PLAN.md §4): split the task sequence into steps, add the
-  recovery partition, per-model configuration.**
-  - [ ] `http/ts/env.cmd` (SRV, ID, RUN, MODE, drive letters, the machine cfg)
-    that every step `call`s first; `deploy.cmd` becomes a short loop over
-    `steps\NN-*.cmd`; `deploy NN` resumes from a step; each step runs standalone
-    when typed at the WinPE prompt. boot.ipxe injects each step file.
-  - [ ] Steps: `00-net`, `10-identify`, `15-preflight`, `20-disk`, `30-apply`,
-    `35-updates` (optional `dism /add-package`), `40-drivers`, `45-winre`,
-    `50-boot`, `60-unattend`, `90-reboot`; `ev=start` + `ev=ok|fail` each (the
-    helpers already exist in today's `deploy.cmd`).
-  - [ ] `STOP_BEFORE=<step>` / `STOP_AFTER=<step>` in the machine cfg.
-  - [ ] **Recovery partition + WinRE (required):** 1 GB recovery partition in
-    the diskpart script, `Winre.wim` copied, `reagentc /setreimage`, and a
-    first-boot `reagentc /info` beacon proving it is enabled.
-  - [ ] Per-model config: `machines/<product-slug>/` defaults under the
-    per-UUID cfg (driver pack by `${product}`); `MODE=capture` + `capture.cmd`.
-  - [ ] `bin/timeline <id>`: `bin/status <id>` already prints per-step timings;
-    decide whether a separate command is still wanted or fold it in.
-  - [ ] Teach `bin/lint` the step files (it already resolves `for` lists and
-    machine cfgs) and add self-test defects for them.
+- [ ] **Phase 3 (PLAN.md §4): post-install.**
+  - [ ] winget: it is not in the image (verified). `fetch-tools` fetches and
+    pins the release `msixbundle` + `DesktopAppInstaller_Dependencies.zip`,
+    served from `http/post/`; the first-logon script installs them (works:
+    `spikes/2026-10-02-unverified-items/winget-bootstrap-probe.cmd`), then
+    `winget configure -f <role>.dsc.yaml` or an install list.
+  - [ ] `ROLE=` in the machine/model cfg selecting `unattend/<role>.xml` and
+    `post/<role>.*`; credentials handling instead of the lab's blank password.
+  - [ ] Upload winget logs; a final `deployed` beacon after post-install.
+  - [ ] An every-boot probe: two scheduled tasks, "at startup" and on System
+    event Kernel-Boot 27 (verified: each covers what the other misses).
+  - [ ] Role software into the reference machine before `prepare-capture`
+    (the `POST=` hook exists), and the role file's hash into the image sidecar.
 
 ## After that
 
-- [ ] Phase 3: post-install (winget DSC at first logon, log upload, final
-  beacon); reference-VM build + `prepare-capture` (sysprep) for a role.
-  Already in place from Phase 1: the installed OS continues the run's
-  timeline (`C:\pdt\id.cmd` + `beacon.cmd`) and uploads Setup's Panther logs.
-  Still to do: `reagentc /info` and winget logs to `/uploads/<id>/<run>/`, a
-  final "deployed" beacon, and a reliable every-boot probe (see spikes).
-- [ ] Phase 4: image capture from a reference VM → `http/images/<role>.wim`:
-  Linux-side `bin/capture-image` (qemu-img convert + wimlib NTFS capture) first,
-  WinPE-side `capture.cmd` for physical reference machines; round-trip deploy
-  of the captured image is the exit criterion; sidecar metadata per image
-  (PLAN.md §4). Capture groundwork is threaded into Phases 1–3 (image-per-role
-  layout, wimlib Windows binaries, `30-apply` reads image from role config,
-  `capture.cmd` gated by `MODE=capture`, sysprep step).
+- [x] Phase 4: image capture from a reference VM → `http/images/<role>.wim`:
+  mechanics done and verified (see Done). What is left arrives with Phase 3:
+  the role's software in the reference, and its DSC hash in the sidecar.
 - [ ] Phase 5: real hardware over the network via iPXE (the goal): `pxe-lan`
   on the real LAN, machine allow-list gating destructive steps, per-model driver
   packs, Secure Boot, measured PXE→desktop time; one physical model deployed
@@ -67,60 +50,66 @@ Ordered; the top item is the next thing to do. Details and rationale live in
 ## Questions to explore through spikes
 
 Each gets a dated directory under `spikes/` with its scripts, evidence and a
-README stating the result (verified / unknown), like
-`spikes/2026-09-22-wimboot-task-sequence/`. Cross-referenced in `PLAN.md` §5.
+README stating the result. Answered ones are in `PLAN.md` §5.
 
-- [ ] **`drvload` of wimboot-injected drivers for WinPE's own NIC/storage.**
-  Inject `netkvm.inf/.sys/.cat` (virtio) via wimboot, run
-  `drvload X:\Windows\System32\netkvm.inf` before `wpeinit`, boot a VM with a
-  `virtio-net-pci` NIC and see whether WinPE gets an address. Decides whether
-  VMs can be virtio end to end without ever touching `boot.wim`.
-- [ ] **winget availability at first logon on a fresh 24H2 Pro image.** From
-  `FirstLogonCommands`, run `winget --version` and `winget configure -f <role>.dsc.yaml`
-  and beacon the exit codes; if winget is missing or stale, test bootstrapping
-  the App Installer msixbundle (+ VCLibs/UI.Xaml) with `Add-AppxPackage` first.
-- [ ] **Secure Boot enforcing on physical hardware.** Boot with the `.ms.fd`
-  vars (enforcing) in the VM first: does the unsigned `ipxe.efi` get rejected as
-  expected? Then try (a) `sbsign` with our own key enrolled in db, (b) chaining
-  through a signed shim; pick one and document the enrolment steps for real
-  firmware.
 - [ ] **Remote shell over HTTP for `MODE=shell` / failed physical machines**
   (PLAN.md §5 question 6). A `cmd` loop polling `machines/<uuid>/cmd.txt` with
   `curl`, running it, and `PUT`ting the output; try it on the VM first, measure
   whether a 2 s poll is usable, decide on a kill switch. No new binaries.
-- [ ] **Every-boot beacon via a scheduled task never fired.** Find out why
-  (`schtasks` registration failed at first logon, or the `onstart` task ran
-  before the network was up). Try a network-triggered task or a startup script
-  with a retry loop; confirm what a reliable "I booted" probe looks like. Until
-  then, do not use `onstart` tasks as network probes.
+- [ ] **Updating WinRE.** The Safe OS dynamic update (a .cab in every UUP set)
+  belongs in `images/<name>.winre.wim`. On Linux that needs DISM-like servicing
+  wimlib cannot do; in WinPE it would be `dism /mount-image` + `/add-package`
+  on the recovery image in `45-winre`. Is it worth it, and how long does it take?
+- [ ] **`winget configure` (DSC)** from the first-logon script, once winget is
+  bootstrapped: does it run unattended, and what does a role file look like?
 - [ ] **LAN throughput of a 3.5 GB WIM over HTTP versus SMB** (expected: no
   difference that matters; measure once on the physical run).
-- [ ] **Linux-side image capture.** Sysprep a reference VM, `qemu-img convert`
-  its disk to raw, cut out the Windows partition, `wimlib-imagex capture` it in
-  NTFS mode with a WimScript exclusion list, then deploy the result to a fresh
-  VM and confirm it boots and reaches the "deployed" beacon. Decides whether
-  role images can be built without WinPE or an upload path (PLAN.md §4 Phase 4,
-  open question 5).
+- [ ] After a forced power-off neither boot-probe task reported within 150 s
+  (one observation, `spikes/2026-10-02-unverified-items/`). Fast-startup resume
+  or something else?
 
 ## Housekeeping
 
-- [ ] `bin/pxe-lan` in **proxy-DHCP** mode has never been run (needs sudo and
-  a LAN with its own DHCP server); only its generated config is validated by
-  `dnsmasq --test`. `--bridge` mode is verified (below). First real use is Phase 5.
+- [ ] Real hardware has still seen none of this (Phase 5). In particular:
+  enrolling the Secure Boot certificate in real firmware, and proxy-DHCP on a
+  real switch next to a real router.
 - [ ] A bridge on the real host (setuid `qemu-bridge-helper`,
-  `/etc/qemu/bridge.conf`, firewall) is untested; `docs/LAB_FROM_SCRATCH.md`
-  describes it. The rootless equivalent, `bin/lab-netns`, is verified.
-- [ ] `bin/fetch-iso` has only been run for 24H2 / professional / en-us
-  (25H2, other editions and languages are untested).
-- [ ] Would `HTTP_HOST='${next-server}'` in the embedded iPXE script remove the
-  need to rebuild `ipxe.efi` per network? Cheap to try in `bin/lab-netns` now.
+  `/etc/qemu/bridge.conf`, firewall) is untested: it needs root.
+  `docs/LAB_FROM_SCRATCH.md` describes it; `bin/lab-netns` is the verified
+  rootless equivalent, itself untested where unprivileged user namespaces are
+  restricted (stock Ubuntu 24.04).
+- [ ] `bin/fetch-iso` has been run for 24H2 and 25H2, professional, en-us. Other
+  editions and languages are untested. A `bin/fetch-updates` that keeps just
+  the update packages of a UUP set (today: `fetch-iso --keep`, then pick them
+  out of `build/uupdump/*/UUPs/`) would make monthly update packs a command.
+- [ ] `http/ts/diskpart/` has one layout (`uefi-gpt.txt`). BIOS/MBR machines
+  and multi-disk machines are not handled.
 - [ ] `http/unattend/default.xml` ships a blank-password local admin (`deploy`)
   for the lab. Per-role unattend files with real credentials handling belong
   to Phase 3.
+- [ ] `bin/vm-stop` powers off through ACPI, which Windows turns into fast
+  startup. Consider disabling fast startup on deployed lab machines
+  (`powercfg /h off`), or give `vm-stop` a way to ask for a full shutdown.
 - [ ] Ports 8080 and 8088 are taken on this host by other software; `config.sh`
   here uses 8090.
 
 ## Done
+
+- [x] **The "not verified" list (2026-10-02).** Update packs with several
+  package types and the 25H2 combination; a generalized role image captured in
+  WinPE and on Linux (`bin/capture-image`) and deployed as new machines;
+  WinPE-side drivers via `drvload` (fully virtio VM); firmware PXE without an
+  option ROM; Secure Boot enforcing with a signed `ipxe.efi`; proxy-DHCP beside
+  another DHCP server; winget bootstrap at first logon; why the boot task never
+  fired. Evidence: `spikes/2026-10-02-unverified-items/`.
+
+- [x] **Phase 2 (2026-10-02): step-based task sequence.** Runner + fetched
+  steps (`deploy NN` resumes without a reboot), `env.cmd`, `STOP_BEFORE` /
+  `STOP_AFTER`, sequences per MODE, per-model defaults that cannot set MODE,
+  the required recovery partition with a first-logon WinRE check, update packs
+  (a 26100.1 image deployed at 26100.9550), capture mode, live log push, steps
+  in child processes, and a `lint` that knows which programs WinPE has.
+  Evidence: `spikes/2026-10-02-phase2-acceptance/`.
 
 - [x] **Phase 1 (2026-10-02): modular `bin/` + `http/` layout.** 7z extraction
   (no sudo), pristine `boot.wim` with wimboot injection, pinned tools, `serve`

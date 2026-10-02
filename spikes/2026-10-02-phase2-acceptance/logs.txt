@@ -1,0 +1,100 @@
+$ bin/logs t1   (first run: deploy; second run: capture)
+f3ea3896-8c1f-4499-856d-64172c305bff  run 119487424  (2 run(s): 119487424, 156327467)
+       21434  2026-10-02 09:29:27  dism.log
+      267763  2026-10-02 09:30:44  panther-setupact.log
+          85  2026-10-02 09:30:44  panther-setuperr.log
+         487  2026-10-02 09:30:44  reagentc.txt
+       11080  2026-10-02 09:29:27  ts.log
+  (http/uploads/f3ea3896-8c1f-4499-856d-64172c305bff/119487424)
+f3ea3896-8c1f-4499-856d-64172c305bff  run 156327467  (2 run(s): 119487424, 156327467)
+  4666567334  2026-10-02 09:48:38  capture.wim
+       61935  2026-10-02 09:48:39  dism.log
+        6740  2026-10-02 09:48:39  ts.log
+  (http/uploads/f3ea3896-8c1f-4499-856d-64172c305bff/156327467)
+
+$ bin/logs t1 --run 119487424 --cat reagentc.txt
+Windows Recovery Environment (Windows RE) and system reset configuration
+Information:
+
+    Windows RE status:         Enabled
+    Windows RE location:       \\?\GLOBALROOT\device\harddisk0\partition4\Recovery\WindowsRE
+    Boot Configuration Data (BCD) identifier: 57010316-bea8-11f1-b65b-5254003b4958
+    Recovery image location:   
+    Recovery image index:      0
+    Custom image location:     
+    Custom image index:        0
+
+REAGENTC.EXE: Operation Successful.
+    
+
+$ bin/logs t4 --cat reagentc.txt   (no recovery partition)
+Windows Recovery Environment (Windows RE) and system reset configuration
+Information:
+
+    Windows RE status:         Enabled
+    Windows RE location:       \\?\GLOBALROOT\device\harddisk0\partition3\Recovery\WindowsRE
+    Boot Configuration Data (BCD) identifier: 88a1d6d3-beaa-11f1-a4c0-525400148dba
+    Recovery image location:   
+    Recovery image index:      0
+    Custom image location:     
+    Custom image index:        0
+
+REAGENTC.EXE: Operation Successful.
+    
+
+
+$ bin/logs u1
+e862f480-b973-4deb-8762-1e33f547553d  run 2293421959  (1 run(s): 2293421959)
+     2255663  2026-10-02 10:34:38  dism.log
+    18246351  2026-10-02 10:36:16  panther-setupact.log
+         214  2026-10-02 10:36:16  panther-setuperr.log
+         532  2026-10-02 10:36:15  reagentc.txt
+     1659736  2026-10-02 10:34:38  ts.log
+  (http/uploads/e862f480-b973-4deb-8762-1e33f547553d/2293421959)
+
+$ bin/logs u3 --cat ts.log   (35-updates, progress bars removed)
+[pdt] ===== 35-updates
+[pdt] beacon 35-updates start
+Deployment Image Servicing and Management tool
+Version: 10.0.26100.1
+Applying image
+The operation completed successfully.
+        1 file(s) moved.
+Deployment Image Servicing and Management tool
+Version: 10.0.26100.1
+Image Version: 10.0.26100.1
+Processing 1 of 2 - 
+W:\Updates\Windows11.0-KB5043080-x64.msu: An error occurred applying the Unattend.xml file from the .msu package.
+For more information, review the log file.
+ Error: 0x80070228
+Processing 2 of 2 - 
+Error: 552
+The command completed with errors.
+For more information, refer to the log file.
+The DISM log file can be found at W:\Scratch\dism.log
+---------- X:\PDT\PACKAGES.TXT
+Image Version: 10.0.26100.9550
+Package_for_RollupFix~31bf3856ad364e35~amd64~~26100.9550.1.28                                           | Installed  | Update          | 10/2/2026 10:33 PM
+[pdt] beacon 35-updates ok
+[pdt] ===== 40-drivers
+
+$ bin/logs u1 --cat ts.log   (35-updates, targeted pack)
+[pdt] ===== 35-updates
+[pdt] beacon 35-updates start
+Deployment Image Servicing and Management tool
+Version: 10.0.26100.1
+Applying image
+The operation completed successfully.
+        1 file(s) moved.
+        1 file(s) moved.
+adding Windows11.0-KB5124010-x64.msu
+Deployment Image Servicing and Management tool
+Version: 10.0.26100.1
+Image Version: 10.0.26100.1
+Processing 1 of 1 - 
+The operation completed successfully.
+---------- X:\PDT\PACKAGES.TXT
+Image Version: 10.0.26100.9550
+Package_for_RollupFix~31bf3856ad364e35~amd64~~26100.9550.1.28                                           | Installed  | Update          | 10/2/2026 10:34 PM
+[pdt] beacon 35-updates ok
+[pdt] ===== 40-drivers

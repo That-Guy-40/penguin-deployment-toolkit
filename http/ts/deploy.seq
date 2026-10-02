@@ -1,0 +1,12 @@
+# deploy.seq - the steps of MODE=deploy, in order. One step name per line;
+# each is ts/steps/<name>.cmd. deploy.cmd fetches and runs them.
+15-preflight
+20-disk
+25-download
+30-apply
+35-updates
+40-drivers
+45-winre
+50-boot
+60-unattend
+90-reboot

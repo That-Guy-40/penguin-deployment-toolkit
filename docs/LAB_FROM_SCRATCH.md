@@ -361,7 +361,7 @@ the scripts. Where the scripts ended up differing from the hand-made version:
 | step 9 | `http/boot.ipxe` | one static script with relative URLs; no `default.ipxe` or per-machine `.ipxe`. The allow-list is `http/machines/<uuid>.cfg` (`MODE=deploy`), read by the task sequence; unlisted machines boot WinPE to a prompt |
 | step 10 | `http/ts/deploy.cmd` | identity comes from the generated `ts/id.cmd` (no `wmic`), beacons carry `id`/`run`/`step`/`ev` |
 | steps 2, 3 | `bin/lab-netns up` | rootless: bridge and `bridge.conf` exist only inside a namespace |
-| step 11 | `bin/pxe-lan --bridge <br> <range>` (authoritative) vs `bin/pxe-lan` (proxy) | `--bridge` verified in `lab-netns`; every client is handed `ipxe.efi` (no direct-to-HTTP shortcut for iPXE ROMs), own lease file under `run/`. Proxy mode untested live |
+| step 11 | `bin/pxe-lan --bridge <br> <range>` (authoritative) vs `bin/pxe-lan` (proxy) | both modes verified in `lab-netns` (proxy mode beside a second dnsmasq playing the router); every client is handed `ipxe.efi` (no direct-to-HTTP shortcut for iPXE ROMs), own lease file under `run/`. Neither has met a physical LAN |
 | step 12 | `bin/serve` | plus `PUT /uploads/`, `/ts/id.cmd`, and a self-test at start |
 | steps 13, 14 | `bin/vm-create`, `bin/vm-boot` | one directory per VM (`vms/<name>/vm.conf`) instead of `vms.tsv`; `--net bridge:br0` for this runbook's bridge |
 | step 15 | `bin/status`, `bin/await`, `bin/logs`, `bin/vm-shot` | |

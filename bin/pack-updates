@@ -1,0 +1,76 @@
+#!/bin/bash
+# pack-updates - turn a directory of Windows update packages (.msu / .cab)
+# into an update pack: http/updates/<name>.wim, plus a <name>.json sidecar.
+#
+#   pack-updates <dir> <name> [--target <file>]... [--expect <text>]
+#
+#   --target  install exactly this file from <dir> (repeatable); everything
+#             else in the pack is only there for DISM to draw prerequisites
+#             from. This is how Windows 11 24H2 cumulative updates must be
+#             given: target the newest cumulative update, keep the checkpoint
+#             update (KB5043080) beside it. Without --target every package in
+#             the pack is installed in its own right.
+#   --expect  a package version that must be installed in the image afterwards,
+#             e.g. the build of a cumulative update: --expect 26100.9550
+#             The step then judges by "dism /get-packages" listing it as
+#             installed, not by DISM's exit code. Use it for cumulative updates:
+#             the stock 24H2 WinPE DISM exits with error 552 after installing
+#             a newer one successfully.
+#
+# A machine or model cfg with UPDATES=<name> makes step 35-updates apply the
+# pack to W:\Updates and run dism /image:W:\ /add-package on it. This is how
+# cumulative updates get in: they cannot be integrated into an image on Linux.
+# Refuses a directory with no .msu or .cab.
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+need wimlib-imagex python3
+
+EXPECT=""
+TARGETS=()
+ARGS=()
+while (( $# )); do
+    case "$1" in
+        --expect) EXPECT="${2:?}"; shift 2 ;;
+        --target) TARGETS+=("${2:?}"); shift 2 ;;
+        -h|--help) sed -n '2,23p' "$0"; exit 0 ;;
+        *) ARGS+=("$1"); shift ;;
+    esac
+done
+(( ${#ARGS[@]} == 2 )) || die "usage: pack-updates <dir> <name> [--target <file>]... [--expect <text>]"
+SRC="${ARGS[0]}" NAME="${ARGS[1]}"
+[[ "$EXPECT" =~ ^[A-Za-z0-9._~-]*$ ]] || die "--expect may contain letters, digits and . _ ~ - only"
+[[ -d "$SRC" ]] || die "not a directory: $SRC"
+[[ "$NAME" =~ ^[A-Za-z0-9._-]+$ ]] || die "name must match [A-Za-z0-9._-]+ (got: $NAME)"
+
+mapfile -t PKGS < <(cd "$SRC" && find . -type f \( -iname '*.msu' -o -iname '*.cab' \) | sed 's|^\./||' | sort)
+(( ${#PKGS[@]} )) || die "no .msu or .cab files under $SRC; that is not an update pack"
+
+for t in "${TARGETS[@]}"; do
+    [[ -f "$SRC/$t" && "$t" != */* ]] || die "--target $t: no such file directly in $SRC"
+done
+
+OUT_DIR="$HTTP_DIR/updates"
+mkdir -p "$OUT_DIR"
+rm -f "$OUT_DIR/$NAME.wim"
+# Update packages are already compressed: store them, do not recompress.
+wimlib-imagex capture "$SRC" "$OUT_DIR/$NAME.wim" "$NAME" --compress=none >/dev/null \
+    || die "wimlib capture failed"
+# add_text <name-in-pack> <line>...: put a small CRLF text file into the pack.
+add_text() {
+    local name="$1" tmp; shift
+    tmp="$(mktemp)"
+    printf '%s\r\n' "$@" > "$tmp"
+    wimlib-imagex update "$OUT_DIR/$NAME.wim" 1 --command "add $tmp /$name" >/dev/null || die "could not add $name to the pack"
+    rm -f "$tmp"
+}
+if [[ -n "$EXPECT" ]]; then add_text pdt-expect.txt "$EXPECT"; fi
+if (( ${#TARGETS[@]} )); then add_text pdt-targets.txt "${TARGETS[@]}"; fi
+chmod 0644 "$OUT_DIR/$NAME.wim"
+
+TARGET_LIST="$(IFS='|'; echo "${TARGETS[*]}")"
+python3 - "$OUT_DIR/$NAME.wim" "$OUT_DIR/$NAME.json" "$EXPECT" "$TARGET_LIST" "${PKGS[@]}" <<'PY'
+import json, os, sys, time
+wim, sidecar, expect, targets, *pkgs = sys.argv[1:]
+json.dump({"file": os.path.basename(wim), "size": os.path.getsize(wim), "kind": "updates",
+           "packages": pkgs, "targets": [t for t in targets.split("|") if t], "expect": expect or None, "created": time.strftime("%Y-%m-%dT%H:%M:%S%z")}, open(sidecar, "w"), indent=2)
+PY
+info "http/updates/$NAME.wim: ${#PKGS[@]} package(s), $(( $(stat -c%s "$OUT_DIR/$NAME.wim") / 1048576 )) MiB"

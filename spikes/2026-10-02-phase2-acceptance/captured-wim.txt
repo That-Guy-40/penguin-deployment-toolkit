@@ -1,0 +1,13 @@
+$ wimlib-imagex info capture.wim
+Image Count:    1
+Compression:    XPRESS
+Attributes:     Integrity info, Relative path junction
+Name:                   captured f3ea3896-8c1f-4499-856d-64172c305bff
+File Count:             96397
+Total Bytes:            18862892510
+Edition ID:             Professional
+Build:                  26100
+Service Pack Build:     1
+
+$ wimlib-imagex verify capture.wim
+"capture.wim" was successfully verified.

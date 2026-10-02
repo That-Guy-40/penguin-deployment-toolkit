@@ -3,7 +3,7 @@
 A guided tour for someone new to the project: the one idea it is built on, the
 pieces you set up on the Linux host, what happens second by second when a
 machine boots, and where the design is heading. It describes the code as of
-2026-10-02 (Phase 1 of `PLAN.md`). `README.md` is the reference for the
+2026-10-02 (Phases 1 and 2 of `PLAN.md`). `README.md` is the reference for the
 scripts, `PLAN.md` for the direction; this file is the narrative that connects
 them.
 
@@ -123,31 +123,53 @@ what allows this VM, and only this VM, to be installed.
 4. **wimboot** boots WinPE from RAM with those five files sitting in
    `X:\Windows\System32`. `winpeshl.ini` is the file WinPE consults to decide
    what to run instead of its default shell; ours says: run `deploy.cmd`.
-5. **`deploy.cmd`, the task sequence**, starts by calling `id.cmd`. That is
-   the generated file from `bin/serve`: iPXE asked for it with the machine's
-   UUID in the URL, the server echoed the UUID back inside a batch file, and
-   now WinPE knows who it is and where the server is without detecting
-   anything. Then:
+5. **`deploy.cmd`** is a bootstrap and a runner. It starts by calling
+   `id.cmd`. That is the generated file from `bin/serve`: iPXE asked for it
+   with the machine's UUID in the URL, the server echoed the UUID back inside
+   a batch file, and now WinPE knows who it is and where the server is without
+   detecting anything. Then:
    - bring up the network (`wpeinit`), wait for `SRV/health`;
-   - fetch `machines/<id>.cfg`. **No file, or `MODE` other than `deploy`: report
-     `shell`, push the log, stop at a prompt.** Nothing has been touched;
-   - `preflight`: check that the image, unattend, diskpart script and driver
-     pack this install needs are all on the server, *before* destroying anything;
-   - `disk`: `diskpart` with `ts/diskpart/uefi-gpt.txt` (GPT: ESP, MSR, Windows);
-   - `download`: `images/base.wim` to the new Windows partition with `curl`;
-   - `apply`: `dism /apply-image`;
-   - `drivers` (if the cfg names a pack): apply the pack, `dism /add-driver`;
-   - `boot`: `bcdboot` writes the boot files and firmware entry;
-   - `unattend`: copy `unattend/default.xml` to `W:\Windows\Panther\`, and
-     leave `C:\pdt\` on the new disk with `id.cmd` (now also carrying the run
-     token) and two small scripts for later;
-   - reboot.
+   - download the toolkit into `X:\pdt\`: `env.cmd` (all the state), and the
+     helpers `step.cmd`, `beacon.cmd`, `push.cmd`;
+   - fetch `models/<slug>.cfg` (defaults for this hardware model, the slug
+     derived from the SMBIOS product name) and `machines/<id>.cfg`. `env.cmd`
+     applies them in that order. Only the machine file can set `MODE`;
+   - **no machine file, or `MODE=shell`: report `shell`, push the log, stop at
+     a prompt.** Nothing has been touched;
+   - otherwise fetch `ts/<MODE>.seq`, the list of steps for that mode, download
+     each step into `X:\pdt\steps\` and run them in order. For `MODE=deploy`:
+
+     | step | what it does |
+     |---|---|
+     | `15-preflight` | every file this install needs is on the server, *before* destroying anything |
+     | `20-disk` | `diskpart`: GPT with EFI, MSR, Windows and a 1 GB recovery partition |
+     | `25-download` | the image to the new Windows partition with `curl` |
+     | `30-apply` | `dism /apply-image` |
+     | `35-updates` | optional: an update pack, `dism /add-package` |
+     | `40-drivers` | optional: a driver pack, `dism /add-driver` |
+     | `45-winre` | the recovery environment onto the recovery partition, `reagentc` |
+     | `50-boot` | `bcdboot`: boot files and firmware entry |
+     | `60-unattend` | `unattend.xml` into Panther; `C:\pdt\` with `id.cmd` (now also carrying the run token) and two small scripts for later |
+     | `90-reboot` | |
+
    Every step sends `ev=start` then `ev=ok` or `ev=fail` to `/beacon`, writes
-   its output to `X:\pdt\ts.log`, and uploads the logs after it finishes.
+   its output to `X:\pdt\ts.log`, and the logs are uploaded every 20 seconds
+   while it runs and once more when it finishes. Each step runs in its own
+   child `cmd` process: WinPE's `cmd` ends a whole batch stack silently when a
+   pipe names a program that does not exist, and in a child that costs only the
+   step, which is then reported as failed.
+
+   Because the steps are separate files that each load `env.cmd` themselves,
+   one can be run on its own at the WinPE prompt, and because `deploy.cmd`
+   re-downloads everything each time it runs, an edit on the server takes
+   effect without a reboot. `STOP_BEFORE=40-drivers` in the machine file stops
+   the sequence there; `deploy 40` carries on. That loop (stop, try by hand,
+   edit on the server, resume) is how a step is developed.
 6. **The installed Windows** boots from disk. The unattend file runs
    `C:\pdt\beacon.cmd specialize ok`, creates the local account, logs on once,
-   and runs `C:\pdt\firstlogon.cmd`, which reports `firstlogon` and uploads
-   Setup's own logs. Same id, same run token: one continuous timeline from
+   and runs `C:\pdt\firstlogon.cmd`, which reports `firstlogon`, checks that
+   the recovery environment is enabled and sits on the recovery partition
+   (`winre ok`), and uploads Setup's own logs. Same id, same run token: one continuous timeline from
    iPXE to desktop.
 
 The lab VM's network is QEMU's user-mode stack by default, with QEMU itself
@@ -175,7 +197,9 @@ bin/vm-boot lab01 && bin/await lab01 firstlogon 900 && bin/vm-shot lab01
 - **One channel, HTTP.** Boot files, images, driver packs, instructions,
   progress and logs all go over the same nginx. No SMB share, no credentials.
 - **Static files are the control plane.** Which machine may be wiped is a file
-  (`machines/<uuid>.cfg`). What the install does is a file (`ts/deploy.cmd`).
+  (`machines/<uuid>.cfg`). What the install does is a list of step files
+  (`ts/deploy.seq`, `ts/steps/`). A different kind of run, such as capturing an
+  installed machine instead of wiping it, is another list (`ts/capture.seq`).
   What happened is two log files. There is no database and no dispatcher.
 
 The retired first version, with its own notes, is in
@@ -183,10 +207,15 @@ The retired first version, with its own notes, is in
 
 ## 5. Where it is going (`PLAN.md`)
 
-Phase 2 splits `deploy.cmd` into one file per step that can each be re-run by
-hand from the WinPE prompt, adds the recovery partition, and per-model driver
-selection. Then winget at first logon (Phase 3), role images captured from a
-sysprepped reference VM (Phase 4), real hardware on a real LAN (Phase 5), and
+Already possible beyond a plain install: update packs that take the base
+image to the current build, including 25H2 (`bin/pack-updates`); role images,
+by letting a reference machine generalize itself (`REFERENCE=yes`) and
+capturing it, on Linux straight from a VM's disk (`bin/capture-image`) or from
+WinPE (`MODE=capture`); drivers for hardware WinPE itself cannot see
+(`http/winpe-drivers/`); and an `ipxe.efi` signed for firmware that enforces
+Secure Boot (`SB_KEY`/`SB_CERT`).
+
+Next is winget at first logon and per-role configuration (Phase 3), real hardware on a real LAN (Phase 5), and
 an install guide good enough that someone else can stand the server up
 (Phase 6). `TODO.md` has the order and the open questions.
 

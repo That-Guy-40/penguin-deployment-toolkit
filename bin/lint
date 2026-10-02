@@ -3,6 +3,7 @@
 minutes into an install.
 
   lint            check http/ and the host set-up; exit 1 if anything FAILs
+  lint -v         the same, listing every PASS row too
   lint --deep     also re-hash images against their sidecars (slow)
   lint --selftest only run the self-test
 
@@ -14,12 +15,18 @@ self-test does not bite, lint itself fails.
 
 What is checked:
   boot.ipxe      every kernel/initrd path exists under http/
-  task sequence  every %SRV%/... path in ts/*.cmd and post/*.cmd exists; every
-                 X:\\Windows\\System32 file it runs is one boot.ipxe injects
+  task sequence  every %SRV%/... path in ts/, ts/steps/ and post/ exists; every
+                 X:\\Windows\\System32 file it runs is one boot.ipxe injects; every
+                 X:\\pdt helper it calls is one deploy.cmd fetches
+  programs       every program a WinPE script runs exists in boot.wim's
+                 System32 or is injected by boot.ipxe
+  sequences      every step a ts/*.seq lists exists; no step file is orphaned
   line endings   files Windows executes are CRLF
-  machines/*.cfg (and the defaults in deploy.cmd): MODE valid; image present
-                 with a matching sidecar; unattend well-formed; diskpart script
-                 and driver pack present, the pack containing an .inf
+  machines/*.cfg models/*.cfg (and the defaults in env.cmd): only known keys,
+                 no inline comments; MODE has a sequence; STOP_* name a step of
+                 it; a model file cannot set MODE; image present with a
+                 matching sidecar; unattend well-formed; diskpart script, driver
+                 pack (with an .inf) and update pack present
   host           pinned third-party binaries, pxe/ipxe.efi matching config.sh,
                  boot.wim free of a winpeshl.ini, the server answering
 """
@@ -41,11 +48,24 @@ import _pdt
 # Paths that exist only as nginx locations (bin/serve), not as files.
 VIRTUAL = ("ts/id.cmd", "beacon", "health")
 VIRTUAL_PREFIX = ("uploads/",)
-CFG_KEYS = ("MODE", "IMAGE", "UNATTEND", "DRIVERS", "DISKPART")
-MODES = ("deploy", "capture", "shell")
+# What a model file may set (models/<slug>.cfg) and what only a machine file may.
+MODEL_KEYS = ("IMAGE", "UNATTEND", "DISKPART", "DRIVERS", "UPDATES", "POST")
+MACHINE_ONLY_KEYS = ("MODE", "STOP_BEFORE", "STOP_AFTER", "REFERENCE")
+CFG_KEYS = MACHINE_ONLY_KEYS + MODEL_KEYS
+# Variables in a %SRV%/... path that are resolved per machine or at run time.
+RUNTIME_VARS = CFG_KEYS + ("ID", "MODEL", "RUN")
 # Programs the task sequence may call from System32 that stock WinPE ships.
 INBOX = {"cmd.exe"}
-CRLF_GLOBS = ("ts/*.cmd", "ts/*.ini", "ts/diskpart/*.txt", "post/*.cmd")
+# Files in X:\pdt that deploy.cmd writes itself rather than fetches.
+GENERATED = {"run.cmd", "model.cmd"}
+CRLF_GLOBS = ("ts/*.cmd", "ts/*.ini", "ts/steps/*.cmd", "ts/diskpart/*.txt", "post/*.cmd")
+SLUG_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+# cmd's internal commands: no program file behind them.
+BUILTINS = set("""assoc break call cd chdir cls color copy date del dir echo else endlocal erase exit for ftype goto
+if md mkdir mklink move path pause popd prompt pushd rd rem ren rename rmdir set setlocal shift start time title
+type ver verify vol""".split())
+# What the self-test pretends WinPE ships (the real list is read from boot.wim).
+SELFTEST_PROGRAMS = set("bcdboot cmd cscript curl dism diskpart drvload find ipconfig ping reg wpeinit wpeutil xcopy".split())
 
 
 class Rows:
@@ -68,9 +88,10 @@ class Rows:
     def count(self, verdict):
         return sum(1 for r in self.rows if r[0] == verdict)
 
-    def show(self):
+    def show(self, verbose=True):
         for verdict, what, detail in self.rows:
-            print(f"{verdict:<8} {what}" + (f": {detail}" if detail else ""))
+            if verbose or verdict != "PASS" or what == "lint self-test":
+                print(f"{verdict:<8} {what}" + (f": {detail}" if detail else ""))
 
 
 def is_virtual(path):
@@ -105,18 +126,90 @@ def ipxe_refs(text):
     return out
 
 
+def commands(text):
+    """(line number, program) for every word in command position of a batch
+    file: what cmd would have to find as a program. Deliberately simple: it
+    knows the shapes this repo's scripts use, not all of cmd's grammar."""
+    out = []
+    cond = (r'(?:/i\s+)?(?:not\s+)?(?:exist\s+\S+|defined\s+\S+|errorlevel\s+\d+|'
+            r'""\s*==\s*""|\S+\s+(?:equ|neq|lss|leq|gtr|geq)\s+\S+)')
+    for n, line in enumerate(text.splitlines(), 1):
+        line = line.strip().lstrip("@")
+        if not line or line.startswith(":") or line.lower().startswith("rem"):
+            continue
+        segs = []
+        for inner in re.findall(r"in\s+\('([^']*)'\)", line):   # for /f ... in ('cmd ^| cmd')
+            segs += re.split(r"\^?[|&]+", inner)
+        line = re.sub(r'"[^"]*"', '""', line)                    # quoted text is never a command
+        line = re.sub(r"(?i)\bin\s*\([^)]*\)", "in", line)       # a for list is data, not commands
+        segs += re.split(r"\|\||&&|[|&()]", line)
+        for seg in segs:
+            seg = seg.strip()
+            while True:
+                before = seg
+                seg = re.sub(r"^\d?>>?\s*\S+\s*", "", seg)                       # leading redirection
+                seg = re.sub(r"(?i)^for\b.*?\bdo\s+", "", seg)                    # for ... do X
+                seg = re.sub(r"(?i)^if\s+" + cond + r"\s*", "", seg)               # if <cond> X
+                seg = re.sub(r"(?i)^(?:else|do)\b\s*", "", seg)
+                if seg == before:
+                    break
+            m = re.match(r"([^\s<>]+)", seg)
+            if not m:
+                continue
+            word = m.group(1).lower()
+            if word.startswith("echo") or re.search(r"[%!\\/:=\"]", word) or word.startswith("-"):
+                continue  # echo text; a variable or a path (checked elsewhere); an argument
+            word = re.sub(r"\.(exe|com)$", "", word)
+            if word and not word.isdigit() and word not in BUILTINS and re.match(r"^[a-z][\w.-]*$", word):
+                out.append((n, word))
+    return out
+
+
+def winpe_programs(wim):
+    """Names (without extension) of the programs in the boot image's System32."""
+    info = subprocess.run(["wimlib-imagex", "info", wim], capture_output=True, text=True)
+    idx = re.search(r"^Boot Index:\s*(\d+)", info.stdout, re.M)
+    if info.returncode != 0 or not idx or idx.group(1) == "0":
+        return None
+    listing = subprocess.run(["wimlib-imagex", "dir", wim, idx.group(1)], capture_output=True, text=True)
+    if listing.returncode != 0:
+        return None
+    return {m.group(1).lower() for m in re.finditer(r"(?im)^/Windows/System32/([^/]+)\.(?:exe|com|cmd|bat)$", listing.stdout)}
+
+
 def cfg_values(path):
-    vals = {}
-    for line in read(path).splitlines():
-        line = line.strip()
-        if line and not line.startswith("#") and "=" in line:
-            k, v = line.split("=", 1)
-            vals[k.strip().upper()] = v.split("#")[0].strip()
-    return vals
+    """KEY=VALUE pairs exactly as env.cmd's "for /f" reads them: a line starting
+    with # is a comment, everything after the first = is the value, verbatim.
+    Returns (values, problems)."""
+    vals, problems = {}, []
+    for n, raw in enumerate(read(path).splitlines(), 1):
+        if not raw.strip() or raw.startswith("#"):
+            continue
+        if "=" not in raw:
+            problems.append(f"line {n} is not KEY=VALUE: {raw.strip()!r}")
+            continue
+        k, v = raw.split("=", 1)
+        if k != k.strip() or k.upper() not in CFG_KEYS:
+            problems.append(f"line {n}: unknown key {k!r} (known: {', '.join(CFG_KEYS)})")
+            continue
+        if v != v.strip() or "#" in v:
+            problems.append(f"line {n}: {k}={v!r} has trailing spaces or an inline comment; WinPE takes the whole rest of the line as the value")
+        vals[k.upper()] = v
+    return vals, problems
 
 
-def lint_tree(http, deep=False):
-    """Checks that depend only on the files under http/."""
+def sequences(http):
+    """{mode: [step, ...]} from ts/*.seq."""
+    out = {}
+    for f in sorted(glob.glob(os.path.join(http, "ts", "*.seq"))):
+        steps = [l.split()[0] for l in read(f).splitlines() if l.strip() and not l.startswith("#")]
+        out[os.path.basename(f)[:-4]] = steps
+    return out
+
+
+def lint_tree(http, deep=False, programs=None):
+    """Checks that depend only on the files under http/. `programs` is what
+    WinPE's System32 contains (None = unknown: that check is reported UNKNOWN)."""
     R = Rows()
     rel = lambda p: os.path.relpath(p, http)
     exists = lambda p: os.path.isfile(os.path.join(http, p))
@@ -131,7 +224,14 @@ def lint_tree(http, deep=False):
             path = url.split("?")[0]
             if cmd in ("kernel", "initrd"):
                 injected.add(name.lower())
-            if "://" in url or "${" in path:
+            if path.startswith("winpe-drivers/") and "${" in path:
+                # per-NIC snippets: every file one of them injects must exist next to it
+                for snip in sorted(glob.glob(os.path.join(http, "winpe-drivers", "*.ipxe"))):
+                    base = os.path.basename(snip)
+                    for _c, u, _n in ipxe_refs(read(snip)):
+                        p2 = "winpe-drivers/" + u.split("?")[0]
+                        (R.ok if exists(p2) else R.fail)(f"winpe-drivers/{base} -> {p2}", "" if exists(p2) else "file does not exist under http/")
+            elif "://" in url or "${" in path:
                 R.unknown(f"boot.ipxe -> {url}", "not a static relative path; cannot check")
             elif is_virtual(path):
                 R.ok(f"boot.ipxe -> {path}", "generated by bin/serve")
@@ -140,43 +240,77 @@ def lint_tree(http, deep=False):
             else:
                 R.fail(f"boot.ipxe -> {path}", "file does not exist under http/")
 
-    # --- task sequence: URLs and injected programs --------------------------
-    scripts = sorted(glob.glob(os.path.join(http, "ts", "*.cmd")) + glob.glob(os.path.join(http, "post", "*.cmd")))
-    defaults = {}
+    # --- task sequence: URLs, injected programs, fetched helpers ---------------
+    scripts = sorted(glob.glob(os.path.join(http, "ts", "*.cmd")) + glob.glob(os.path.join(http, "ts", "steps", "*.cmd"))
+                     + glob.glob(os.path.join(http, "post", "*.cmd")))
+    toolkit = set(GENERATED)
     for script in scripts:
         text = read(script)
-        # "%SRV%/%%~u" inside "for %%u in (a b c) do": check each item of the list instead.
+        # "%SRV%/x/%%f" inside "for %%f in (a b c) do": check each item of the list instead.
         refs = []
         for m in re.finditer(r"%SRV%/([^\s\"]+)", text):
-            loop = re.fullmatch(r"%%~?(\w)", m.group(1))
+            path = m.group(1)
+            loop = re.search(r"%%~?(\w)", path)
             lists = re.findall(r"(?i)for %%" + loop.group(1) + r" in \(([^)]*)\)", text[:m.start()]) if loop else []
             if lists:
-                refs += [item.strip('"') for item in lists[-1].split()]
+                items = [path.replace(loop.group(0), item.strip('"')) for item in lists[-1].split()]
+                refs += items
+                if path.startswith("ts/") and rel(script) == os.path.join("ts", "deploy.cmd"):
+                    toolkit |= {os.path.basename(i).lower() for i in items}
             else:
-                refs.append(m.group(1))
+                refs.append(path)
         for ref in refs:
             path = ref.split("?")[0]
             where = f"{rel(script)} -> {path}"
             if is_virtual(path):
                 R.ok(where, "generated by bin/serve")
+            elif path.startswith("ts/steps/") and "%" in path:
+                continue  # the steps a sequence lists: checked under "sequences" below
             elif "%" in path or "!" in path:
-                var = re.search(r"[%!](\w+)[%!]", path)
-                if var and (var.group(1).upper() in CFG_KEYS or var.group(1).upper() == "ID"):
+                var = re.search(r"[%!](\w+)(?::[^%!]*)?[%!]", path)   # %VAR% or %VAR:a=b%
+                if var and var.group(1).upper() in RUNTIME_VARS:
                     continue  # resolved per machine below
                 R.unknown(where, "contains a variable lint does not resolve")
             elif exists(path):
                 R.ok(where)
             else:
                 R.fail(where, "file does not exist under http/")
-        if rel(script).startswith("ts" + os.sep):
-            for m in re.finditer(r"(?i)System32\\([\w.-]+\.(?:cmd|exe|js|vbs|dll))", text):
-                prog = m.group(1).lower()
-                if prog in injected or prog in INBOX:
-                    R.ok(f"{rel(script)} runs System32\\{m.group(1)}", "injected by boot.ipxe" if prog in injected else "inbox")
-                else:
-                    R.fail(f"{rel(script)} runs System32\\{m.group(1)}", "boot.ipxe does not inject it (no initrd --name)")
-            for m in re.finditer(r"(?im)^set (%s)=(.*?)\r?$" % "|".join(CFG_KEYS), text):
-                defaults.setdefault(m.group(1).upper(), m.group(2).strip())
+    for script in scripts:
+        if not rel(script).startswith("ts" + os.sep):
+            continue
+        text = read(script)
+        # WinPE's own System32 (X:), not the applied image's (W:\Windows\System32).
+        for m in re.finditer(r"(?i)(?:%SystemRoot%|X:\\Windows)\\System32\\([\w.-]+\.(?:cmd|exe|js|vbs|dll))", text):
+            prog = m.group(1).lower()
+            if prog in injected or prog in INBOX:
+                R.ok(f"{rel(script)} runs System32\\{m.group(1)}", "injected by boot.ipxe" if prog in injected else "inbox")
+            else:
+                R.fail(f"{rel(script)} runs System32\\{m.group(1)}", "boot.ipxe does not inject it (no initrd --name)")
+        for m in re.finditer(r"(?i)(?:X:\\pdt|%PDT%)\\([\w-]+\.(?:cmd|js))", text):
+            if m.group(1).lower() not in toolkit:
+                R.fail(f"{rel(script)} uses X:\\pdt\\{m.group(1)}", "ts/deploy.cmd does not fetch it into X:\\pdt")
+    # Every program a WinPE script runs must be in WinPE or injected. A missing
+    # one is not a mere "not recognized": inside a pipe it ends the whole batch
+    # stack without a word (found the hard way with findstr).
+    ts_scripts = [f for f in scripts if rel(f).startswith("ts" + os.sep)]
+    if programs is None:
+        R.unknown("programs the task sequence runs", "winpe/boot.wim is not readable, so what WinPE ships cannot be checked")
+    else:
+        have = set(programs) | {re.sub(r"\.(exe|com|cmd|bat)$", "", n) for n in injected}
+        for script in ts_scripts:
+            bad = sorted({(n, w) for n, w in commands(read(script)) if w not in have})
+            for n, w in bad:
+                R.fail(f"{rel(script)} line {n} runs {w}", "not in WinPE's System32 and not injected by boot.ipxe; in a pipe that aborts the whole sequence silently")
+            if not bad:
+                R.ok(f"{rel(script)} programs", "all present in WinPE")
+
+    defaults = {}
+    env = os.path.join(http, "ts", "env.cmd")
+    if os.path.isfile(env):
+        for m in re.finditer(r"(?im)^set (%s)=(.*?)\r?$" % "|".join(CFG_KEYS), read(env)):
+            defaults.setdefault(m.group(1).upper(), m.group(2).strip())
+    else:
+        R.fail("ts/env.cmd", "missing")
 
     ini = os.path.join(http, "ts", "winpeshl.ini")
     if os.path.isfile(ini):
@@ -186,6 +320,21 @@ def lint_tree(http, deep=False):
                 R.ok(f"ts/winpeshl.ini starts System32\\{m.group(1)}")
             else:
                 R.fail(f"ts/winpeshl.ini starts System32\\{m.group(1)}", "boot.ipxe does not inject it")
+
+    # --- sequences -----------------------------------------------------------
+    seqs = sequences(http)
+    listed = set()
+    for mode, steps in seqs.items():
+        for step in steps:
+            listed.add(step)
+            if exists(f"ts/steps/{step}.cmd"):
+                R.ok(f"ts/{mode}.seq -> steps/{step}.cmd")
+            else:
+                R.fail(f"ts/{mode}.seq -> steps/{step}.cmd", "the sequence lists a step that does not exist")
+    for f in sorted(glob.glob(os.path.join(http, "ts", "steps", "*.cmd"))):
+        name = os.path.basename(f)[:-4]
+        if name not in listed:
+            R.fail(f"ts/steps/{name}.cmd", "is not listed in any ts/*.seq, so it never runs")
 
     # --- line endings ------------------------------------------------------
     for pattern in CRLF_GLOBS:
@@ -197,38 +346,59 @@ def lint_tree(http, deep=False):
             else:
                 R.ok(f"{rel(f)} line endings", "CRLF")
 
-    # --- machines: the defaults, then every cfg ----------------------------
-    machines = [("defaults in ts/deploy.cmd", dict(defaults))]
-    for f in sorted(glob.glob(os.path.join(http, "machines", "*.cfg"))):
-        stem = os.path.basename(f)[:-4]
-        if not _pdt.UUID_RE.match(stem):
-            R.fail(f"machines/{os.path.basename(f)}", "file name is not a lowercase SMBIOS UUID; the task sequence will never fetch it")
+    # --- the defaults, every model cfg, every machine cfg ---------------------
+    configs = [("defaults in ts/env.cmd", dict(defaults), True)]
+    for f in sorted(glob.glob(os.path.join(http, "models", "*.cfg"))):
+        who = f"models/{os.path.basename(f)}"
+        if not SLUG_RE.match(os.path.basename(f)[:-4]):
+            R.fail(who, "file name is not a model slug (lowercase letters and digits joined by single dashes); ts/slug.js never asks for it")
             continue
-        machines.append((f"machines/{os.path.basename(f)}", {**defaults, **cfg_values(f)}))
+        vals, problems = cfg_values(f)
+        for prob in problems:
+            R.fail(who, prob)
+        for k in MACHINE_ONLY_KEYS:
+            if k in vals:
+                R.fail(f"{who} {k}={vals.pop(k)}", f"a model file cannot set {k}; only machines/<uuid>.cfg can (env.cmd ignores it here)")
+        configs.append((who, {**defaults, **vals}, False))
+    for f in sorted(glob.glob(os.path.join(http, "machines", "*.cfg"))):
+        who = f"machines/{os.path.basename(f)}"
+        if not _pdt.UUID_RE.match(os.path.basename(f)[:-4]):
+            R.fail(who, "file name is not a lowercase SMBIOS UUID; the task sequence will never fetch it")
+            continue
+        vals, problems = cfg_values(f)
+        for prob in problems:
+            R.fail(who, prob)
+        configs.append((who, {**defaults, **vals}, True))
 
     checked = {}
-    for who, v in machines:
-        mode = v.get("MODE", "")
-        if mode.lower() in MODES:
-            R.ok(f"{who} MODE={mode}")
-        else:
-            R.fail(f"{who} MODE={mode}", f"must be one of {', '.join(MODES)}")
-        for key, sub, required in (("IMAGE", "images", True), ("UNATTEND", "unattend", True),
-                                   ("DISKPART", "ts/diskpart", True), ("DRIVERS", "drivers", False)):
+    for who, v, is_machine in configs:
+        mode = v.get("MODE", "").lower()
+        if is_machine:
+            if mode == "shell" or mode in seqs:
+                R.ok(f"{who} MODE={v.get('MODE', '')}")
+            else:
+                R.fail(f"{who} MODE={v.get('MODE', '')}", f"no ts/{mode}.seq (modes: shell, {', '.join(sorted(seqs))})")
+            if v.get("REFERENCE", "").lower() not in ("", "yes"):
+                R.fail(f"{who} REFERENCE={v['REFERENCE']}", "the only value is yes (generalize after first logon, ready to capture)")
+            for key in ("STOP_BEFORE", "STOP_AFTER"):
+                val = v.get(key, "")
+                if val and not any(val.lower() == st.lower() or val == st.split("-")[0] for st in seqs.get(mode, [])):
+                    R.fail(f"{who} {key}={val}", f"names no step of ts/{mode}.seq; the sequence would never stop there")
+                elif val:
+                    R.ok(f"{who} {key}={val}")
+        for key, sub, ext, required in (("IMAGE", "images", "", True), ("UNATTEND", "unattend", "", True),
+                                        ("DISKPART", "ts/diskpart", "", True), ("DRIVERS", "drivers", ".wim", False),
+                                        ("UPDATES", "updates", ".wim", False), ("POST", "post", "", False)):
             val = v.get(key, "")
             if not val:
                 if required:
                     R.fail(f"{who} {key}", "not set")
                 continue
-            path = f"{sub}/{val}" + (".wim" if key == "DRIVERS" else "")
-            if (key, path) in checked:
-                if checked[(key, path)]:
-                    R.fail(f"{who} {key}={val}", checked[(key, path)])
-                continue
-            problem = check_asset(http, key, path, deep)
-            checked[(key, path)] = problem
-            if problem:
-                R.fail(f"{who} {key}={val}", problem)
+            path = f"{sub}/{val}{ext}"
+            if (key, path) not in checked:
+                checked[(key, path)] = check_asset(http, key, path, deep)
+            if checked[(key, path)]:
+                R.fail(f"{who} {key}={val}", checked[(key, path)])
             else:
                 R.ok(f"{who} {key}={val}", path)
     return R
@@ -244,7 +414,7 @@ def check_asset(http, key, path, deep):
             xml.dom.minidom.parse(full)
         except Exception as e:  # noqa: BLE001 - any parse error is the finding
             return f"http/{path} is not well-formed XML ({e})"
-    if key in ("IMAGE", "DRIVERS"):
+    if key in ("IMAGE", "DRIVERS", "UPDATES"):
         sidecar = full[:-4] + ".json"
         if not os.path.isfile(sidecar):
             return f"http/{path} has no sidecar {os.path.basename(sidecar)} (made by bin/stage-image / bin/pack-drivers)"
@@ -256,6 +426,8 @@ def check_asset(http, key, path, deep):
             return f"http/{path} is {os.path.getsize(full)} bytes but its sidecar describes a {meta.get('size')}-byte file"
         if key == "DRIVERS" and not meta.get("infs"):
             return f"driver pack http/{path} lists no .inf files"
+        if key == "UPDATES" and not meta.get("packages"):
+            return f"update pack http/{path} lists no .msu/.cab packages"
         if deep and meta.get("sha256"):
             h = hashlib.sha256()
             with open(full, "rb") as f:
@@ -327,11 +499,11 @@ def selftest():
             shutil.copy(os.path.join(src, "boot.ipxe"), d)
             for sub in ("ts", "post", "unattend"):
                 shutil.copytree(os.path.join(src, sub), os.path.join(d, sub))
-            for sub in ("winpe", "tools", "images", "machines", "drivers"):
+            for sub in ("winpe", "tools", "images", "machines", "models", "drivers", "updates"):
                 os.makedirs(os.path.join(d, sub))
             for _cmd, url, _name in ipxe_refs(read(os.path.join(d, "boot.ipxe"))):
                 path = url.split("?")[0]
-                if not is_virtual(path) and not os.path.exists(os.path.join(d, path)):
+                if "${" not in path and not is_virtual(path) and not os.path.exists(os.path.join(d, path)):
                     open(os.path.join(d, path), "w").write("x")
             open(os.path.join(d, "images", "base.wim"), "w").write("image")
             json.dump({"size": 5}, open(os.path.join(d, "images", "base.json"), "w"))
@@ -345,6 +517,12 @@ def selftest():
             data = open(p, "rb").read()  # read fully BEFORE reopening for write
             assert b"\r\n" in data
             open(p, "wb").write(data.replace(b"\r\n", b"\n"))
+
+        def sub_text(d, f, old, new):
+            p = os.path.join(d, f)
+            text = read(p)
+            assert old in text
+            open(p, "w", newline="").write(text.replace(old, new))
 
         def drop_line(d, f, needle):
             p = os.path.join(d, f)
@@ -362,9 +540,24 @@ def selftest():
             ("boot.ipxe stops injecting id.cmd", lambda d: drop_line(d, "boot.ipxe", "--name id.cmd"), "id.cmd"),
             ("a script a deployed machine downloads is missing", lambda d: os.remove(os.path.join(d, "post", "firstlogon.cmd")), "post/firstlogon.cmd"),
             ("a cfg file is not named by a UUID", lambda d: open(os.path.join(d, "machines", "my-pc.cfg"), "w").write("MODE=deploy\n"), "my-pc.cfg"),
+            ("a sequence lists a step that does not exist", lambda d: open(os.path.join(d, "ts", "deploy.seq"), "a").write("99-ghost\n"), "99-ghost"),
+            ("a step file is in no sequence", lambda d: open(os.path.join(d, "ts", "steps", "55-orphan.cmd"), "w", newline="").write("@echo off\r\n"), "55-orphan"),
+            ("a step saved with LF line endings", lambda d: to_lf(os.path.join(d, "ts", "steps", "20-disk.cmd")), "20-disk.cmd line endings"),
+            ("STOP_BEFORE names no step", lambda d: cfg(d, "MODE=deploy\nSTOP_BEFORE=77\n"), "STOP_BEFORE=77"),
+            ("a model file tries to set MODE", lambda d: open(os.path.join(d, "models", "lab-vm.cfg"), "w").write("MODE=deploy\n"), "a model file cannot set MODE"),
+            ("a model file is not named by a slug", lambda d: open(os.path.join(d, "models", "Lab VM.cfg"), "w").write("DRIVERS=x\n"), "not a model slug"),
+            ("a cfg value carries an inline comment", lambda d: cfg(d, "MODE=deploy   # go\n"), "inline comment"),
+            ("a cfg has a misspelt key", lambda d: cfg(d, "MODE=deploy\nIMGAE=base.wim\n"), "IMGAE"),
+            ("a step runs a program WinPE does not have", lambda d: open(os.path.join(d, "ts", "steps", "20-disk.cmd"), "a", newline="").write(
+                'findstr /c:"x" file | find "y" >nul\r\n'), "runs findstr"),
+            ("a WinPE driver snippet injects a file that is missing", lambda d: (os.makedirs(os.path.join(d, "winpe-drivers")),
+                open(os.path.join(d, "winpe-drivers", "somenic.ipxe"), "w").write("#!ipxe\ninitrd --name x.inf drv/x.inf\n")), "winpe-drivers/drv/x.inf"),
+            ("a machine names a POST script that does not exist", lambda d: cfg(d, "MODE=deploy\nPOST=ghost.cmd\n"), "POST=ghost.cmd"),
+            ("a machine names an update pack that does not exist", lambda d: cfg(d, "MODE=deploy\nUPDATES=ghost\n"), "UPDATES=ghost"),
+            ("deploy.cmd stops fetching a helper the steps call", lambda d: sub_text(d, "ts/deploy.cmd", "push.cmd pushloop.cmd slug.js", "push.cmd slug.js"), "pushloop.cmd"),
         ]
 
-        control = lint_tree(fresh())
+        control = lint_tree(fresh(), programs=SELFTEST_PROGRAMS)
         if control.count("FAIL"):
             control.show()
             return False, "the unbroken reference copy already FAILs; fix those first"
@@ -372,7 +565,7 @@ def selftest():
         for name, breakit, expect in defects:
             d = fresh()
             breakit(d)
-            hits = [r for r in lint_tree(d).rows if r[0] == "FAIL" and expect in f"{r[1]}: {r[2]}"]
+            hits = [r for r in lint_tree(d, programs=SELFTEST_PROGRAMS).rows if r[0] == "FAIL" and expect in f"{r[1]}: {r[2]}"]
             if not hits:
                 missed.append(name)
         if missed:
@@ -386,17 +579,21 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--deep", action="store_true", help="re-hash images against their sidecars")
     ap.add_argument("--selftest", action="store_true", help="only run the self-test")
+    ap.add_argument("-v", "--verbose", action="store_true", help="also list every PASS row")
     a = ap.parse_args()
 
     good, msg = selftest()
     R = Rows()
     (R.ok if good else R.fail)("lint self-test", msg)
     if not a.selftest and good:
-        R.rows += lint_tree(_pdt.paths()["HTTP_DIR"], a.deep).rows
+        http = _pdt.paths()["HTTP_DIR"]
+        wim = os.path.join(http, "winpe", "boot.wim")
+        R.rows += lint_tree(http, a.deep, winpe_programs(wim) if os.path.isfile(wim) else None).rows
         R.rows += lint_host().rows
-    R.show()
+    R.show(a.verbose)
     f, u, p = R.count("FAIL"), R.count("UNKNOWN"), R.count("PASS")
-    print(f"\n{p} PASS, {f} FAIL, {u} UNKNOWN" + ("" if not u else "  (UNKNOWN = not checked, not fine)"))
+    print(f"{p} PASS, {f} FAIL, {u} UNKNOWN" + ("" if not u else "  (UNKNOWN = not checked, not fine)")
+          + ("" if a.verbose else "   (-v lists every row)"))
     return 1 if f else 0
 
 

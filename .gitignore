@@ -10,10 +10,15 @@ http/winpe/
 http/tools/
 http/images/
 http/drivers/
+http/updates/
+http/winpe-drivers/*
+!http/winpe-drivers/README.md
 pxe/
 
-# Which machines may be deployed is host-specific (see http/machines/README.md)
+# Which machines may be deployed, and per-model defaults, are site-specific
+# (see http/machines/README.md and http/models/README.md)
 http/machines/*.cfg
+http/models/*.cfg
 
 # Runtime state
 run/

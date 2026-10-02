@@ -1,7 +1,9 @@
 # Plan: a small, Linux-hosted replacement for MDT
 
-> **Status (2026-10-02):** this is the *current* plan. **Phase 1 is done** (§4);
-> Phase 2 is next. It supersedes the original design note (now in
+> **Status (2026-10-02):** this is the *current* plan. **Phases 1 and 2 are
+> done** (§4), Phase 4 (role images) is done in its mechanics, and most of the
+> open questions of §5 have been answered by experiment
+> (`spikes/2026-10-02-unverified-items/`). Phase 3 is next. It supersedes the original design note (now in
 > `docs/history/`, together with two early reviews and the retired v1 pipeline).
 > What the repo does **today** is documented in `README.md`; this file says where
 > it is going and why. Every claim below is tagged **[verified]** (run on this host),
@@ -128,8 +130,9 @@ no credentials, works through QEMU user-net (`10.0.2.2`) and on a LAN.
   driver) cannot be registered offline from Linux (DISM only). Options, in
   preference order: (a) pick hardware WinPE already supports for VMs (`e1000e`
   NIC, AHCI disk, both inbox **[verified]**); (b) `drvload X:\Windows\System32\<x>.inf`
-  at the top of the task sequence with the .inf/.sys/.cat injected by wimboot
-  **[unknown, untested]**; (c) as a last resort, add the driver to boot.wim with
+  at the top of the task sequence with the driver's files injected by wimboot
+  **[verified: virtio NIC and disk; `http/winpe-drivers/`, selected by NIC PCI
+  id or product name]**; (c) as a last resort, add the driver to boot.wim with
   DISM from inside a WinPE session and capture the result **[unknown]**.
 
 ### 2.7 Image curation happens on Linux with wimlib, within known limits
@@ -142,13 +145,14 @@ driver/tool packs (`wimcapture`) **[verified for capture]**; offline registry
 edits with `hivexregedit`/`chntpw` **[read]**.
 
 Cannot do on Linux: integrate cumulative updates, add/remove Windows features,
-remove provisioned Appx. The UUP dump Linux converter says so explicitly
+remove provisioned Appx. (Cumulative updates are added in WinPE instead, by step
+`35-updates` from an update pack: §4, Phase 2.) The UUP dump Linux converter says so explicitly
 (`convert.sh`: "does not and cannot support the integration of updates") and it
 is the reason `00b` produces build 26100.1 (24H2 RTM). Do those in WinPE on the
 applied image (`dism /image:W:\ /add-package`) or accept Windows Update doing it
 post-install.
 
-### 2.8 Post-install configuration: unattend for the OS, winget for software **[unknown]**
+### 2.8 Post-install configuration: unattend for the OS, winget for software **[partly verified]**
 
 - The Panther `unattend.xml` (specialize + oobeSystem only) sets computer name,
   locale, local admin, autologon, hides OOBE, and runs `FirstLogonCommands`
@@ -156,8 +160,10 @@ post-install.
 - winget only exists in the full OS. Plan: a first-logon step that runs
   `winget configure -f <role>.dsc.yaml` (declarative, idempotent) or a plain
   `winget install --id … ` list, with a fallback that installs the App Installer
-  msixbundle first (fresh images sometimes ship a winget that cannot run until
-  updated). Untested.
+  msixbundle first. **[verified]**: on an image built from UUP dump winget is
+  absent and App Installer is not staged; the release's `msixbundle` with its
+  `DesktopAppInstaller_Dependencies.zip` installs at first logon and
+  `winget install` then works. `winget configure` (DSC) is still untested.
 - Progress and logs go back to the server with `curl`: beacons now, DISM/Setup
   logs via `curl -T` to the `PUT /uploads/` endpoint (§3.2).
 
@@ -178,7 +184,8 @@ penguin-deployment-toolkit/
 │   ├── build-ipxe            # ipxe.efi with the chain URL (+identity query)
 │   ├── stage-winpe           # 7z-extract boot.wim/bootmgfw/BCD/boot.sdi from the ISO
 │   ├── stage-image           # ISO -> images/base.wim (wimexport/optimize) + sidecar .json
-│   ├── pack-drivers          # vendor pack dir -> drivers/<product-slug>.wim (wimcapture)
+│   ├── pack-drivers          # vendor pack dir -> drivers/<name>.wim (wimcapture)
+│   ├── pack-updates          # dir of .msu/.cab -> updates/<name>.wim
 │   ├── fetch-tools           # pinned + hash-checked curl.exe/dll, wimlib-imagex.exe, wimboot
 │   ├── serve                 # rootless nginx: static + GET /beacon + PUT /uploads/ (3.2)
 │   ├── lint                  # every file boot.ipxe/the task sequence reference exists; cfg + sidecars parse (3.2)
@@ -189,18 +196,21 @@ penguin-deployment-toolkit/
 │   ├── pxe-lan               # dnsmasq proxy-DHCP + TFTP for physical targets; --bridge for a lab bridge
 │   ├── lab-netns             # rootless host-only bridge in a network namespace (bridged lab without sudo)
 │   ├── vm-create / vm-boot   # lab VM (e1000e + AHCI; virtio once drvload is settled)
-│   ├── capture-image         # sysprepped VM disk -> images/<role>.wim (Linux-side, Phase 4)
+│   ├── capture-image         # switched-off, generalized VM disk -> images/<role>.wim (wimlib, on Linux)
 │   └── teardown
 ├── http/                     # everything the target can see, all static
 │   ├── boot.ipxe             # default iPXE script: identify, then chain per machines/ config
 │   ├── winpe/                # pristine boot.wim, bootmgfw.efi, BCD, boot.sdi, wimboot
 │   ├── tools/                # curl.exe, libcurl-x64.dll, wimlib-imagex.exe (+ its dlls)
-│   ├── ts/                   # winpeshl.ini, deploy.cmd, capture.cmd, env.cmd, steps/*.cmd, diskpart/*.txt
+│   ├── ts/                   # winpeshl.ini, deploy.cmd (runner), env.cmd, step/beacon/push.cmd, *.seq, steps/*.cmd, diskpart/*.txt
 │   ├── images/               # base.wim, <role>.wim, each with a <name>.json sidecar
 │   ├── drivers/              # <product-slug>.wim driver packs (+ drvload/ for WinPE-side drivers)
 │   ├── unattend/             # <role>.xml Panther unattend files
 │   ├── post/                 # <role>.dsc.yaml (winget) + first-logon scripts
-│   ├── machines/             # <uuid>.cfg / <mac>.cfg: MODE, ROLE, IMAGE, DRIVERS, STOP_AFTER… (Phase 2, 3.2)
+│   ├── machines/             # <uuid>.cfg: MODE, IMAGE, DRIVERS, UPDATES, STOP_BEFORE/AFTER… (its README)
+│   ├── models/               # <product-slug>.cfg: per-model defaults; can never set MODE (its README)
+│   ├── updates/              # <name>.wim update packs (bin/pack-updates) for step 35-updates
+│   ├── winpe-drivers/        # drivers WinPE itself lacks: <nic-pci-id>.ipxe / model-<product>.ipxe snippets (its README)
 │   └── uploads/              # PUT target for logs and captured WIMs (never served back)
 ├── run/                      # STATE_DIR: nginx pid, access.log, beacons.log (append-only; the "database")
 ├── systemd/                  # unit files for serve and pxe-lan (Phase 6)
@@ -376,31 +386,95 @@ and push `ts.log`; `bin/lint`, `bin/status`, `bin/await` and `bin/vm-shot`
 exist before Phase 2 starts splitting steps, because they are how Phase 2 is
 debugged.
 
-**Phase 2 — task sequence (next).** Split `deploy.cmd` into steps (`00-net`,
-`10-identify`, `20-disk`, `30-apply`, `35-updates` (optional `dism /add-package`
-for an LCU, see 2.7), `40-drivers`, `45-winre`, `50-boot`, `60-unattend`,
-`90-reboot`), each reporting a beacon and aborting to a shell on failure.
-Per-machine/-model config by product slug, then by UUID/MAC, with one
-`MODE` per machine defined here and used everywhere: `deploy` (wipe and
-install), `capture` (no wipe, capture `W:\`), `shell` (diagnostic prompt; the
-default for any machine not listed). **Recovery partition + WinRE are required,
-not optional:** `diskpart.txt` adds a 1 GB recovery partition after the Windows
-partition (MS layout: ESP, MSR, Windows, Recovery with the `de94bba4…` GPT type
-and `gpt attributes=0x8000000000000001`), the task sequence copies
-`W:\Windows\System32\Recovery\Winre.wim` to `R:\Recovery\WindowsRE\` and runs
-`reagentc /setreimage /path R:\Recovery\WindowsRE /target W:\Windows`, and a
-first-boot check confirms `reagentc /info` reports WinRE enabled (beacon).
-*Capture groundwork:* `30-apply` reads the image name from the machine/role
-config (so a captured role image is a one-line change), and a second task
-sequence `capture.cmd` exists beside `deploy.cmd`: boot WinPE, **no wipe**,
-capture `W:\` with `wimlib-imagex.exe capture` (or `dism /capture-image`) and
-push the WIM to the server. It is only served to machines whose config says
-`MODE=capture`.
-*Introspection groundwork:* `env.cmd` + re-runnable steps, `start`/`ok`/`fail`
-per step, `STOP_BEFORE`/`STOP_AFTER` in the machine cfg, logs pushed after each
-step; `bin/timeline` reproduces the §2.4 table from `beacons.log`.
+**Phase 2 — task sequence. DONE 2026-10-02** (evidence:
+`spikes/2026-10-02-phase2-acceptance/`). What was built, and where it differs
+from what was planned:
 
-**Phase 3 — post-install.** winget DSC per role at first logon; upload
+- *Steps are fetched, not injected.* wimboot can only inject flat files into
+  System32, and injecting every step would mean touching `boot.ipxe` per step.
+  Instead the injected `deploy.cmd` is a bootstrap + runner: it brings up the
+  network, identifies the machine, then downloads `env.cmd`, the helpers, the
+  sequence file for the machine's `MODE` and the steps it lists into `X:\pdt\`,
+  **on every run**. So a step edited on the server is picked up by typing
+  `deploy NN` at the prompt: no reboot **[verified]**. Network and identify
+  therefore live in the bootstrap, not in `00-`/`10-` step files.
+- *A MODE is a sequence file.* `ts/deploy.seq` and `ts/capture.seq` list step
+  names; `MODE=shell` runs nothing. There is no separate `capture.cmd`. A new
+  mode is a new `.seq`.
+- *Steps:* `15-preflight`, `20-disk`, `25-download`, `30-apply`, `35-updates`,
+  `40-drivers`, `45-winre`, `50-boot`, `60-unattend`, `90-reboot`; `70-capture`
+  for capture. Each is a small file that `call`s `env.cmd` first, returns its
+  exit code, and may leave one line in `step.msg` (why it failed, or that it had
+  nothing to do). `step.cmd <name>` wraps one step with `start`/`ok`/`fail`
+  beacons and the log push, exactly as the runner does **[verified]**.
+- *`STOP_BEFORE` / `STOP_AFTER`* (step name or number) in the machine cfg leave
+  a prompt with the environment loaded; `deploy NN` resumes and ignores them
+  **[verified]**.
+- *Per-model defaults* live in `http/models/<slug>.cfg`, the slug computed in
+  WinPE by `ts/slug.js` from the SMBIOS product name. A model file can set
+  `IMAGE`/`UNATTEND`/`DISKPART`/`DRIVERS`/`UPDATES` and **cannot** set `MODE` or
+  `STOP_*`: `env.cmd` ignores them there and `lint` rejects them **[verified:
+  a model file saying `MODE=deploy` left an unlisted VM at the prompt, disk
+  untouched]**.
+- *Recovery partition + WinRE, required:* the layout is ESP, MSR, Windows,
+  1 GB Recovery (`de94bba4…`, attributes `0x8000000000000001`); `45-winre`
+  copies `Winre.wim` there and runs `reagentc /setreimage`; at first logon the
+  installed system beacons `winre ok` only if `reagentc /info` says Enabled
+  **and** the location is not the Windows partition **[verified: Enabled on
+  partition 4, Windows on 3]**. Two things learned: (1) with a recovery
+  partition present Windows moves WinRE there by itself on first boot even when
+  `45-winre` is skipped, so the partition is what matters and the step makes it
+  deterministic; (2) without a recovery partition `45-winre` fails by name, and
+  if it is bypassed the first-logon check reports `winre fail` (WinRE left on
+  the Windows partition) **[both verified]**.
+- *`35-updates`:* `bin/pack-updates` wraps `.msu`/`.cab` files in a WIM;
+  `UPDATES=<name>` makes the step apply it and run `dism /add-package`.
+  **[verified]**: a pack holding the 24H2 checkpoint update (KB5043080) and the
+  cumulative update for 26100.9550, targeted at the latter, took a 26100.1 image
+  to **26100.9550** offline in WinPE (about nine minutes), as reported by the
+  installed system at first logon. This closes the gap left by §2.7 (no update
+  integration on Linux): the image stays a stock base image and the update is a
+  pack beside it. Two things the pack must say, both learned by running it:
+  `--target <file>` (the update to install; anything else in the pack is a
+  prerequisite DISM draws on. Given the folder instead, the 26100.1 DISM fails
+  on the checkpoint as a package of its own and exits 552 after installing the
+  cumulative update anyway), and `--expect <version>` (the step then judges by
+  `dism /get-packages` listing that package as installed, not by DISM's exit
+  code; a wrong expectation fails the step even when DISM exits 0).
+- *Capture groundwork:* `MODE=capture` runs `70-capture`: `dism /capture-image`
+  of the installed volume to `<vol>\pdt\capture.wim` (the `\pdt` tree is
+  excluded from the image, which also keeps the reference machine's identity
+  out of it), then `curl -T` to `/uploads/<id>/<run>/capture.wim`
+  **[verified: 4.67 GB in 95 s, `wimlib-imagex verify` clean, no pagefile /
+  hiberfil / `\pdt` inside, source disk untouched]**. Applied to a fresh VM the
+  un-sysprepped image booted to a working desktop **[verified]**. It failed
+  `45-winre` first, and rightly: a captured volume has no `Winre.wim`, because
+  Windows moved it to the recovery partition. Phase 4 must deal with that.
+- *Two properties of WinPE's `cmd` that shaped the runner* **[verified, the hard
+  way]**: (1) the Setup `boot.wim` has `find` but **no `findstr`**; (2) a pipe
+  to a program that does not exist ends batch processing altogether, callers
+  included, silently: the first version of `35-updates` used `findstr` in a
+  pipe and the whole sequence simply stopped, with no `fail` event. So every
+  step now runs in a child `cmd` (an aborted step costs only itself and comes
+  back as `rc=255`, reported with `msg=the step was cut short`), and `lint`
+  reads the program list out of `boot.wim` and fails any `ts/` script that runs
+  a program WinPE does not have.
+- *Logs while a step runs:* `pushloop.cmd` pushes the logs every 20 s during a
+  step, so a ten-minute DISM can be followed with `bin/logs`, and `bin/status`
+  shows such a machine as `busy` rather than `STUCK?`. DISM's log moves to the
+  Windows partition as soon as it exists (one cumulative update at the default
+  log level wrote 444 MB; the RAM disk is no place for that).
+- *`bin/timeline`* was not built: `bin/status <id>` prints every event of a
+  boot with per-step timings, which is the §2.4 table computed.
+- *`bin/lint`* knows sequences, steps, the fetched toolkit, `STOP_*`, model
+  files and cfg hygiene; its self-test injects 21 defects.
+
+**Phase 3 — post-install (next).** Known from the spikes: winget is not in
+the image and has to be bootstrapped from the release's `msixbundle` +
+`DesktopAppInstaller_Dependencies.zip` (so: fetched and pinned by `fetch-tools`,
+served from `http/post/`, installed by the first-logon script before anything
+uses it); the `POST=` key already lets a machine or model name a first-logon
+script; a boot probe needs two triggers (§5.8). Then: winget DSC per role at first logon; upload
 `C:\Windows\Panther\*.log`, DISM logs, `reagentc /info` and winget logs to the
 `PUT /uploads/` endpoint from §3.2 (`curl -T`); final "deployed" beacon. The
 installed OS carries `id` and `run` forward so the run's timeline continues
@@ -415,43 +489,50 @@ for a role (deploy `base.wim` + role DSC), and a `prepare-capture` step runs
 DSC-installed software and drops the lab account) so the VM is left ready to
 capture.
 
-**Phase 4 — image capture from a reference VM (role images).** Two capture
-paths, Linux-side first:
+**Phase 4 — image capture from a reference VM (role images). Mechanics DONE
+2026-10-02** (evidence: `spikes/2026-10-02-unverified-items/` §2):
 
-- *Linux-side (preferred, no upload, no WinPE):* after sysprep shutdown,
-  `bin/capture-image <vm> <role>`: `qemu-img convert -O raw` the disk, find the
-  Windows partition offset with `parted`/`sgdisk`, and run `wimlib-imagex
-  capture` on the NTFS volume. The man page documents this libntfs-3g mode
-  for block devices; whether it accepts a regular raw file is the first thing
-  the spike checks (fallbacks: a loop device or `qemu-nbd`, both needing root,
-  or a udisks loop mount). Use a WimScript config that excludes pagefile,
-  hiberfil, swapfile, `$Recycle.Bin`, `System Volume Information`. Output
-  `http/images/<role>.wim`, LZX, with `--check`. **[unknown, spike first]**
-- *WinPE-side (for physical reference machines):* the `capture.cmd` task
-  sequence from Phase 2 (`wimlib-imagex.exe capture W:\` or
-  `dism /capture-image`), uploaded with `curl -T` to the `PUT /uploads/`
-  endpoint (§3.2). **[unknown]**
-- *Round-trip test (exit criterion):* deploy `<role>.wim` to a fresh VM with
-  the normal task sequence; it must reach the "deployed" beacon with the role's
-  software present and WinRE enabled. Keep `base.wim` deployable at all times so
-  a bad capture never blocks deployments.
-- Keep images honest: record in `http/images/<role>.json` the source VM, date,
-  base build, DSC file hash and wimlib version; `stage-image` refuses to serve a
-  WIM whose sidecar is missing.
+- *Reference machine:* `REFERENCE=yes` in its cfg (`bin/vm-create --reference`).
+  After first logon and the `POST=` script, `post/prepare-capture.cmd` stamps
+  the image, runs `sysprep /generalize /oobe` and shuts down fully **[verified]**.
+- *Linux-side capture* (`bin/capture-image <vm> <role>`, VM switched off):
+  `qemu-img convert`, the Windows partition cut out with `dd`, `wimlib-imagex
+  capture` in NTFS mode straight from that file, LZX, `--check`; 89 s
+  **[verified]**.
+- *WinPE-side capture* (`MODE=capture`, for machines whose disk the server
+  cannot read): `dism /capture-image`, upload, then `bin/stage-image
+  --from-upload <vm> --name <role>` **[verified]**. `70-capture` reports the
+  image state read from the offline registry (generalized or not), because the
+  generalized machine cannot report it itself: sysprep removes its NIC.
+- *`Winre.wim`:* a captured volume never has one (and `reagentc /disable` does
+  not bring it back). `stage-image` keeps `images/<name>.winre.wim` beside every
+  image and `45-winre` falls back to it **[verified]**.
+- *Round trip (the exit criterion):* machines deployed from both captures ran
+  specialize and first logon as new machines, carried the reference's stamp,
+  and reported `winre ok` **[verified]**.
+- *Sidecars:* kind, source machine/VM/run, method, build, size, SHA-256, wimlib
+  version; `lint` refuses an image whose sidecar is missing or does not match.
+
+What remains of Phase 4 is what Phase 3 brings: the role's software in the
+reference before capture, and its DSC file hash in the sidecar.
 
 **Phase 5 — real hardware over the network (the goal).** Everything above
 exists so this phase is small:
 
 - `pxe-lan` (proxy-DHCP + TFTP) on the real LAN alongside the existing DHCP
-  server; `build-ipxe` for the host's LAN IP; verify a UEFI client gets
+  server (proxy mode beside a second DHCP server is **[verified in `lab-netns`]**
+  for iPXE-ROM and firmware clients; a real switch and router are not); `build-ipxe` for the host's LAN IP; verify a UEFI client gets
   `ipxe.efi` and chains to `boot.ipxe` (access log shows its identity).
 - Gate destructive steps: only MACs/UUIDs listed in `http/machines/` get the
   wiping task sequence; everyone else gets a diagnostic shell.
-- Per-model driver packs from vendor CABs (`pack-drivers`), selected by iPXE
-  `${product}`; boot-critical drivers for WinPE via `drvload` (open question 1).
-- Secure Boot: reproduce rejection of unsigned `ipxe.efi` in the VM with the
-  enforcing vars, then sign with our own key or chain a signed shim, and document
-  the enrolment steps for real firmware (open question 3).
+- Per-model driver packs from vendor CABs (`pack-drivers`), selected by model
+  slug (`models/<slug>.cfg`); drivers WinPE itself lacks via
+  `http/winpe-drivers/` + `drvload`, selected by NIC PCI id or product name
+  **[both verified in VMs, including the firmware-PXE path with no option ROM]**.
+- Secure Boot: rejection of the unsigned binary and a full deploy with our
+  signed one are **[verified in a VM]** (`SB_KEY`/`SB_CERT`, `bin/build-ipxe`).
+  What is left is real firmware: enrol the certificate in db on one machine and
+  document the vendor's steps.
 - Measure: PXE→desktop time and image transfer rate on the LAN (open question 4):
   `timeline` and the `wim` transfer event give both without extra instrumentation.
 - Physical debugging has no screen: `pxe-lan` logs DHCP/TFTP (`dnsmasq
@@ -486,23 +567,39 @@ in production and its limits are felt.
 
 ## 5. Open questions
 
-1. Does `drvload` of wimboot-injected .inf/.sys/.cat work for a virtio NIC in
-   WinPE? (Decides whether VMs can use virtio end to end without touching
-   boot.wim.)
-2. winget availability at first logon on a fresh 24H2 Pro image without Store
-   access: does `winget configure` run, or is the msixbundle bootstrap needed?
-3. Secure Boot enforcing on physical hardware: sign our `ipxe.efi` with our own
-   key and enrol it, or chain through a signed shim?
+Answered on 2026-10-02 (`spikes/2026-10-02-unverified-items/`):
+
+1. *`drvload` of wimboot-injected drivers:* **yes.** A VM with a virtio NIC and
+   a virtio disk deploys end to end; `boot.wim` stays untouched. Inject every
+   file the `.inf` names. Select the snippet by NIC PCI id or product name,
+   never by iPXE's chip name (`SNP` on the firmware-PXE path).
+2. *winget at first logon:* **absent** on an image built from UUP dump (App
+   Installer is not staged). The release's `msixbundle` with
+   `DesktopAppInstaller_Dependencies.zip` installs at first logon and winget
+   then works. Phase 3 must fetch, pin and serve those packages.
+3. *Secure Boot enforcing:* unsigned `ipxe.efi` is refused ("Access Denied");
+   signed with our own key and the certificate enrolled in db, a VM deploys and
+   Windows reports Secure Boot on. `wimboot` and Windows' boot files are
+   Microsoft-signed already, so a shim is not needed. **Open:** enrolling a
+   certificate in real firmware (manual, per vendor).
+5. *Linux-side capture:* **yes.** wimlib's NTFS mode reads a volume from a
+   plain file; `bin/capture-image` exists; the result deploys as a new machine.
+7. *`${next-server}` instead of a baked-in server address:* **no.** Behind
+   proxy-DHCP it is the router, not us.
+8. *A reliable every-boot probe:* two scheduled tasks, "at startup" (restarts,
+   cold boots) and one on System event Kernel-Boot 27 (fast-startup power-ons).
+
+Still open:
+
 4. Physical-LAN throughput of a 3.5 GB WIM over HTTP versus SMB (expected: no
    difference that matters; measure once).
-5. Linux-side capture: does `wimlib-imagex capture` in NTFS mode on a raw
-   partition extracted from a sysprepped qcow2 produce a WIM that deploys and
-   boots (Phase 4 round-trip)? What must the WimScript exclude?
 6. Remote shell for physical machines in `MODE=shell` or after a failure: a
    `cmd` loop that polls `http/machines/<uuid>/cmd.txt` with `curl`, runs it,
    and `PUT`s the output back. Same trust boundary as editing `deploy.cmd`
    (whoever writes to `http/` already runs code as SYSTEM in WinPE), no new
    binaries. Is a 2 s poll usable, and does it need a kill switch? **[unknown]**
+9. The Safe OS dynamic update is not applied to the recovery image, so WinRE
+   stays at the base build while the OS is updated by `35-updates`.
 
 ## 6. Things deliberately not done
 

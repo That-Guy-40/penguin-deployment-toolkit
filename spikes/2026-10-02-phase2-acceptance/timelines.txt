@@ -1,0 +1,252 @@
+$ bin/status t1
+f3ea3896-8c1f-4499-856d-64172c305bff  t1
+  2026-10-02T09:46:55-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:3b:49:58
+  2026-10-02T09:46:56-04:00  +    1.0s  (+   1.0s)  wim         ok    msg=475 MiB in 0.7s (660 MiB/s)
+  2026-10-02T09:47:03-04:00  +    7.8s  (+   6.8s)  ts-start    ok    mode=capture model=lab-vm product=lab-vm mac=52:54:00:3b:49:58
+  2026-10-02T09:47:03-04:00  +    7.9s  (+   0.1s)  70-capture  start 
+  2026-10-02T09:48:39-04:00  +  103.2s  (+  95.3s)  70-capture  ok    msg=uploaded capture.wim 4666567334 bytes from C:
+  2026-10-02T09:48:39-04:00  +  103.3s  (+   0.1s)  ts-done     ok    
+
+$ bin/status t2
+13b41344-8448-429b-bf1f-a3fb1a7e7467  t2
+  2026-10-02T09:31:12-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:5c:68:d8
+  2026-10-02T09:31:13-04:00  +    1.0s  (+   1.0s)  wim         ok    msg=475 MiB in 0.7s (640 MiB/s)
+  2026-10-02T09:31:20-04:00  +    7.9s  (+   6.9s)  ts-start    ok    mode=deploy model=lab-vm product=lab-vm mac=52:54:00:5c:68:d8
+  2026-10-02T09:31:20-04:00  +    8.1s  (+   0.2s)  15-preflight start 
+  2026-10-02T09:31:20-04:00  +    8.2s  (+   0.1s)  15-preflight ok    
+  2026-10-02T09:31:20-04:00  +    8.4s  (+   0.1s)  20-disk     start 
+  2026-10-02T09:31:28-04:00  +   16.1s  (+   7.7s)  20-disk     ok    
+  2026-10-02T09:31:28-04:00  +   16.2s  (+   0.1s)  25-download start 
+  2026-10-02T09:31:40-04:00  +   28.1s  (+  11.9s)  25-download ok    
+  2026-10-02T09:31:40-04:00  +   28.2s  (+   0.1s)  30-apply    start 
+  2026-10-02T09:32:29-04:00  +   77.0s  (+  48.8s)  30-apply    ok    
+  2026-10-02T09:32:29-04:00  +   77.2s  (+   0.1s)  35-updates  start 
+  2026-10-02T09:32:29-04:00  +   77.2s  (+   0.1s)  35-updates  ok    msg=skipped: no UPDATES set
+  2026-10-02T09:32:29-04:00  +   77.4s  (+   0.2s)  40-drivers  start 
+  2026-10-02T09:32:31-04:00  +   79.1s  (+   1.7s)  40-drivers  ok    
+  2026-10-02T09:32:31-04:00  +   79.2s  (+   0.1s)  stop        ok    before=45-winre
+  2026-10-02T09:32:55-04:00  +  102.8s  (+  23.7s)  50-boot     start 
+  2026-10-02T09:32:55-04:00  +  103.1s  (+   0.3s)  50-boot     ok    
+  2026-10-02T09:32:55-04:00  +  103.3s  (+   0.2s)  60-unattend start 
+  2026-10-02T09:32:55-04:00  +  103.4s  (+   0.1s)  60-unattend ok    
+  2026-10-02T09:32:55-04:00  +  103.5s  (+   0.1s)  90-reboot   start 
+  2026-10-02T09:32:55-04:00  +  103.5s  (+   0.0s)  90-reboot   ok    
+  2026-10-02T09:32:55-04:00  +  103.6s  (+   0.1s)  ts-done     ok    
+  2026-10-02T09:33:32-04:00  +  140.5s  (+  36.9s)  specialize  ok    
+  2026-10-02T09:34:07-04:00  +  175.7s  (+  35.2s)  firstlogon  ok    host=WIN-BVB4E8C7H86 build=26100.1
+  2026-10-02T09:34:14-04:00  +  182.1s  (+   6.4s)  winre       ok    status=Enabled location=\\?\GLOBALROOT\device\harddisk0\partition4\Recovery\WindowsRE windows_partition=3
+
+$ bin/status t3
+01f35801-a49e-4a91-80cb-ea43cca1b525  t3
+  2026-10-02T09:31:12-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:ac:56:a2
+  2026-10-02T09:31:13-04:00  +    1.0s  (+   1.0s)  wim         ok    msg=475 MiB in 0.8s (624 MiB/s)
+  2026-10-02T09:31:20-04:00  +    7.9s  (+   6.9s)  ts-start    ok    mode=shell model=lab-vm product=lab-vm mac=52:54:00:ac:56:a2
+  2026-10-02T09:31:20-04:00  +    7.9s  (+   0.0s)  shell       ok    mode=shell
+
+$ bin/status t4
+3c164323-9fbe-42b2-bec0-9735b856983e  t4
+  2026-10-02T09:31:12-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:14:8d:ba
+  2026-10-02T09:31:13-04:00  +    1.0s  (+   1.0s)  wim         ok    msg=475 MiB in 0.8s (628 MiB/s)
+  2026-10-02T09:31:20-04:00  +    7.8s  (+   6.8s)  ts-start    ok    mode=deploy model=lab-vm product=lab-vm mac=52:54:00:14:8d:ba
+  2026-10-02T09:31:20-04:00  +    8.1s  (+   0.2s)  15-preflight start 
+  2026-10-02T09:31:20-04:00  +    8.2s  (+   0.1s)  15-preflight ok    
+  2026-10-02T09:31:20-04:00  +    8.3s  (+   0.1s)  stop        ok    after=15-preflight
+  2026-10-02T09:33:21-04:00  +  129.6s  (+ 121.3s)  15-preflight start 
+  2026-10-02T09:33:22-04:00  +  129.7s  (+   0.1s)  15-preflight ok    
+  2026-10-02T09:43:51-04:00  +  759.2s  (+ 629.5s)  ts-start    ok    mode=deploy model=lab-vm product=lab-vm mac=52:54:00:14:8d:ba
+  2026-10-02T09:43:51-04:00  +  759.4s  (+   0.2s)  15-preflight start 
+  2026-10-02T09:43:51-04:00  +  759.6s  (+   0.1s)  15-preflight ok    
+  2026-10-02T09:43:52-04:00  +  759.7s  (+   0.1s)  20-disk     start 
+  2026-10-02T09:43:56-04:00  +  764.0s  (+   4.4s)  20-disk     ok    
+  2026-10-02T09:43:56-04:00  +  764.1s  (+   0.1s)  25-download start 
+  2026-10-02T09:44:08-04:00  +  776.1s  (+  12.0s)  25-download ok    
+  2026-10-02T09:44:08-04:00  +  776.2s  (+   0.1s)  30-apply    start 
+  2026-10-02T09:44:54-04:00  +  822.5s  (+  46.3s)  30-apply    ok    
+  2026-10-02T09:44:55-04:00  +  822.7s  (+   0.1s)  35-updates  start 
+  2026-10-02T09:44:55-04:00  +  822.7s  (+   0.1s)  35-updates  ok    msg=skipped: no UPDATES set
+  2026-10-02T09:44:55-04:00  +  822.8s  (+   0.1s)  40-drivers  start 
+  2026-10-02T09:44:56-04:00  +  824.4s  (+   1.6s)  40-drivers  ok    
+  2026-10-02T09:44:56-04:00  +  824.5s  (+   0.1s)  stop        ok    before=45-winre
+  2026-10-02T09:44:59-04:00  +  826.9s  (+   2.4s)  45-winre    start 
+  2026-10-02T09:44:59-04:00  +  827.0s  (+   0.1s)  45-winre    fail  rc=1 msg=no recovery partition R: - check ts/diskpart/test-norecovery.txt
+  2026-10-02T09:45:08-04:00  +  836.4s  (+   9.4s)  50-boot     start 
+  2026-10-02T09:45:09-04:00  +  836.7s  (+   0.3s)  50-boot     ok    
+  2026-10-02T09:45:09-04:00  +  836.8s  (+   0.2s)  60-unattend start 
+  2026-10-02T09:45:09-04:00  +  836.9s  (+   0.1s)  60-unattend ok    
+  2026-10-02T09:45:09-04:00  +  837.0s  (+   0.2s)  90-reboot   start 
+  2026-10-02T09:45:09-04:00  +  837.0s  (+   0.0s)  90-reboot   ok    
+  2026-10-02T09:45:09-04:00  +  837.1s  (+   0.1s)  ts-done     ok    
+  2026-10-02T09:45:46-04:00  +  873.9s  (+  36.7s)  specialize  ok    
+  2026-10-02T09:46:20-04:00  +  908.3s  (+  34.5s)  firstlogon  ok    host=WIN-O5QKG0JFV31 build=26100.1
+  2026-10-02T09:46:26-04:00  +  913.7s  (+   5.3s)  winre       fail  status=Enabled location=\\?\GLOBALROOT\device\harddisk0\partition3\Recovery\WindowsRE windows_partition=3
+
+$ bin/status t6
+53f8b724-0ae4-48e9-b10a-95fe7e062ba8  t6
+  2026-10-02T09:49:56-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:9f:82:5b
+  2026-10-02T09:49:57-04:00  +    1.0s  (+   1.0s)  wim         ok    msg=475 MiB in 0.7s (682 MiB/s)
+  2026-10-02T09:50:03-04:00  +    7.5s  (+   6.5s)  ts-start    ok    mode=deploy model=lab-vm product=lab-vm mac=52:54:00:9f:82:5b
+  2026-10-02T09:50:04-04:00  +    7.7s  (+   0.2s)  15-preflight start 
+  2026-10-02T09:50:04-04:00  +    7.8s  (+   0.2s)  15-preflight ok    
+  2026-10-02T09:50:04-04:00  +    8.0s  (+   0.1s)  20-disk     start 
+  2026-10-02T09:50:12-04:00  +   15.6s  (+   7.7s)  20-disk     ok    
+  2026-10-02T09:50:12-04:00  +   15.8s  (+   0.1s)  25-download start 
+  2026-10-02T09:50:27-04:00  +   31.4s  (+  15.6s)  25-download ok    
+  2026-10-02T09:50:27-04:00  +   31.5s  (+   0.1s)  30-apply    start 
+  2026-10-02T09:51:18-04:00  +   82.1s  (+  50.6s)  30-apply    ok    
+  2026-10-02T09:51:18-04:00  +   82.5s  (+   0.3s)  35-updates  start 
+  2026-10-02T09:51:18-04:00  +   82.5s  (+   0.1s)  35-updates  ok    msg=skipped: no UPDATES set
+  2026-10-02T09:51:19-04:00  +   82.7s  (+   0.1s)  40-drivers  start 
+  2026-10-02T09:51:20-04:00  +   84.2s  (+   1.5s)  40-drivers  ok    
+  2026-10-02T09:51:20-04:00  +   84.4s  (+   0.2s)  45-winre    start 
+  2026-10-02T09:51:20-04:00  +   84.5s  (+   0.1s)  45-winre    fail  rc=1 msg=the image has no Windows\System32\Recovery\Winre.wim
+  2026-10-02T09:51:44-04:00  +  108.1s  (+  23.7s)  50-boot     start 
+  2026-10-02T09:51:44-04:00  +  108.4s  (+   0.3s)  50-boot     ok    
+  2026-10-02T09:51:44-04:00  +  108.5s  (+   0.1s)  60-unattend start 
+  2026-10-02T09:51:45-04:00  +  108.6s  (+   0.1s)  60-unattend ok    
+  2026-10-02T09:51:45-04:00  +  108.7s  (+   0.1s)  90-reboot   start 
+  2026-10-02T09:51:45-04:00  +  108.8s  (+   0.0s)  90-reboot   ok    
+  2026-10-02T09:51:45-04:00  +  108.9s  (+   0.1s)  ts-done     ok    
+
+$ bin/status t7   (final code, incl. periodic log push)
+bf8a24ac-b9a4-4ce0-920f-cda3d0c42a70  t7
+  2026-10-02T09:56:27-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:9f:59:c1
+  2026-10-02T09:56:28-04:00  +    1.0s  (+   1.0s)  wim         ok    msg=475 MiB in 0.8s (632 MiB/s)
+  2026-10-02T09:56:35-04:00  +    8.0s  (+   7.0s)  ts-start    ok    mode=deploy model=lab-vm product=lab-vm mac=52:54:00:9f:59:c1
+  2026-10-02T09:56:35-04:00  +    8.3s  (+   0.2s)  15-preflight start 
+  2026-10-02T09:56:35-04:00  +    8.4s  (+   0.1s)  15-preflight ok    
+  2026-10-02T09:56:35-04:00  +    8.5s  (+   0.1s)  20-disk     start 
+  2026-10-02T09:56:43-04:00  +   16.2s  (+   7.7s)  20-disk     ok    
+  2026-10-02T09:56:43-04:00  +   16.4s  (+   0.1s)  25-download start 
+  2026-10-02T09:56:55-04:00  +   28.5s  (+  12.1s)  25-download ok    
+  2026-10-02T09:56:55-04:00  +   28.6s  (+   0.1s)  30-apply    start 
+  2026-10-02T09:57:43-04:00  +   76.4s  (+  47.8s)  30-apply    ok    
+  2026-10-02T09:57:43-04:00  +   76.6s  (+   0.2s)  35-updates  start 
+  2026-10-02T09:57:43-04:00  +   76.7s  (+   0.1s)  35-updates  ok    msg=skipped: no UPDATES set
+  2026-10-02T09:57:44-04:00  +   76.8s  (+   0.1s)  40-drivers  start 
+  2026-10-02T09:57:45-04:00  +   78.5s  (+   1.7s)  40-drivers  ok    
+  2026-10-02T09:57:45-04:00  +   78.6s  (+   0.1s)  45-winre    start 
+  2026-10-02T09:57:50-04:00  +   83.1s  (+   4.5s)  45-winre    ok    
+  2026-10-02T09:57:50-04:00  +   83.2s  (+   0.1s)  50-boot     start 
+  2026-10-02T09:57:50-04:00  +   83.5s  (+   0.3s)  50-boot     ok    
+  2026-10-02T09:57:50-04:00  +   83.6s  (+   0.2s)  60-unattend start 
+  2026-10-02T09:57:50-04:00  +   83.7s  (+   0.1s)  60-unattend ok    
+  2026-10-02T09:57:51-04:00  +   83.9s  (+   0.1s)  90-reboot   start 
+  2026-10-02T09:57:51-04:00  +   83.9s  (+   0.0s)  90-reboot   ok    
+  2026-10-02T09:57:51-04:00  +   84.0s  (+   0.1s)  ts-done     ok    
+  2026-10-02T09:58:30-04:00  +  123.5s  (+  39.5s)  specialize  ok    
+  2026-10-02T09:59:36-04:00  +  189.7s  (+  66.2s)  firstlogon  ok    host=WIN-C3P3NNAVBNG build=26100.1
+  2026-10-02T09:59:43-04:00  +  196.3s  (+   6.6s)  winre       ok    status=Enabled location=\\?\GLOBALROOT\device\harddisk0\partition4\Recovery\WindowsRE windows_partition=3
+$ bin/status t5   (UPDATES=lcu-26100.9550, first version of 35-updates: DISM exit code as verdict)
+e021eff6-71db-475d-8ff3-52916508474d  t5
+  2026-10-02T09:49:43-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:14:71:01
+  2026-10-02T09:49:44-04:00  +    1.0s  (+   1.0s)  wim         ok    msg=475 MiB in 0.7s (676 MiB/s)
+  2026-10-02T09:49:51-04:00  +    7.6s  (+   6.7s)  ts-start    ok    mode=deploy model=lab-vm product=lab-vm mac=52:54:00:14:71:01
+  2026-10-02T09:49:51-04:00  +    7.9s  (+   0.2s)  15-preflight start 
+  2026-10-02T09:49:51-04:00  +    8.1s  (+   0.2s)  15-preflight ok    
+  2026-10-02T09:49:51-04:00  +    8.2s  (+   0.1s)  20-disk     start 
+  2026-10-02T09:49:59-04:00  +   15.7s  (+   7.5s)  20-disk     ok    
+  2026-10-02T09:49:59-04:00  +   15.8s  (+   0.1s)  25-download start 
+  2026-10-02T09:50:11-04:00  +   27.6s  (+  11.8s)  25-download ok    
+  2026-10-02T09:50:11-04:00  +   27.8s  (+   0.1s)  30-apply    start 
+  2026-10-02T09:51:00-04:00  +   76.2s  (+  48.4s)  30-apply    ok    
+  2026-10-02T09:51:00-04:00  +   76.4s  (+   0.2s)  35-updates  start 
+  2026-10-02T10:00:20-04:00  +  636.3s  (+ 560.0s)  35-updates  fail  rc=552
+  2026-10-02T10:00:59-04:00  +  675.2s  (+  38.9s)  40-drivers  start 
+  2026-10-02T10:01:00-04:00  +  676.6s  (+   1.4s)  40-drivers  ok    
+  2026-10-02T10:01:00-04:00  +  676.8s  (+   0.2s)  45-winre    start 
+  2026-10-02T10:01:01-04:00  +  677.3s  (+   0.5s)  45-winre    ok    
+  2026-10-02T10:01:01-04:00  +  677.4s  (+   0.2s)  50-boot     start 
+  2026-10-02T10:01:01-04:00  +  677.7s  (+   0.3s)  50-boot     ok    
+  2026-10-02T10:01:01-04:00  +  677.8s  (+   0.1s)  60-unattend start 
+  2026-10-02T10:01:01-04:00  +  677.9s  (+   0.1s)  60-unattend ok    
+  2026-10-02T10:01:01-04:00  +  678.1s  (+   0.2s)  90-reboot   start 
+  2026-10-02T10:01:01-04:00  +  678.1s  (+   0.0s)  90-reboot   ok    
+  2026-10-02T10:01:02-04:00  +  678.2s  (+   0.1s)  ts-done     ok    
+  2026-10-02T10:01:52-04:00  +  728.8s  (+  50.6s)  specialize  ok    
+  2026-10-02T10:02:31-04:00  +  767.8s  (+  39.0s)  firstlogon  ok    host=WIN-COFVR6PK3T5 build=26100.9550
+  2026-10-02T10:02:38-04:00  +  775.0s  (+   7.2s)  winre       ok    status=Enabled location=\\?\GLOBALROOT\device\harddisk0\partition4\Recovery\WindowsRE windows_partition=3
+$ bin/status u4   (test step that pipes into a missing program)
+4cfe320a-0ad1-4347-8e67-7cf6b74d2224  u4
+  2026-10-02T10:23:43-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:99:c0:16
+  2026-10-02T10:23:44-04:00  +    1.0s  (+   1.0s)  wim         ok    msg=475 MiB in 0.7s (679 MiB/s)
+  2026-10-02T10:23:50-04:00  +    7.4s  (+   6.4s)  ts-start    ok    mode=deploy model=lab-vm product=lab-vm mac=52:54:00:99:c0:16
+  2026-10-02T10:23:51-04:00  +    7.6s  (+   0.2s)  15-preflight start 
+  2026-10-02T10:23:51-04:00  +    7.7s  (+   0.2s)  15-preflight ok    
+  2026-10-02T10:23:51-04:00  +    7.9s  (+   0.1s)  16-abort-test start 
+  2026-10-02T10:23:51-04:00  +    7.9s  (+   0.0s)  16-abort-test fail  rc=255 msg=the step was cut short: cmd aborted its batch file, see the log
+
+$ bin/status u1
+e862f480-b973-4deb-8762-1e33f547553d  u1
+  2026-10-02T10:24:11-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:e7:8a:49
+  2026-10-02T10:24:12-04:00  +    1.0s  (+   1.0s)  wim         ok    msg=475 MiB in 0.7s (655 MiB/s)
+  2026-10-02T10:24:19-04:00  +    7.9s  (+   6.9s)  ts-start    ok    mode=deploy model=lab-vm product=lab-vm mac=52:54:00:e7:8a:49
+  2026-10-02T10:24:19-04:00  +    8.1s  (+   0.2s)  15-preflight start 
+  2026-10-02T10:24:19-04:00  +    8.3s  (+   0.2s)  15-preflight ok    
+  2026-10-02T10:24:19-04:00  +    8.4s  (+   0.2s)  20-disk     start 
+  2026-10-02T10:24:27-04:00  +   16.2s  (+   7.8s)  20-disk     ok    
+  2026-10-02T10:24:27-04:00  +   16.3s  (+   0.1s)  25-download start 
+  2026-10-02T10:24:40-04:00  +   28.6s  (+  12.3s)  25-download ok    
+  2026-10-02T10:24:40-04:00  +   28.8s  (+   0.2s)  30-apply    start 
+  2026-10-02T10:25:32-04:00  +   80.6s  (+  51.8s)  30-apply    ok    
+  2026-10-02T10:25:32-04:00  +   80.8s  (+   0.2s)  35-updates  start 
+  2026-10-02T10:34:35-04:00  +  623.6s  (+ 542.8s)  35-updates  ok    
+  2026-10-02T10:34:35-04:00  +  623.8s  (+   0.2s)  40-drivers  start 
+  2026-10-02T10:34:36-04:00  +  625.1s  (+   1.3s)  40-drivers  ok    
+  2026-10-02T10:34:36-04:00  +  625.3s  (+   0.2s)  45-winre    start 
+  2026-10-02T10:34:37-04:00  +  625.9s  (+   0.5s)  45-winre    ok    
+  2026-10-02T10:34:37-04:00  +  626.1s  (+   0.2s)  50-boot     start 
+  2026-10-02T10:34:37-04:00  +  626.4s  (+   0.3s)  50-boot     ok    
+  2026-10-02T10:34:38-04:00  +  626.6s  (+   0.2s)  60-unattend start 
+  2026-10-02T10:34:38-04:00  +  626.8s  (+   0.2s)  60-unattend ok    
+  2026-10-02T10:34:38-04:00  +  626.9s  (+   0.2s)  90-reboot   start 
+  2026-10-02T10:34:38-04:00  +  627.0s  (+   0.0s)  90-reboot   ok    
+  2026-10-02T10:34:38-04:00  +  627.1s  (+   0.1s)  ts-done     ok    
+  2026-10-02T10:35:28-04:00  +  677.1s  (+  50.0s)  specialize  ok    
+  2026-10-02T10:36:08-04:00  +  717.2s  (+  40.1s)  firstlogon  ok    host=WIN-EO74CTG46QS build=26100.9550
+  2026-10-02T10:36:15-04:00  +  724.3s  (+   7.1s)  winre       ok    status=Enabled location=\\?\GLOBALROOT\device\harddisk0\partition4\Recovery\WindowsRE windows_partition=3
+
+$ bin/status u2
+02a0ae1f-e628-49ad-a2b5-ae5d78babe21  u2
+  2026-10-02T10:24:11-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:40:da:e8
+  2026-10-02T10:24:12-04:00  +    1.0s  (+   1.0s)  wim         ok    msg=475 MiB in 0.7s (654 MiB/s)
+  2026-10-02T10:24:19-04:00  +    7.8s  (+   6.8s)  ts-start    ok    mode=deploy model=lab-vm product=lab-vm mac=52:54:00:40:da:e8
+  2026-10-02T10:24:19-04:00  +    8.0s  (+   0.2s)  15-preflight start 
+  2026-10-02T10:24:19-04:00  +    8.3s  (+   0.2s)  15-preflight ok    
+  2026-10-02T10:24:19-04:00  +    8.4s  (+   0.1s)  20-disk     start 
+  2026-10-02T10:24:27-04:00  +   16.1s  (+   7.7s)  20-disk     ok    
+  2026-10-02T10:24:27-04:00  +   16.3s  (+   0.1s)  25-download start 
+  2026-10-02T10:24:40-04:00  +   28.7s  (+  12.4s)  25-download ok    
+  2026-10-02T10:24:40-04:00  +   28.8s  (+   0.1s)  30-apply    start 
+  2026-10-02T10:25:31-04:00  +   80.2s  (+  51.4s)  30-apply    ok    
+  2026-10-02T10:25:31-04:00  +   80.4s  (+   0.2s)  35-updates  start 
+  2026-10-02T10:34:33-04:00  +  621.7s  (+ 541.3s)  35-updates  fail  rc=1 msg=expected package 26100.99999 is not installed in the image (dism exit 0)
+
+$ bin/status u3
+c84b949c-399d-4f11-8669-7e134e9085c1  u3
+  2026-10-02T10:24:11-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:1e:36:38
+  2026-10-02T10:24:12-04:00  +    1.0s  (+   1.0s)  wim         ok    msg=475 MiB in 0.7s (657 MiB/s)
+  2026-10-02T10:24:19-04:00  +    7.8s  (+   6.8s)  ts-start    ok    mode=deploy model=lab-vm product=lab-vm mac=52:54:00:1e:36:38
+  2026-10-02T10:24:19-04:00  +    8.0s  (+   0.2s)  15-preflight start 
+  2026-10-02T10:24:19-04:00  +    8.2s  (+   0.2s)  15-preflight ok    
+  2026-10-02T10:24:19-04:00  +    8.4s  (+   0.1s)  20-disk     start 
+  2026-10-02T10:24:27-04:00  +   16.1s  (+   7.7s)  20-disk     ok    
+  2026-10-02T10:24:27-04:00  +   16.2s  (+   0.2s)  25-download start 
+  2026-10-02T10:24:40-04:00  +   28.6s  (+  12.3s)  25-download ok    
+  2026-10-02T10:24:40-04:00  +   28.7s  (+   0.2s)  30-apply    start 
+  2026-10-02T10:25:31-04:00  +   80.1s  (+  51.4s)  30-apply    ok    
+  2026-10-02T10:25:31-04:00  +   80.3s  (+   0.2s)  35-updates  start 
+  2026-10-02T10:34:00-04:00  +  589.2s  (+ 508.9s)  35-updates  ok    msg=dism exit 552, but package 26100.9550 is installed in the image
+  2026-10-02T10:34:00-04:00  +  589.3s  (+   0.2s)  40-drivers  start 
+  2026-10-02T10:34:02-04:00  +  590.7s  (+   1.3s)  40-drivers  ok    
+  2026-10-02T10:34:02-04:00  +  590.9s  (+   0.2s)  45-winre    start 
+  2026-10-02T10:34:02-04:00  +  591.3s  (+   0.5s)  45-winre    ok    
+  2026-10-02T10:34:03-04:00  +  591.5s  (+   0.2s)  50-boot     start 
+  2026-10-02T10:34:03-04:00  +  591.8s  (+   0.3s)  50-boot     ok    
+  2026-10-02T10:34:03-04:00  +  592.0s  (+   0.2s)  60-unattend start 
+  2026-10-02T10:34:03-04:00  +  592.2s  (+   0.2s)  60-unattend ok    
+  2026-10-02T10:34:03-04:00  +  592.3s  (+   0.1s)  90-reboot   start 
+  2026-10-02T10:34:03-04:00  +  592.4s  (+   0.0s)  90-reboot   ok    
+  2026-10-02T10:34:04-04:00  +  592.5s  (+   0.1s)  ts-done     ok    
+  2026-10-02T10:34:57-04:00  +  645.4s  (+  53.0s)  specialize  ok    
+  2026-10-02T10:35:38-04:00  +  686.5s  (+  41.1s)  firstlogon  ok    host=WIN-U26MSKTC0TC build=26100.9550
+  2026-10-02T10:35:46-04:00  +  695.1s  (+   8.6s)  winre       ok    status=Enabled location=\\?\GLOBALROOT\device\harddisk0\partition4\Recovery\WindowsRE windows_partition=3

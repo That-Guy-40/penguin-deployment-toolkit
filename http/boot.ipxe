@@ -21,6 +21,18 @@ initrd --name deploy.cmd      ts/deploy.cmd                       || goto failed
 initrd --name id.cmd          ts/id.cmd?id=${uuid}&mac=${netX/mac} || goto failed
 initrd --name curl.exe        tools/curl.exe                      || goto failed
 initrd --name libcurl-x64.dll tools/libcurl-x64.dll               || goto failed
+
+# Drivers WinPE ITSELF needs for this machine, when it has none inbox (virtio,
+# for one). A snippet named after the NIC's PCI id (iPXE's ${netX/busid}:
+# bus:vendor:device as hex bytes, 01:1a:f4:10:00 = PCI 1af4:1000) or after the
+# product name injects them plus pdt-drvload.txt, and deploy.cmd loads them
+# with drvload before starting the network. For most machines neither file
+# exists and the 404s are expected.
+# (Not ${netX/chip}: started by firmware PXE, as on real hardware, iPXE drives
+# the NIC through the firmware and every chip is called "SNP".)
+chain --autofree winpe-drivers/${netX/busid}.ipxe ||
+chain --autofree winpe-drivers/model-${product:uristring}.ipxe ||
+
 boot || goto failed
 
 :failed
