@@ -1,0 +1,23 @@
+{
+  "file": "win11-24h2-26100.1.iso",
+  "size": 4335187968,
+  "sha256": "e88cd62fd56a8631e96c5dd5f5be872f831378aa753f174cf973b17e9254838b",
+  "kind": "iso",
+  "build": "26100.1",
+  "images": [
+    "Windows 11 Professional"
+  ],
+  "install_image": "sources/install.wim",
+  "release": "24H2",
+  "edition": "professional",
+  "language": "en-us",
+  "source": {
+    "via": "uupdump.net",
+    "id": "4d7d34d3-3732-4ad2-a9d9-ca0adf6a4730",
+    "title": "Windows 11, version 24H2 (26100.9550)",
+    "listed_build": "26100.9550"
+  },
+  "updates_integrated": false,
+  "note": "The Linux conversion kit cannot integrate cumulative updates; build is what is inside the image, listed_build is what UUP dump named.",
+  "created": "2026-10-02T04:07:46-0400"
+}

@@ -1,0 +1,186 @@
+#!/bin/bash
+# fetch-iso - build a Windows 11 ISO on Linux from Microsoft's own update
+# servers, via UUP dump (https://uupdump.net). For when you have no ISO.
+#
+#   fetch-iso [--release 24H2] [--edition professional] [--lang en-us]
+#             [--out <file.iso>] [--keep] [--list]
+#
+#   --list   show the builds UUP dump offers for the release and stop
+#   --check <file.iso>   only test whether an ISO (yours, or one built here)
+#            has what bin/stage-winpe and bin/stage-image need, and stop
+#   --keep   keep the multi-GB download cache under build/uupdump/ afterwards
+#
+# What happens: UUP dump's API names the newest public build of the release;
+# its generated conversion kit is downloaded and run (aria2 fetches the
+# packages from Microsoft, the kit assembles install.wim / boot.wim and an ISO
+# with wimlib and genisoimage). 4 to 6 GB of downloads, 10 to 30 minutes.
+#
+# Know before you use it:
+#   * The conversion kit is third-party code generated per build by uupdump.net
+#     and run as you. It cannot be pinned by hash the way bin/fetch-tools pins
+#     its downloads. The Windows packages themselves come from Microsoft and
+#     are checksum-verified by aria2.
+#   * The Linux kit CANNOT integrate cumulative updates. The ISO is the base
+#     build of the release even when UUP dump lists a newer one; the sidecar
+#     records the build that is actually inside. Windows Update finishes the
+#     job after deployment.
+#   * You still need a Windows licence. Nothing here activates anything.
+#
+# Result: iso/win11-<release>-<build>.iso (or --out) plus a .json sidecar next
+# to it: what it is, where it came from, SHA-256.
+# ISO_PATH in config.sh is set to it only if ISO_PATH is currently empty.
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+need aria2c cabextract wimlib-imagex chntpw genisoimage python3 curl unzip 7z sha256sum
+
+RELEASE="24H2" EDITION="professional" LANG_CODE="en-us" OUT="" KEEP=0 LIST=0 CHECK=""
+while (( $# )); do
+    case "$1" in
+        --release) RELEASE="${2:?}"; shift 2 ;;
+        --edition) EDITION="${2:?}"; shift 2 ;;
+        --lang)    LANG_CODE="${2:?}"; shift 2 ;;
+        --out)     OUT="${2:?}"; shift 2 ;;
+        --keep)    KEEP=1; shift ;;
+        --list)    LIST=1; shift ;;
+        --check)   CHECK="${2:?}"; shift 2 ;;
+        -h|--help) sed -n '2,32p' "$0"; exit 0 ;;
+        *) die "unknown argument: $1 (try --help)" ;;
+    esac
+done
+[[ "$RELEASE" =~ ^[0-9]{2}H[12]$ ]] || die "--release looks like 24H2 or 25H2 (got: $RELEASE)"
+[[ "$EDITION" =~ ^[A-Za-z]+$ && "$LANG_CODE" =~ ^[a-z]{2}-[a-z]{2}$ ]] || die "bad --edition or --lang"
+
+# check_iso <iso>: die unless it has the boot files and an install image;
+# sets INSTALL to the image's path inside the ISO.
+check_iso() {
+    local listing want
+    listing="$(7z l -slt "$1" 2>/dev/null)" || die "7z cannot read $1"
+    for want in efi/boot/bootx64.efi efi/microsoft/boot/bcd boot/boot.sdi sources/boot.wim; do
+        grep -qix "Path = $want" <<<"$listing" || die "$(basename "$1") lacks $want: not a usable Windows install ISO"
+    done
+    INSTALL="$(grep -ixE 'Path = sources/install\.(wim|esd)' <<<"$listing" | sed 's/^Path = //' | sed -n 1p)"
+    [[ -n "$INSTALL" ]] || die "$(basename "$1") has no sources/install.wim or install.esd"
+}
+
+if [[ -n "$CHECK" ]]; then
+    [[ -f "$CHECK" ]] || die "no such file: $CHECK"
+    check_iso "$CHECK"
+    info "$(basename "$CHECK"): boot files present, install image at $INSTALL. Usable as ISO_PATH."
+    exit 0
+fi
+
+if [[ -n "$OUT" ]]; then
+    [[ "$OUT" == /* ]] || OUT="$PWD/$OUT"
+    [[ ! -e "$OUT" ]] || die "$OUT already exists; move it away or choose another --out"
+fi
+
+API="https://api.uupdump.net"
+info "asking UUP dump for Windows 11 $RELEASE amd64 builds..."
+LISTING="$(curl -fsS --retry 3 --max-time 60 "$API/listid.php?search=Windows+11&sortByDate=1")" \
+    || die "cannot reach $API"
+# id|build|title for public (non-Insider, non-Preview) amd64 builds of the release, newest first.
+PY_PICK='
+import json, sys
+release = sys.argv[1]
+builds = json.load(sys.stdin)["response"]["builds"]
+builds = builds.values() if isinstance(builds, dict) else builds
+want = f"Windows 11, version {release}".lower()
+hits = []
+for b in builds:
+    t = b.get("title", "")
+    if b.get("arch") == "amd64" and t.lower().startswith(want) and "insider" not in t.lower() and "preview" not in t.lower():
+        hits.append(b)
+# Newest = highest build number (the API order is "date added", which is not the same thing).
+key = lambda b: tuple(int(x) for x in b["build"].split(".") if x.isdigit())
+for b in sorted(hits, key=key, reverse=True):
+    print(b["uuid"] + "|" + b["build"] + "|" + b["title"])
+'
+CANDIDATES="$(python3 -c "$PY_PICK" "$RELEASE" <<<"$LISTING"
+)" || die "could not parse the UUP dump listing"
+[[ -n "$CANDIDATES" ]] || die "UUP dump lists no public amd64 build of Windows 11 $RELEASE"
+
+if (( LIST )); then
+    awk -F'|' '{printf "%s  %-12s %s\n", $1, $2, $3}' <<<"$CANDIDATES" | sed -n '1,15p'
+    exit 0
+fi
+IFS='|' read -r UUID UUP_BUILD TITLE <<<"$(sed -n 1p <<<"$CANDIDATES")"
+info "newest: $TITLE  (id $UUID)"
+
+WORK="$BUILD_DIR/uupdump/$UUID"
+mkdir -p "$WORK"
+info "downloading the conversion kit..."
+curl -fsSL --retry 3 -o "$WORK/kit.zip" \
+    "https://uupdump.net/get.php?id=${UUID}&pack=${LANG_CODE}&edition=${EDITION^^}&autodl=2" \
+    || die "could not download the conversion kit (is edition '$EDITION' / language '$LANG_CODE' offered for this build?)"
+unzip -q -o "$WORK/kit.zip" -d "$WORK" || die "the conversion kit is not a zip (UUP dump returned an error page?)"
+[[ -f "$WORK/uup_download_linux.sh" ]] || die "the conversion kit has no uup_download_linux.sh"
+
+info "downloading packages from Microsoft and building the ISO (10 to 30 minutes)..."
+info "  progress: tail -f ${WORK#$PDT_ROOT/}/build.log"
+rc=0
+(cd "$WORK" && bash uup_download_linux.sh) > "$WORK/build.log" 2>&1 || rc=$?
+(( rc == 0 )) || die "the conversion kit failed (exit $rc); see ${WORK#$PDT_ROOT/}/build.log"
+
+mapfile -t BUILT < <(find "$WORK" -maxdepth 1 -iname '*.iso')
+(( ${#BUILT[@]} == 1 )) || die "expected exactly one ISO in $WORK, found ${#BUILT[@]}; see build.log"
+BUILT_ISO="${BUILT[0]}"
+
+# The outcome that matters: is this an ISO bin/stage-winpe and bin/stage-image can use?
+info "checking the ISO has what the boot chain needs..."
+check_iso "$BUILT_ISO"
+
+# The build number inside the image, not the one in UUP dump's title.
+TMP_WIM="$WORK/_install.$(sed 's/.*\.//' <<<"$INSTALL")"
+7z e -so "$BUILT_ISO" "$INSTALL" > "$TMP_WIM" 2>/dev/null || die "cannot extract $INSTALL from the built ISO"
+WIM_INFO="$(wimlib-imagex info "$TMP_WIM")" || die "wimlib cannot read $INSTALL from the built ISO"
+rm -f "$TMP_WIM"
+REAL_BUILD="$(awk -F': *' '/^Build:/ {b=$2} /^Service Pack Build:/ {print b "." $2; exit}' <<<"$WIM_INFO")"
+[[ -n "$REAL_BUILD" ]] || die "could not read the build number from $INSTALL"
+
+if [[ -z "$OUT" ]]; then
+    # Default name carries the build that is really inside. Never overwrite, and
+    # never throw away a finished multi-GB build over a name clash: number it.
+    OUT="$PDT_ROOT/iso/win11-${RELEASE,,}-${REAL_BUILD}.iso"
+    n=1
+    while [[ -e "$OUT" ]]; do OUT="$PDT_ROOT/iso/win11-${RELEASE,,}-${REAL_BUILD}-$n.iso"; n=$((n + 1)); done
+fi
+[[ "$OUT" == /* ]] || OUT="$PWD/$OUT"
+mkdir -p "$(dirname "$OUT")"
+mv "$BUILT_ISO" "$OUT"
+
+info "hashing and writing the sidecar..."
+PY_SIDECAR='
+import hashlib, json, os, re, sys, time
+iso, uuid, title, uup_build, real_build, release, edition, lang, install = sys.argv[1:10]
+info = sys.stdin.read()
+h = hashlib.sha256()
+with open(iso, "rb") as f:
+    for chunk in iter(lambda: f.read(1 << 22), b""):
+        h.update(chunk)
+json.dump({
+    "file": os.path.basename(iso),
+    "size": os.path.getsize(iso),
+    "sha256": h.hexdigest(),
+    "kind": "iso",
+    "build": real_build,
+    "images": re.findall(r"^Name:\s*(.+)$", info, re.M),
+    "install_image": install,
+    "release": release, "edition": edition, "language": lang,
+    "source": {"via": "uupdump.net", "id": uuid, "title": title, "listed_build": uup_build},
+    "updates_integrated": False,
+    "note": "The Linux conversion kit cannot integrate cumulative updates; build is what is inside the image, listed_build is what UUP dump named.",
+    "created": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+}, open(os.path.splitext(iso)[0] + ".json", "w"), indent=2)
+'
+python3 -c "$PY_SIDECAR" "$OUT" "$UUID" "$TITLE" "$UUP_BUILD" "$REAL_BUILD" "$RELEASE" "$EDITION" "$LANG_CODE" "$INSTALL" <<<"$WIM_INFO"
+
+if (( ! KEEP )); then rm -rf "$WORK"; fi
+
+info ""
+info "built ${OUT#$PDT_ROOT/}: Windows 11 $RELEASE build $REAL_BUILD ($(( $(stat -c%s "$OUT") / 1048576 )) MiB)"
+[[ "$REAL_BUILD" == "$UUP_BUILD" ]] || info "note: UUP dump listed $UUP_BUILD; without update integration the image is $REAL_BUILD."
+if [[ -z "${ISO_PATH:-}" ]]; then
+    sed -i "s|^ISO_PATH=.*|ISO_PATH=\"$OUT\"|" "$PDT_ROOT/config.sh"
+    info "config.sh: ISO_PATH set to it. Next: bin/stage-winpe && bin/stage-image"
+else
+    info "config.sh keeps ISO_PATH=$ISO_PATH. To use the new ISO, set ISO_PATH=\"$OUT\" and re-run bin/stage-winpe and bin/stage-image --force."
+fi

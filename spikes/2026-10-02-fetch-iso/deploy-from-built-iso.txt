@@ -1,0 +1,28 @@
+$ bin/status iso01
+2e2e7c69-8ecf-4693-b35f-d63859dbfcb4  iso01
+  2026-10-02T04:11:26-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:b0:bb:78
+  2026-10-02T04:11:26-04:00  +    0.7s  (+   0.7s)  wim         ok    msg=475 MiB in 0.7s (692 MiB/s)
+  2026-10-02T04:11:33-04:00  +    7.0s  (+   6.3s)  ts-start    ok    mode=deploy product=lab-vm mac=52:54:00:b0:bb:78
+  2026-10-02T04:11:33-04:00  +    7.0s  (+   0.0s)  preflight   start 
+  2026-10-02T04:11:33-04:00  +    7.1s  (+   0.1s)  preflight   ok    
+  2026-10-02T04:11:33-04:00  +    7.2s  (+   0.0s)  disk        start 
+  2026-10-02T04:11:37-04:00  +   11.4s  (+   4.2s)  disk        ok    
+  2026-10-02T04:11:37-04:00  +   11.4s  (+   0.0s)  download    start 
+  2026-10-02T04:11:49-04:00  +   23.1s  (+  11.7s)  download    ok    
+  2026-10-02T04:11:49-04:00  +   23.2s  (+   0.0s)  apply       start 
+  2026-10-02T04:12:36-04:00  +   70.5s  (+  47.4s)  apply       ok    
+  2026-10-02T04:12:36-04:00  +   70.6s  (+   0.0s)  boot        start 
+  2026-10-02T04:12:37-04:00  +   70.8s  (+   0.3s)  boot        ok    
+  2026-10-02T04:12:37-04:00  +   70.9s  (+   0.1s)  unattend    start 
+  2026-10-02T04:12:37-04:00  +   71.0s  (+   0.1s)  unattend    ok    
+  2026-10-02T04:12:37-04:00  +   71.1s  (+   0.1s)  ts-done     ok    
+  2026-10-02T04:13:08-04:00  +  102.5s  (+  31.4s)  specialize  ok    
+  2026-10-02T04:14:02-04:00  +  156.3s  (+  53.8s)  firstlogon  ok    host=WIN-D4KQ1O57IQF
+
+$ bin/logs iso01
+2e2e7c69-8ecf-4693-b35f-d63859dbfcb4  run 1542931170  (1 run(s): 1542931170)
+        2426  2026-10-02 04:12:37  dism.log
+      271069  2026-10-02 04:14:02  panther-setupact.log
+          85  2026-10-02 04:14:02  panther-setuperr.log
+        7991  2026-10-02 04:12:37  ts.log
+  (http/uploads/2e2e7c69-8ecf-4693-b35f-d63859dbfcb4/1542931170)

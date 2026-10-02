@@ -1,0 +1,27 @@
+$ bin/status br01
+c15800f4-9f31-4a43-b684-98dda0802f35  br01
+  2026-10-02T04:03:52-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:e1:f5:14
+  2026-10-02T04:03:53-04:00  +    0.9s  (+   0.9s)  wim         ok    msg=475 MiB in 0.9s (534 MiB/s)
+  2026-10-02T04:04:00-04:00  +    7.7s  (+   6.8s)  ts-start    ok    mode=deploy product=lab-vm mac=52:54:00:e1:f5:14
+  2026-10-02T04:04:00-04:00  +    7.7s  (+   0.0s)  preflight   start 
+  2026-10-02T04:04:00-04:00  +    7.8s  (+   0.1s)  preflight   ok    
+  2026-10-02T04:04:00-04:00  +    7.9s  (+   0.1s)  disk        start 
+  2026-10-02T04:04:04-04:00  +   12.1s  (+   4.2s)  disk        ok    
+  2026-10-02T04:04:04-04:00  +   12.2s  (+   0.1s)  download    start 
+  2026-10-02T04:04:10-04:00  +   17.5s  (+   5.4s)  download    ok    
+  2026-10-02T04:04:10-04:00  +   17.6s  (+   0.0s)  apply       start 
+  2026-10-02T04:04:56-04:00  +   64.1s  (+  46.6s)  apply       ok    
+  2026-10-02T04:04:56-04:00  +   64.2s  (+   0.0s)  drivers     start 
+  2026-10-02T04:04:58-04:00  +   65.8s  (+   1.6s)  drivers     ok    
+  2026-10-02T04:04:58-04:00  +   65.8s  (+   0.1s)  boot        start 
+  2026-10-02T04:04:58-04:00  +   66.0s  (+   0.2s)  boot        ok    
+  2026-10-02T04:04:58-04:00  +   66.1s  (+   0.1s)  unattend    start 
+  2026-10-02T04:04:58-04:00  +   66.2s  (+   0.1s)  unattend    ok    
+  2026-10-02T04:04:58-04:00  +   66.2s  (+   0.1s)  ts-done     ok    
+  2026-10-02T04:05:30-04:00  +   98.2s  (+  32.0s)  specialize  ok    
+  2026-10-02T04:05:54-04:00  +  121.6s  (+  23.4s)  firstlogon  ok    host=WIN-0DCKSG6P5ES
+
+$ bin/status
+ID                                    VM    LAST EVENT     AGE    MODE    RUN         PRODUCT  DETAIL
+d3f127fa-2ca3-4d21-8ea7-ea4402de35cc  br02  shell ok       12s    shell   1458921341  lab-vm
+c15800f4-9f31-4a43-b684-98dda0802f35  br01  firstlogon ok  1m     deploy  1395322554  lab-vm

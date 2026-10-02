@@ -1,0 +1,13 @@
+# dnsmasq: first DHCP exchange and TFTP for br01 (52:54:00:e1:f5:14)
+Oct  2 04:03:36 dnsmasq-tftp[1079555]: TFTP root is /home/sqs/scripts/Windows-install-via-Linux/pxe  
+Oct  2 04:03:47 dnsmasq-dhcp[1079555]: 1496470588 DHCPDISCOVER(br0) 52:54:00:e1:f5:14 
+Oct  2 04:03:47 dnsmasq-dhcp[1079555]: 1496470588 DHCPOFFER(br0) 10.42.0.134 52:54:00:e1:f5:14 
+Oct  2 04:03:48 dnsmasq-dhcp[1079555]: 1496470588 DHCPREQUEST(br0) 10.42.0.134 52:54:00:e1:f5:14 
+Oct  2 04:03:48 dnsmasq-dhcp[1079555]: 1496470588 DHCPACK(br0) 10.42.0.134 52:54:00:e1:f5:14 
+Oct  2 04:03:48 dnsmasq-tftp[1079555]: error 8 User aborted the transfer received from 10.42.0.134
+Oct  2 04:03:48 dnsmasq-tftp[1079555]: sent /home/sqs/scripts/Windows-install-via-Linux/pxe/ipxe.efi to 10.42.0.134
+Oct  2 04:03:48 dnsmasq-tftp[1079555]: sent /home/sqs/scripts/Windows-install-via-Linux/pxe/ipxe.efi to 10.42.0.134
+Oct  2 04:03:48 dnsmasq-tftp[1079555]: file /home/sqs/scripts/Windows-install-via-Linux/pxe/autoexec.ipxe not found for 10.42.0.134
+Oct  2 04:03:48 dnsmasq-tftp[1079555]: file /home/sqs/scripts/Windows-install-via-Linux/pxe/autoexec.ipxe not found for 10.42.0.134
+Oct  2 04:03:48 dnsmasq-dhcp[1079555]: 3502271506 DHCPDISCOVER(br0) 52:54:00:e1:f5:14 
+Oct  2 04:03:48 dnsmasq-dhcp[1079555]: 3502271506 DHCPOFFER(br0) 10.42.0.134 52:54:00:e1:f5:14 

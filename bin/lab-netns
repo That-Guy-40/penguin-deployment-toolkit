@@ -1,0 +1,112 @@
+#!/bin/bash
+# lab-netns - a ROOTLESS host-only bridge for the lab: a private network
+# namespace containing a bridge with this server's address on it, so the
+# bridged lab (real DHCP + TFTP from dnsmasq, VMs on a bridge) can run without
+# sudo and without touching the host's network.
+#
+#   lab-netns up [<bridge> <address/prefix>]   create it   (default: br0 10.42.0.1/24)
+#   lab-netns run <command...>                 run a command inside it
+#   lab-netns down                             destroy it (kills whatever still runs inside)
+#   lab-netns status
+#
+# Inside the namespace you are "root" over a network that only exists there:
+# nothing listening on the host conflicts with it, and nothing in it reaches
+# the host's network or the internet. Everything that talks to the lab must
+# run inside it:
+#
+#   bin/lab-netns up
+#   bin/lab-netns run bin/serve
+#   bin/lab-netns run bin/pxe-lan --bridge br0 10.42.0.100,10.42.0.199 start
+#   bin/vm-create lab01 --net bridge:br0
+#   bin/lab-netns run bin/vm-boot lab01
+#   bin/await lab01 firstlogon 900          # reads log files: works from outside
+#   bin/lab-netns run bin/vm-shot lab01     # talks to QEMU: inside
+#
+# config.sh must have HTTP_HOST set to the bridge address (10.42.0.1) and
+# bin/build-ipxe re-run. Needs unprivileged user namespaces (Ubuntu: sysctl
+# kernel.apparmor_restrict_unprivileged_userns=0) and util-linux's unshare/nsenter.
+#
+# It is the same lab as docs/LAB_FROM_SCRATCH.md, minus the root-only steps:
+# QEMU's bridge helper needs no setuid bit here, and /etc/qemu/bridge.conf is
+# provided inside the namespace only.
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+need unshare nsenter ip
+
+PIDFILE="$STATE_DIR/netns.pid"
+holder() {
+    local p
+    [[ -f "$PIDFILE" ]] || return 1
+    p="$(cat "$PIDFILE")"
+    [[ -n "$p" ]] && kill -0 "$p" 2>/dev/null && [[ "$(cat "/proc/$p/comm" 2>/dev/null)" == sleep ]] || return 1
+    echo "$p"
+}
+
+case "${1:-}" in
+up)
+    BR="${2:-br0}" ADDR="${3:-10.42.0.1/24}"
+    if p="$(holder)"; then info "lab namespace already up (pid $p)"; exit 0; fi
+    mkdir -p "$STATE_DIR/netns/etc-qemu"
+    echo "allow $BR" > "$STATE_DIR/netns/etc-qemu/bridge.conf"
+    rm -f "$STATE_DIR/netns/ready" "$STATE_DIR/netns/error" "$STATE_DIR/netns/pid"
+    # The holder: set the namespace up, then sleep for as long as it should exist.
+    BR="$BR" ADDR="$ADDR" NSDIR="$STATE_DIR/netns" setsid unshare --user --map-root-user --net --mount --propagation private \
+        bash -c '
+            set -e
+            trap "echo \"setup failed (line \$LINENO)\" > \"$NSDIR/error\"" ERR
+            ip link set lo up
+            ip link add "$BR" type bridge
+            ip addr add "$ADDR" dev "$BR"
+            ip link set "$BR" up
+            # /etc/qemu/bridge.conf is the ACL QEMU'"'"'s bridge helper reads. Provide it
+            # inside this mount namespace only.
+            if [ -d /etc/qemu ]; then
+                mount --bind "$NSDIR/etc-qemu" /etc/qemu
+            else
+                mkdir -p "$NSDIR/etc-upper" "$NSDIR/etc-work"
+                mkdir -p "$NSDIR/etc-upper/qemu"
+                cp "$NSDIR/etc-qemu/bridge.conf" "$NSDIR/etc-upper/qemu/bridge.conf"
+                mount -t overlay overlay -o "lowerdir=/etc,upperdir=$NSDIR/etc-upper,workdir=$NSDIR/etc-work" /etc
+            fi
+            test -r /etc/qemu/bridge.conf
+            echo $$ > "$NSDIR/pid"     # no PID namespace: this is the host-visible pid, kept across exec
+            touch "$NSDIR/ready"
+            exec sleep infinity
+        ' >"$STATE_DIR/netns/holder.log" 2>&1 &
+    for _ in $(seq 1 50); do [[ -e "$STATE_DIR/netns/ready" || -e "$STATE_DIR/netns/error" ]] && break; sleep 0.1; done
+    [[ -e "$STATE_DIR/netns/ready" ]] || die "could not create the namespace: $(cat "$STATE_DIR/netns/error" "$STATE_DIR/netns/holder.log" 2>/dev/null | tr '\n' ' ')"
+    p="$(cat "$STATE_DIR/netns/pid")"
+    [[ -n "$p" ]] && nsenter -t "$p" -U -n --preserve-credentials ip link show "$BR" >/dev/null 2>&1 \
+        || die "namespace holder not found"
+    echo "$p" > "$PIDFILE"
+    info "lab namespace up (pid $p): bridge $BR = $ADDR. Run things in it with: bin/lab-netns run <command>"
+    ;;
+run)
+    shift
+    (( $# )) || die "usage: lab-netns run <command...>"
+    p="$(holder)" || die "lab namespace is not up (bin/lab-netns up)"
+    exec nsenter -t "$p" -U -n -m --preserve-credentials --wd="$PWD" "$@"
+    ;;
+down)
+    if p="$(holder)"; then
+        # A namespace lives as long as any process in it does, so stop what runs
+        # inside (lab VMs, nginx, dnsmasq: bin/teardown, which deletes nothing),
+        # then the holder.
+        nsenter -t "$p" -U -n -m --preserve-credentials --wd="$PDT_ROOT" bin/teardown || true
+        kill "$p"
+        rm -f "$PIDFILE"
+        info "lab namespace down"
+    else
+        info "lab namespace: not up"
+    fi
+    ;;
+status)
+    if p="$(holder)"; then
+        info "up (pid $p)"
+        nsenter -t "$p" -U -n --preserve-credentials ip -br addr show type bridge
+    else
+        info "not up"; exit 1
+    fi
+    ;;
+-h|--help|"") sed -n '2,31p' "$0" ;;
+*) die "unknown argument: $1 (try --help)" ;;
+esac
