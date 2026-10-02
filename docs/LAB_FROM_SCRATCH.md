@@ -77,14 +77,17 @@ mkdir -p /srv/pdt/{pxe,http/{winpe,tools,ts,machines},run,vms,build}
 
 Only needed for firmware that does not already carry an iPXE ROM: real
 hardware, or OVMF without `romfile=`. It embeds one script that chains to the
-DHCP server's HTTP script, so it never needs rebuilding per network.
+server's HTTP script. The server's address is written in literally: `bin/build-ipxe`
+does the same from `config.sh`. (Taking it from DHCP's `next-server` looked
+tempting, but behind proxy-DHCP that is the router's address, not ours:
+verified in `spikes/2026-10-02-unverified-items/`.)
 
 ```bash
 cat > /srv/pdt/build/chain.ipxe <<'EOF'
 #!ipxe
 :retry
 dhcp || goto wait
-chain http://${next-server}:8090/boot.ipxe || shell
+chain http://10.42.0.1:8090/boot.ipxe || shell
 :wait
 sleep 3
 goto retry
@@ -94,9 +97,8 @@ make -C /srv/pdt/build/ipxe/src bin-x86_64-efi/ipxe.efi EMBED=/srv/pdt/build/cha
 cp /srv/pdt/build/ipxe/src/bin-x86_64-efi/ipxe.efi /srv/pdt/pxe/
 ```
 
-`${next-server}` is the DHCP server address iPXE learned. With dnsmasq on the
-bridge that is `10.42.0.1`. Whether QEMU's user-mode network also fills it in
-is unverified; on that path use the literal host as the v1 scripts do.
+Rebuild it when the server's address changes; `bin/lint` notices a stale
+binary.
 
 ### 6. wimboot, pinned
 
@@ -356,12 +358,12 @@ under sudo, two VMs deployed: `spikes/2026-10-02-unverified-items/`). Where the 
 
 | this runbook | repo | difference |
 |---|---|---|
-| step 5 | `bin/build-ipxe` | embeds the literal `HTTP_HOST:HTTP_PORT` from `config.sh`, not `${next-server}`; rebuild after changing either (`bin/lint` notices a stale binary) |
+| step 5 | `bin/build-ipxe` | embeds the literal `HTTP_HOST:HTTP_PORT` from `config.sh`; rebuild after changing either (`bin/lint` notices a stale binary); `SB_KEY`/`SB_CERT` sign it for enforcing Secure Boot |
 | steps 6, 8 | `bin/fetch-tools` | pinned by SHA-256, refused on mismatch |
 | step 7 | `bin/stage-winpe` | same 7z extraction, plus a check that `boot.wim` has no `winpeshl.ini` of its own |
 | step 9 | `http/boot.ipxe` | one static script with relative URLs; no `default.ipxe` or per-machine `.ipxe`. The allow-list is `http/machines/<uuid>.cfg` (`MODE=deploy`), read by the task sequence; unlisted machines boot WinPE to a prompt |
 | step 10 | `http/ts/deploy.cmd` | identity comes from the generated `ts/id.cmd` (no `wmic`), beacons carry `id`/`run`/`step`/`ev` |
-| steps 2, 3 | `bin/lab-netns up` | rootless: bridge and `bridge.conf` exist only inside a namespace |
+| steps 2, 3 | `bin/lab-netns up` | rootless: bridge and `bridge.conf` exist only inside a namespace. On a host that restricts user namespaces, `bin/lab-netns profile` prints the AppArmor profile to install (verified). Steps 2 and 3 done by hand as root are verified too |
 | step 11 | `bin/pxe-lan --bridge <br> <range>` (authoritative) vs `bin/pxe-lan` (proxy) | both modes verified in `lab-netns` (proxy mode beside a second dnsmasq playing the router); every client is handed `ipxe.efi` (no direct-to-HTTP shortcut for iPXE ROMs), own lease file under `run/`. Neither has met a physical LAN |
 | step 12 | `bin/serve` | plus `PUT /uploads/`, `/ts/id.cmd`, and a self-test at start |
 | steps 13, 14 | `bin/vm-create`, `bin/vm-boot` | one directory per VM (`vms/<name>/vm.conf`) instead of `vms.tsv`; `--net bridge:br0` for this runbook's bridge |

@@ -110,6 +110,15 @@ so stock WinPE needs no extra drivers: an e1000e NIC and an AHCI disk.
 `vm-create` also writes `http/machines/<uuid>.cfg` with `MODE=deploy`, which is
 what allows this VM, and only this VM, to be installed.
 
+**The rest of `bin/`, briefly.** `pack-drivers` and `pack-updates` turn a
+directory of drivers or of `.msu`/`.cab` updates into a pack the task sequence
+applies. `capture-image` turns a generalized lab VM's disk into a role image
+without booting anything. `pxe-lan` runs dnsmasq for real machines (proxy-DHCP
+next to the LAN's own server, or authoritative on a lab bridge), and
+`lab-netns` provides that bridge without root. `status`, `await` and `logs`
+read what machines report; `teardown` stops it all. Every script answers
+`--help`.
+
 ## 3. What happens at boot, in order
 
 1. **Firmware PXE** gets a DHCP lease and a boot file name, fetches

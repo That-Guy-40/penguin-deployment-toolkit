@@ -3,7 +3,8 @@
 > **Status (2026-10-02):** this is the *current* plan. **Phases 1 and 2 are
 > done** (§4), Phase 4 (role images) is done in its mechanics, and most of the
 > open questions of §5 have been answered by experiment
-> (`spikes/2026-10-02-unverified-items/`). Phase 3 is next. It supersedes the original design note (now in
+> (`spikes/2026-10-02-unverified-items/`); what is deliberately parked is in
+> `DEFERRED.md`. Phase 3 is next. It supersedes the original design note (now in
 > `docs/history/`, together with two early reviews and the retired v1 pipeline).
 > What the repo does **today** is documented in `README.md`; this file says where
 > it is going and why. Every claim below is tagged **[verified]** (run on this host),
@@ -86,8 +87,9 @@ Consequences:
   entries and does not check for an existing name **[read]**; `startnet.cmd`
   already exists in the WIM, `winpeshl.ini` does not. With a `winpeshl.ini`
   present WinPE does not run `wpeinit` for you, so the task sequence calls it.
-- Anything that must be *inside* the WIM for the kernel (boot-critical
-  storage/NIC drivers for WinPE itself) is the one thing this cannot do; see 2.6.
+- Drivers WinPE itself needs are injected the same way and loaded with
+  `drvload` before the network starts (`http/winpe-drivers/`, 2.6); nothing
+  ever has to go *into* the WIM.
 
 ### 2.4 Install with `diskpart` + `dism /apply-image` + `bcdboot`, not `setup.exe` **[verified]**
 
@@ -179,7 +181,7 @@ finishes downloading.
 penguin-deployment-toolkit/
 ├── config.sh                 # host settings (port, IPs, paths); from config.sh.example
 ├── bin/                      # one verb per script, no numbering
-│   ├── preflight             # PASS/FAIL/UNKNOWN per prerequisite (with known-failing rows)
+│   ├── preflight             # (Phase 6, not yet built) PASS/FAIL/UNKNOWN per prerequisite
 │   ├── fetch-iso             # optional: build a Windows ISO via UUP dump -> iso/
 │   ├── build-ipxe            # ipxe.efi with the chain URL (+identity query)
 │   ├── stage-winpe           # 7z-extract boot.wim/bootmgfw/BCD/boot.sdi from the ISO
@@ -189,7 +191,7 @@ penguin-deployment-toolkit/
 │   ├── fetch-tools           # pinned + hash-checked curl.exe/dll, wimlib-imagex.exe, wimboot
 │   ├── serve                 # rootless nginx: static + GET /beacon + PUT /uploads/ (3.2)
 │   ├── lint                  # every file boot.ipxe/the task sequence reference exists; cfg + sidecars parse (3.2)
-│   ├── status / timeline / await   # read beacons.log: fleet view, per-run step timings, block until a step (3.2)
+│   ├── status / await        # read beacons.log: fleet view and per-boot step timings; block until a step (3.2)
 │   ├── logs                  # what a machine uploaded for a run (3.2)
 │   ├── vm-shot / vm-type     # QEMU monitor screendump / sendkey into the lab VM (3.2)
 │   ├── vm-stop               # ACPI power-down, then by PID
@@ -197,7 +199,8 @@ penguin-deployment-toolkit/
 │   ├── lab-netns             # rootless host-only bridge in a network namespace (bridged lab without sudo)
 │   ├── vm-create / vm-boot   # lab VM (e1000e + AHCI; virtio once drvload is settled)
 │   ├── capture-image         # switched-off, generalized VM disk -> images/<role>.wim (wimlib, on Linux)
-│   └── teardown
+│   ├── teardown
+│   └── test-deploy           # (Phase 6, not yet built) the clean-box run as one command
 ├── http/                     # everything the target can see, all static
 │   ├── boot.ipxe             # default iPXE script: identify, then chain per machines/ config
 │   ├── winpe/                # pristine boot.wim, bootmgfw.efi, BCD, boot.sdi, wimboot
@@ -349,9 +352,9 @@ have no equivalent, which is why logs are pushed and not merely kept.
   each `images/*.wim` has its sidecar and driver packs contain an `.inf`
   (`wimlib-imagex dir`). A 404 today shows up three minutes into a boot.
 - `status [--watch]`: one row per `id`: product, mode, last step and event, age,
-  run; `fail` and stale `start` rows highlighted. `timeline <id> [run]`: the
-  step table from §2.4 with durations, computed, not typed. `logs <id>`: what
-  was uploaded for the last run.
+  run; `fail`, `busy` and `STUCK?` rows flagged. `status <id>`: every event of
+  that machine's latest boot with durations, the step table from §2.4
+  computed, not typed. `logs <id>`: what was uploaded for the last run.
 - `await <id> <step> [timeout]`: block until that event lands (exit non-zero
   on `fail` or timeout). It is the primitive that makes the lab scriptable:
   `vm-boot && await $ID firstlogon 900 && vm-shot done` is the Phase 4
@@ -538,7 +541,7 @@ exists so this phase is small:
   What is left is real firmware: enrol the certificate in db on one machine and
   document the vendor's steps.
 - Measure: PXE→desktop time and image transfer rate on the LAN (open question 4):
-  `timeline` and the `wim` transfer event give both without extra instrumentation.
+  `status <id>` and its `wim` transfer event give both without extra instrumentation.
 - Physical debugging has no screen: `pxe-lan` logs DHCP/TFTP (`dnsmasq
   --log-dhcp`) so "never reached iPXE" is distinguishable from "iPXE never
   chained"; everything after that is `status`/`logs` (§3.2).
@@ -550,12 +553,13 @@ pinned/verified inputs, and a from-scratch run of the install instructions on a
 clean machine (see 3.1). The clean-box run is `bin/test-deploy` (vm-create,
 vm-boot, `await` each step, `vm-shot` at the end) so it is a command, not a
 checklist; run inside `bin/lab-netns` it also covers DHCP + TFTP from dnsmasq
-without needing root, which makes it usable in CI; `INSTALL.md` has a "watching an install" section built on `status`,
-`timeline`, `logs`. Cut a tagged release when that run passes.
+without needing root, which makes it usable in CI; `INSTALL.md` has a "watching an install" section built on `status`
+and `logs`. Cut a tagged release when that run passes.
 
 **Later / optional — after Phase 6, each spiked before it is layered on.**
-Neither is needed for the goal; both are attractive once the static design is
-in production and its limits are felt.
+(The full list of parked ideas is `DEFERRED.md`; these are the two that would
+change the design.) Neither is needed for the goal; both are attractive once
+the static design is in production and its limits are felt.
 
 - *Streaming apply without the temp file.* On Linux make a pipable WIM
   (`wimexport --pipable` / `wimoptimize --pipable`), and in WinPE run

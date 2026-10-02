@@ -9,10 +9,11 @@ over HTTP; Windows PE on the target does the install with Microsoft's own tools
 (`diskpart`, `dism`, `bcdboot`, an unattend file), following a plain-text task
 sequence the host serves.
 
-> **Status (2026-10-02).** Phases 1 and 2 of `PLAN.md` are done: the layout
-> below is what runs, verified end to end in lab VMs (see
-> [Verification](#verification)). Real hardware (Phase 5) and an install guide
-> for other people (Phase 6) are not done yet; `TODO.md` has the order of work. The first version of this repo
+> **Status (2026-10-02).** Phases 1 and 2 of `PLAN.md` are done and Phase 4
+> (role images) in its mechanics: the layout below is what runs, verified end
+> to end in lab VMs (see [Verification](#verification)). Post-install
+> software (Phase 3), real hardware (Phase 5) and an install guide for other
+> people (Phase 6) are not done yet; `TODO.md` has the order of work. The first version of this repo
 > (Windows Setup + `autounattend.xml`) is retired to `docs/history/v1-setup-exe/`.
 
 ## How a machine gets installed
@@ -185,6 +186,11 @@ Raw data, if you prefer `tail -f`: `run/beacons.log` (one line per event),
 
 ## Verification
 
+Four passes, all on this host, all in lab VMs, each with its evidence under
+`spikes/`: the Phase 1 acceptance, the bridged lab and ISO builder, the Phase 2
+acceptance, and the "not verified" list worked through (twice, the second time
+with root supplied by hand). Nothing has run on physical hardware.
+
 Verified on 2026-10-02 on this host (Ubuntu 24.04, QEMU 8.2, Windows 11 Pro
 24H2 build 26100.1), entirely through `bin/`, as an unprivileged user. Evidence:
 `spikes/2026-10-02-phase1-acceptance/`.
@@ -260,6 +266,8 @@ Secure Boot certificate in real firmware.
 
 - `PLAN.md`: design and roadmap, each claim tagged verified / read / unknown.
 - `TODO.md`: ordered next steps and open questions to spike.
+- `DEFERRED.md`: ideas deliberately parked, with the reason, so they are not
+  rediscovered as gaps.
 - `docs/HOW_IT_WORKS.md`: a ground-up tour for newcomers.
 - `docs/LAB_FROM_SCRATCH.md`: the same lab built by hand on a host-only bridge.
 - `docs/history/v1-setup-exe/`: the retired Setup-based pipeline and its notes.

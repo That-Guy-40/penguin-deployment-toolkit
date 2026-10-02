@@ -1,7 +1,8 @@
 # TODO
 
 Ordered; the top item is the next thing to do. Details and rationale live in
-`PLAN.md` (§3 target layout, §4 roadmap, §5 open questions).
+`PLAN.md` (§3 target layout, §4 roadmap, §5 open questions). Ideas deliberately
+parked are in `DEFERRED.md`, not here.
 
 ## Next
 
@@ -36,30 +37,11 @@ Ordered; the top item is the next thing to do. Details and rationale live in
   (PLAN.md §3.1); `bin/test-deploy` (vm-create → vm-boot → `await` each step →
   `vm-shot`) is that run; `INSTALL.md` gets a "watching an install" section.
 
-## Later / optional (after Phase 6; spike first, then layer on)
-
-- [ ] Streaming apply without the temp file: pipable WIM made on Linux,
-  `curl … | wimlib-imagex.exe apply - 1 W:\` in WinPE. Spike: time it against
-  download-then-`dism` on the same VM; adopt only if faster or needed for small
-  disks (PLAN.md §4 "Later / optional").
-- [ ] A 50-line Python dispatcher rendering `boot.ipxe`/`deploy.cmd` per
-  identity instead of static `http/machines/` directories. Spike beside nginx
-  for one machine; adopt only when hand-editing directories becomes the pain
-  (PLAN.md §4 "Later / optional").
-
 ## Questions to explore through spikes
 
 Each gets a dated directory under `spikes/` with its scripts, evidence and a
 README stating the result. Answered ones are in `PLAN.md` §5.
 
-- [ ] **Remote shell over HTTP for `MODE=shell` / failed physical machines**
-  (PLAN.md §5 question 6). A `cmd` loop polling `machines/<uuid>/cmd.txt` with
-  `curl`, running it, and `PUT`ting the output; try it on the VM first, measure
-  whether a 2 s poll is usable, decide on a kill switch. No new binaries.
-- [ ] **Updating WinRE.** The Safe OS dynamic update (a .cab in every UUP set)
-  belongs in `images/<name>.winre.wim`. On Linux that needs DISM-like servicing
-  wimlib cannot do; in WinPE it would be `dism /mount-image` + `/add-package`
-  on the recovery image in `45-winre`. Is it worth it, and how long does it take?
 - [ ] **`winget configure` (DSC)** from the first-logon script, once winget is
   bootstrapped: does it run unattended, and what does a role file look like?
 - [ ] **LAN throughput of a 3.5 GB WIM over HTTP versus SMB** (expected: no
@@ -76,22 +58,23 @@ README stating the result. Answered ones are in `PLAN.md` §5.
   `bin/lab-netns` on a host that restricts user namespaces, were both verified
   on 2026-10-02 with root supplied by hand.)
 - [ ] `bin/fetch-iso` has been run for 24H2 and 25H2, professional, en-us. Other
-  editions and languages are untested. A `bin/fetch-updates` that keeps just
-  the update packages of a UUP set (today: `fetch-iso --keep`, then pick them
-  out of `build/uupdump/*/UUPs/`) would make monthly update packs a command.
-- [ ] `http/ts/diskpart/` has one layout (`uefi-gpt.txt`). BIOS/MBR machines
-  and multi-disk machines are not handled.
+  editions and languages are untested.
 - [ ] `http/unattend/default.xml` ships a blank-password local admin (`deploy`)
   for the lab. Per-role unattend files with real credentials handling belong
   to Phase 3.
 - [ ] `bin/vm-stop` powers off through ACPI, which Windows turns into fast
-  startup. Consider disabling fast startup on deployed lab machines
-  (`powercfg /h off`), or give `vm-stop` a way to ask for a full shutdown.
+  startup: a hibernated disk, "at startup" tasks that do not fire, hangs if the
+  hardware changes before the next boot. Give `vm-stop` a way to ask for a full
+  shutdown (the policy question is in `DEFERRED.md`).
 - [ ] Ports 8080 and 8088 are taken on this host by other software; `config.sh`
   here uses 8090.
 
 ## Done
 
+- [x] **With root supplied by hand (2026-10-02):** a bridge on the real host
+  with dnsmasq started under sudo (two deploys, a negative control, one bug
+  fixed in `pxe-lan`), and `bin/lab-netns` under the user-namespace
+  restriction with its generated AppArmor profile (a deploy inside).
 - [x] **The "not verified" list (2026-10-02).** Update packs with several
   package types and the 25H2 combination; a generalized role image captured in
   WinPE and on Linux (`bin/capture-image`) and deployed as new machines;
