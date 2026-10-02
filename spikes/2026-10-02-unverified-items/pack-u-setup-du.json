@@ -1,0 +1,11 @@
+{
+  "file": "u-setup-du.wim",
+  "size": 18317625,
+  "kind": "updates",
+  "packages": [
+    "Windows11.0-KB5127216-x64.cab"
+  ],
+  "targets": [],
+  "expect": null,
+  "created": "2026-10-02T11:15:58-0400"
+}

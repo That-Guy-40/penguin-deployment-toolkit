@@ -1,0 +1,17 @@
+{
+  "file": "role-linux.wim",
+  "size": 3222326979,
+  "sha256": "9b886724c1ff379d32a1ced48e3a13486197220ce1de2462cd899291c954ffb5",
+  "kind": "captured",
+  "image_name": "captured 77a1b6f7-5aff-4953-a8aa-3c76d0ef8978",
+  "edition": "Professional",
+  "build": "26100.1",
+  "languages": "en-US",
+  "source": {
+    "machine": "77a1b6f7-5aff-4953-a8aa-3c76d0ef8978",
+    "vm": "ref1",
+    "via": "bin/capture-image (wimlib NTFS capture of the VM disk)"
+  },
+  "created": "2026-10-02T11:35:22-0400",
+  "wimlib": "wimlib-imagex 1.14.4-1.1build2 (using wimlib 1.14.4-1.1build2)"
+}

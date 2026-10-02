@@ -1,0 +1,65 @@
+$ bin/logs p4 --cat winget-bootstrap.txt   (bootstrap with the release Dependencies zip: works)
+=== download
+C:\Users\deploy\AppData\Local\Temp\pdt-winget\arm64
+C:\Users\deploy\AppData\Local\Temp\pdt-winget\deps.zip
+C:\Users\deploy\AppData\Local\Temp\pdt-winget\winget.msixbundle
+C:\Users\deploy\AppData\Local\Temp\pdt-winget\x64
+C:\Users\deploy\AppData\Local\Temp\pdt-winget\x86
+C:\Users\deploy\AppData\Local\Temp\pdt-winget\arm64\Microsoft.VCLibs.140.00.UWPDesktop_14.0.33728.0_arm64.appx
+C:\Users\deploy\AppData\Local\Temp\pdt-winget\arm64\Microsoft.VCLibs.140.00_14.0.33519.0_arm64.appx
+C:\Users\deploy\AppData\Local\Temp\pdt-winget\arm64\Microsoft.WindowsAppRuntime.1.8_8000.616.304.0_arm64.appx
+C:\Users\deploy\AppData\Local\Temp\pdt-winget\x64\Microsoft.VCLibs.140.00.UWPDesktop_14.0.33728.0_x64.appx
+C:\Users\deploy\AppData\Local\Temp\pdt-winget\x64\Microsoft.VCLibs.140.00_14.0.33519.0_x64.appx
+C:\Users\deploy\AppData\Local\Temp\pdt-winget\x64\Microsoft.WindowsAppRuntime.1.8_8000.616.304.0_x64.appx
+C:\Users\deploy\AppData\Local\Temp\pdt-winget\x86\Microsoft.VCLibs.140.00.UWPDesktop_14.0.33728.0_x86.appx
+C:\Users\deploy\AppData\Local\Temp\pdt-winget\x86\Microsoft.VCLibs.140.00_14.0.33519.0_x86.appx
+C:\Users\deploy\AppData\Local\Temp\pdt-winget\x86\Microsoft.WindowsAppRuntime.1.8_8000.616.304.0_x86.appx
+=== Add-AppxPackage with -DependencyPath x64\*.appx
+=== winget --version
+v1.29.380
+=== winget install 7zip.7zip
+The `msstore` source requires that you view the following agreements before using.
+Terms of Transaction: https://aka.ms/microsoft-store-terms-of-transaction
+The source requires the current machine's 2-letter geographic region to be sent to the backend service to function properly (ex. "US").
+Found 7-Zip [7zip.7zip] Version 26.03
+This application is licensed to you by its owner.
+Microsoft is not responsible for, nor does it grant any licenses to, third-party packages.
+Downloading https://www.7-zip.org/a/7z2603-x64.msi
+Successfully verified installer hash
+Starting package install...
+Successfully installed
+
+$ bin/logs b8a2cc01 --cat winget-bootstrap.txt   (VCLibs + UI.Xaml only: fails)
+=== Add-AppxPackage
+Add-AppxPackage : Deployment failed with HRESULT: 0x80073CF3, Package failed updates, dependency or conflict 
+validation.
+Windows cannot install package Microsoft.DesktopAppInstaller_1.29.290.0_x64__8wekyb3d8bbwe because this package 
+depends on a framework that could not be found. Provide the framework "Microsoft.WindowsAppRuntime.1.8" published by 
+"CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US", with neutral or x64 processor 
+architecture and minimum version 8000.616.304.0, along with this package to install.
+NOTE: For additional information, look for [ActivityId] 577378d3-5280-0000-f4a3-73578052dd01 in the Event Log or use 
+the command line Get-AppPackageLog -ActivityID 577378d3-5280-0000-f4a3-73578052dd01
+At line:1 char:184
++ ... xaml.appx'; Add-AppxPackage 'C:\Users\deploy\AppData\Local\Temp\pdt-w ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+$ bin/logs 527de07d --cat probe.txt   (winget at first logon, untouched image)
+=== where winget
+INFO: Could not find files for the given pattern(s).
+=== winget --version
+'winget' is not recognized as an internal or external command,
+operable program or batch file.
+=== registering App Installer for this user
+Add-AppxPackage : Deployment failed with HRESULT: 0x80073CF1, Package was not found.
+Windows cannot perform the RegisterByPackageFamilyName operation because it could not find 
+Microsoft.DesktopAppInstaller_8wekyb3d8bbwe in the repository. Make sure Microsoft.DesktopAppInstaller_8wekyb3d8bbwe 
+has been staged or was installed by another user.
+NOTE: For additional information, look for [ActivityId] cdc15896-527f-0001-9e78-c1cd7f52dd01 in the Event Log or use 
+the command line Get-AppPackageLog -ActivityID cdc15896-527f-0001-9e78-c1cd7f52dd01
+At line:1 char:1
++ Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopA ...
+
+$ bin/logs p3 --cat boot-probe.txt
+SUCCESS: The scheduled task "PDT-boot-onstart" has successfully been created.
+SUCCESS: The scheduled task "PDT-boot-event" has successfully been created.
+

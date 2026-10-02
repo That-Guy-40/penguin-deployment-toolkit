@@ -36,7 +36,7 @@ echo DHCP failed, retrying in 3s...
 sleep 3
 goto retry_dhcp
 :got_dhcp
-chain ${CHAIN}?uuid=\${uuid}&mac=\${netX/mac}&product=\${product:uristring}&mfr=\${manufacturer:uristring}&serial=\${serial:uristring} || goto failed
+chain ${CHAIN}?uuid=\${uuid}&mac=\${netX/mac}&product=\${product:uristring}&mfr=\${manufacturer:uristring}&serial=\${serial:uristring}&nic=\${netX/busid}&chip=\${netX/chip}&bootsrv=\${next-server} || goto failed
 :failed
 echo Could not chain to ${CHAIN} - dropping to the iPXE shell
 shell
@@ -47,6 +47,22 @@ make -C "$SRC/src" bin-x86_64-efi/ipxe.efi EMBED="$EMBED" -j"$(nproc)" > "$BUILD
     || die "iPXE build failed; see build/ipxe/build.log"
 install -m 0644 "$SRC/src/bin-x86_64-efi/ipxe.efi" "$PXE_DIR/ipxe.efi"
 
+# Secure Boot: firmware that ENFORCES it refuses an unsigned ipxe.efi
+# (verified). With SB_KEY and SB_CERT set in config.sh the binary is signed;
+# the certificate then has to be enrolled in the target firmware's "db"
+# (allowed signatures). wimboot and Windows' own boot files are already signed
+# by Microsoft.
+SIGNED=""
+if [[ -n "${SB_KEY:-}" || -n "${SB_CERT:-}" ]]; then
+    need sbsign sbverify
+    [[ -f "${SB_KEY:-}" && -f "${SB_CERT:-}" ]] || die "config.sh: SB_KEY and SB_CERT must both name existing files"
+    sbsign --key "$SB_KEY" --cert "$SB_CERT" --output "$PXE_DIR/ipxe.efi.signed" "$PXE_DIR/ipxe.efi" >/dev/null 2>&1 \
+        || die "sbsign failed"
+    mv -f "$PXE_DIR/ipxe.efi.signed" "$PXE_DIR/ipxe.efi"
+    sbverify --cert "$SB_CERT" "$PXE_DIR/ipxe.efi" >/dev/null 2>&1 || die "the signed ipxe.efi does not verify against SB_CERT"
+    SIGNED=", signed with $(basename "$SB_CERT")"
+fi
+
 # The outcome we care about: the binary we will serve embeds the URL from config.sh.
 grep -aqF "chain ${CHAIN}?" "$PXE_DIR/ipxe.efi" || die "built ipxe.efi does not contain the expected chain URL"
-info "pxe/ipxe.efi built: iPXE ${IPXE_REF:0:12}, chains to ${CHAIN}, sha256 $(sha256sum "$PXE_DIR/ipxe.efi" | cut -c1-16)…"
+info "pxe/ipxe.efi built: iPXE ${IPXE_REF:0:12}, chains to ${CHAIN}${SIGNED}, sha256 $(sha256sum "$PXE_DIR/ipxe.efi" | cut -c1-16)…"

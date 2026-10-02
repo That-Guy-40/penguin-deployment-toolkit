@@ -69,8 +69,9 @@ else
     HOSTIP="${CIDR%/*}"
     [[ "$HTTP_HOST" == "$HOSTIP" ]] || warn "config.sh HTTP_HOST=$HTTP_HOST but $IFACE has $HOSTIP: targets on this LAN cannot reach $BASE_URL. Set HTTP_HOST=$HOSTIP, then bin/build-ipxe and bin/serve."
     MODE_LINES="# Proxy-DHCP: answer only the PXE part; the LAN's DHCP server keeps handing out addresses.
+# Every UEFI x86-64 PXE client gets OUR ipxe.efi, iPXE option ROMs included (see --bridge).
 dhcp-range=$NET,proxy
-pxe-service=tag:efi64,tag:!ipxe,x86-64_EFI,\"PDT network install\",ipxe.efi"
+pxe-service=tag:efi64,x86-64_EFI,\"PDT network install\",ipxe.efi"
 fi
 
 cat > "$CONF" <<DNSMASQ

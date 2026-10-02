@@ -1,0 +1,18 @@
+{
+  "file": "u-25h2.wim",
+  "size": 5320147093,
+  "kind": "updates",
+  "packages": [
+    "Windows11.0-KB5043080-x64.msu",
+    "Windows11.0-KB5054156-x64.cab",
+    "Windows11.0-KB5124010-x64.msu",
+    "Windows11.0-KB5126052-x64-NDP481.cab"
+  ],
+  "targets": [
+    "Windows11.0-KB5124010-x64.msu",
+    "Windows11.0-KB5054156-x64.cab",
+    "Windows11.0-KB5126052-x64-NDP481.cab"
+  ],
+  "expect": "26100.9550",
+  "created": "2026-10-02T11:15:58-0400"
+}

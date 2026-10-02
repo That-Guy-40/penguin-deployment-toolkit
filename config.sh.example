@@ -32,6 +32,14 @@ IPXE_ROM_DIR="/usr/lib/ipxe/qemu"
 # iPXE source revision built by build-ipxe (a commit, not a branch).
 IPXE_REF="e0a2ca984f2a5a96c5bc7e7012e23348e9030c24"
 
+# Secure Boot. Empty = pxe/ipxe.efi is left unsigned, which firmware in Setup
+# Mode (the lab VM) and firmware with Secure Boot off accept, and enforcing
+# firmware refuses. To boot enforcing machines, set both to a key and
+# certificate of your own (openssl req -new -x509 -newkey rsa:2048 -nodes ...),
+# re-run bin/build-ipxe, and enrol the certificate in each machine's firmware.
+SB_KEY=""
+SB_CERT=""
+
 # pxe-lan: LAN interface for proxy-DHCP + TFTP. Empty = autodetect from the
 # default route.
 LAN_IF=""

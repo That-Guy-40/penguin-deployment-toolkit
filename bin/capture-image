@@ -1,0 +1,63 @@
+#!/bin/bash
+# capture-image - capture a role image from a lab VM's disk, on Linux, with
+# the VM switched off. No WinPE boot, no upload.
+#
+#   capture-image <vm> <role> [--force]
+#
+# The VM must have been generalized and shut down first: create it with
+# bin/vm-create <vm> --reference, deploy it, and it runs sysprep and powers
+# off after first logon (post/prepare-capture.cmd).
+#
+# How: qemu-img converts the disk to a sparse raw file, the Windows partition
+# is cut out of it, and wimlib captures that NTFS volume directly (its
+# libntfs-3g mode reads a volume from a plain file: verified). The result is
+# published as http/images/<role>.wim with a sidecar and a recovery image by
+# bin/stage-image --from-wim. A physical reference machine cannot be captured
+# this way; use MODE=capture (step 70-capture) for those.
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+need qemu-img sfdisk dd wimlib-imagex python3
+
+FORCE=() ARGS=()
+for a in "$@"; do
+    case "$a" in
+        --force) FORCE=(--force) ;;
+        -h|--help) sed -n '2,16p' "$0"; exit 0 ;;
+        *) ARGS+=("$a") ;;
+    esac
+done
+(( ${#ARGS[@]} == 2 )) || die "usage: capture-image <vm> <role> [--force]"
+VM="${ARGS[0]}" ROLE="${ARGS[1]}"
+vm_load "$VM"
+if pid="$(vm_pid "$VM")"; then die "VM $VM is running (pid $pid); capture needs it shut down"; fi
+[[ -e "$HTTP_DIR/images/$ROLE.wim" && ${#FORCE[@]} == 0 ]] && die "http/images/$ROLE.wim exists (use --force to replace it)"
+
+WORK="$(mktemp -d "$BUILD_DIR/capture.XXXXXX")"
+trap 'rm -rf "$WORK"' EXIT
+
+info "converting $VM's disk to raw (sparse)..."
+qemu-img convert -O raw "$VM_DIR/disk.qcow2" "$WORK/disk.raw" || die "qemu-img convert failed"
+
+# The Windows partition: the largest "basic data" partition (GPT type EBD0A0A2-...).
+read -r START SIZE < <(sfdisk -J "$WORK/disk.raw" | python3 -c '
+import json, sys
+parts = [p for p in json.load(sys.stdin)["partitiontable"]["partitions"]
+         if p["type"].upper() == "EBD0A0A2-B9E5-4433-87C0-68B6B72699C7"]
+if parts:
+    p = max(parts, key=lambda p: p["size"])
+    print(p["start"], p["size"])
+') || true
+[[ -n "${START:-}" ]] || die "no Windows (basic data) partition found on $VM's disk"
+info "cutting out the Windows partition ($(( SIZE / 2048 )) MiB at sector $START)..."
+dd if="$WORK/disk.raw" of="$WORK/windows.ntfs" bs=512 skip="$START" count="$SIZE" conv=sparse status=none || die "dd failed"
+rm -f "$WORK/disk.raw"
+
+# Same exclusions as the WinPE-side capture (ts/capture.ini), LF line endings for wimlib.
+tr -d '\r' < "$HTTP_DIR/ts/capture.ini" > "$WORK/capture.ini"
+info "capturing the NTFS volume with wimlib (LZX)..."
+wimlib-imagex capture "$WORK/windows.ntfs" "$WORK/$ROLE.wim" "captured $VM_UUID" \
+    --compress=LZX --check --config="$WORK/capture.ini" >"$WORK/capture.log" 2>&1 \
+    || { tail -n 5 "$WORK/capture.log" >&2; die "wimlib capture failed (is the volume hibernated? shut Windows down fully)"; }
+rm -f "$WORK/windows.ntfs"
+
+"$PDT_ROOT/bin/stage-image" --from-wim "$WORK/$ROLE.wim" --name "$ROLE" "${FORCE[@]}" \
+    --source-json "{\"machine\": \"$VM_UUID\", \"vm\": \"$VM\", \"via\": \"bin/capture-image (wimlib NTFS capture of the VM disk)\"}"

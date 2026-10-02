@@ -1,0 +1,18 @@
+{
+  "file": "role-test.wim",
+  "size": 3591863515,
+  "sha256": "6d65305af9c3baf91217f0b43984c95c42d45648afe6a78c94c8ac5d1ab910d5",
+  "kind": "captured",
+  "image_name": "captured 77a1b6f7-5aff-4953-a8aa-3c76d0ef8978",
+  "edition": "Professional",
+  "build": "26100.1",
+  "languages": "en-US",
+  "source": {
+    "machine": "77a1b6f7-5aff-4953-a8aa-3c76d0ef8978",
+    "vm": "ref1",
+    "run": "18811442",
+    "via": "MODE=capture (dism /capture-image)"
+  },
+  "created": "2026-10-02T11:24:41-0400",
+  "wimlib": "wimlib-imagex 1.14.4-1.1build2 (using wimlib 1.14.4-1.1build2)"
+}

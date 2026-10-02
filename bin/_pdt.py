@@ -79,7 +79,8 @@ def read_access_events(path=None):
             if url.path == "/boot.ipxe" and q.get("uuid"):
                 out.append(dict(base, id=q["uuid"].lower(), step="ipxe", ev="ok" if status == "200" else "fail",
                                 product=q.get("product", ""), mfr=q.get("mfr", ""), mac=q.get("mac", ""),
-                                serial=q.get("serial", "")))
+                                serial=q.get("serial", ""), nic=q.get("nic", ""), chip=q.get("chip", ""),
+                                bootsrv=q.get("bootsrv", "")))
             elif url.path == "/winpe/boot.wim" and q.get("id"):
                 rate = int(size) / float(secs) / 1048576 if float(secs) > 0 else 0
                 out.append(dict(base, id=q["id"].lower(), step="wim", ev="ok" if status == "200" else "fail",
