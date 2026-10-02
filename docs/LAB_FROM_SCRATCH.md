@@ -350,8 +350,9 @@ the **user-mode-network** lab (no bridge, no root: the README quick start), and
 this runbook's bridged lab **without root**, inside a private network namespace
 (`bin/lab-netns`; verified, see `spikes/2026-10-02-bridged-lab-netns/`). The
 root-only steps above (2, 3, and `sudo dnsmasq` in 11) are what `lab-netns`
-replaces; on a real host bridge they are still needed and still untested by
-the scripts. Where the scripts ended up differing from the hand-made version:
+replaces. On a real host bridge they are still needed, and that path is
+verified too (steps 2 and 3 done by hand as root, `bin/pxe-lan --bridge … start`
+under sudo, two VMs deployed: `spikes/2026-10-02-unverified-items/`). Where the scripts ended up differing from the hand-made version:
 
 | this runbook | repo | difference |
 |---|---|---|

@@ -99,6 +99,10 @@ dnsmasq --test -C "$CONF" >/dev/null 2>&1 || die "dnsmasq rejected the generated
 info "wrote pxe/dnsmasq.conf (interface $IFACE, $([[ -n $BRIDGE ]] && echo "authoritative DHCP $RANGE" || echo proxy-DHCP))"
 
 if [[ "$ACTION" == start ]]; then
+    # dnsmasq opens its lease file and log before it drops privileges. Create
+    # them as us first, or a root-started dnsmasq leaves root-owned files that
+    # a later rootless start (or bin/lab-netns) cannot open (verified).
+    touch "$STATE_DIR/dnsmasq.leases" "$STATE_DIR/dnsmasq.log"
     info "starting dnsmasq${SUDO:+ (sudo)}..."
     if in_userns; then
         # Inside bin/lab-netns uid 0 is the only account and changing groups is
@@ -110,7 +114,10 @@ if [[ "$ACTION" == start ]]; then
         sleep 0.5
         kill -0 "$(cat "$PIDFILE")" 2>/dev/null || die "dnsmasq exited: $(tail -n 3 "$STATE_DIR/dnsmasq.out")"
     else
-        $SUDO dnsmasq -C "$CONF" --pid-file="$PIDFILE"
+        # Started through sudo, dnsmasq would drop to its own account, which
+        # cannot read pxe/ or write run/ under a 750 home directory (verified).
+        # It serves our files, so it runs as us once the privileged ports are bound.
+        $SUDO dnsmasq -C "$CONF" --pid-file="$PIDFILE" --user="$(id -un)" --group="$(id -gn)"
     fi
     info "dnsmasq running, log: ${STATE_DIR#$PDT_ROOT/}/dnsmasq.log. Firewall: allow UDP 67, 69, 4011 and TCP $HTTP_PORT on $IFACE."
 else

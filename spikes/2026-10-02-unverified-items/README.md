@@ -74,21 +74,26 @@ Learned on the way:
 | The every-boot beacon that "never fired" | **Explained [verified]** (p3). After a real restart the "at startup" task fires. After a fast-startup shutdown and power-on it does not (Windows resumes, it does not boot), but a task triggered on System event Kernel-Boot 27 does. A reliable probe needs both triggers. The original spike had powered the VM off through ACPI, i.e. fast startup |
 | Linux-side capture: does wimlib's NTFS mode take a plain file? (open question 5) | **Yes [verified]**, see §2 |
 
-## 4. Still not verified, and why
+## 4. Later the same day, with root supplied from another shell **[verified]**
+
+| item | what was done | result |
+|---|---|---|
+| A bridge on the real host | root created `pdtbr0` (10.42.0.1/24), `/etc/qemu/bridge.conf` with `allow pdtbr0`, set the setuid bit on `qemu-bridge-helper`, and started `bin/pxe-lan --bridge pdtbr0 … start` under sudo; `ufw` was inactive | hb1 (e1000e, iPXE ROM) and hb2 (virtio, `--no-rom`, firmware PXE) both deployed to `winre ok`; hb3 with dnsmasq stopped never reached the server. **Bug found as predicted:** dnsmasq drops to its own user, which cannot read a 750 home directory; `pxe-lan` now keeps it running as the repo's owner after binding its ports (`--user`/`--group`) |
+| `bin/lab-netns` with the restriction on | root set `kernel.apparmor_restrict_unprivileged_userns=1` | `lab-netns up` failed (`write failed /proc/self/uid_map: Operation not permitted`) and now says what to do. The narrow fix: `bin/lab-netns profile` prints an AppArmor profile attached to the script (`flags=(unconfined) { userns, }`, Ubuntu's own shape); loaded with `apparmor_parser -r`, the namespace was created with the restriction still on, processes inside carry the label `pdt-lab-netns (unconfined)`, and VM ns1 deployed to `winre ok` inside it. **Bug found:** a root-started dnsmasq (part 1) had left a root-owned `run/dnsmasq.leases` that the rootless one could not open; `pxe-lan` now creates its files as the user before starting |
+
+Both left no lasting change on the host beyond what was asked for: the
+bridge, the two config files and the setuid bit are listed in the undo steps.
+
+## 5. Still not verified, and why
 
 - **Anything on physical hardware**, including enrolling a Secure Boot
   certificate in real firmware and LAN throughput: no hardware attached.
-- **A bridge on the real host** (setuid `qemu-bridge-helper`,
-  `/etc/qemu/bridge.conf`, firewall): needs root, which was not available.
-  The same lab inside `bin/lab-netns` is verified.
-- **`bin/lab-netns` on a stock Ubuntu 24.04** where unprivileged user
-  namespaces are restricted: changing that sysctl needs root.
 - After a *forced* power-off (QEMU killed), neither boot task reported within
   150 s on p3. Not investigated: it may simply have been a fast-startup resume.
 - The remote-shell idea for `MODE=shell` machines, streaming apply, and the
   dispatcher remain unbuilt ideas, not unverified claims.
 
-## 5. Bugs found and fixed while doing this
+## 6. Bugs found and fixed while doing this
 
 - A pipe to a missing program (Phase 2) had a cousin: `lint`'s fixture and the
   first `drvload` attempt both failed on *incomplete file sets*; the injection

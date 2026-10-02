@@ -366,3 +366,140 @@ $ bin/status b8a2cc01   (VM since deleted)
   2026-10-02T11:12:27-04:00  +  161.7s  (+   7.8s)  winre       ok    status=Enabled location=\\?\GLOBALROOT\device\harddisk0\partition4\Recovery\WindowsRE windows_partition=3
   2026-10-02T11:12:44-04:00  +  179.3s  (+  17.5s)  winget-bootstrap fail  
 
+
+## Real host bridge (pdtbr0), 2026-10-02 18:03
+$ ip -br addr show pdtbr0; cat /etc/qemu/bridge.conf; ls -l /usr/lib/qemu/qemu-bridge-helper
+pdtbr0           UP             10.42.0.1/24 fe80::6c50:95ff:fe07:8876/64 
+allow pdtbr0
+-rwsr-xr-x 1 root root 687280 Jun 24 04:28 /usr/lib/qemu/qemu-bridge-helper
+$ ps -o user,comm -p $(cat run/dnsmasq.pid)   (while it ran)
+sqs      dnsmasq
+$ bin/status hb1
+5a26ccad-0e3f-4922-b2fb-e9118e604f8a  hb1
+  2026-10-02T18:04:24-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:54:35:9a nic=01:80:86:10:d3 chip=82574l bootsrv=10.42.0.1
+  2026-10-02T18:04:25-04:00  +    0.9s  (+   0.9s)  wim         ok    msg=475 MiB in 0.9s (513 MiB/s)
+  2026-10-02T18:04:31-04:00  +    7.4s  (+   6.4s)  ts-start    ok    mode=deploy model=lab-vm product=lab-vm mac=52:54:00:54:35:9a
+  2026-10-02T18:04:32-04:00  +    7.6s  (+   0.2s)  15-preflight start 
+  2026-10-02T18:04:32-04:00  +    7.8s  (+   0.2s)  15-preflight ok    
+  2026-10-02T18:04:32-04:00  +    7.9s  (+   0.1s)  20-disk     start 
+  2026-10-02T18:04:40-04:00  +   15.5s  (+   7.6s)  20-disk     ok    
+  2026-10-02T18:04:40-04:00  +   15.6s  (+   0.1s)  25-download start 
+  2026-10-02T18:04:45-04:00  +   20.8s  (+   5.3s)  25-download ok    
+  2026-10-02T18:04:45-04:00  +   21.0s  (+   0.1s)  30-apply    start 
+  2026-10-02T18:05:33-04:00  +   68.6s  (+  47.6s)  30-apply    ok    
+  2026-10-02T18:05:33-04:00  +   68.7s  (+   0.1s)  35-updates  start 
+  2026-10-02T18:05:33-04:00  +   68.8s  (+   0.1s)  35-updates  ok    msg=skipped: no UPDATES set
+  2026-10-02T18:05:33-04:00  +   69.0s  (+   0.2s)  40-drivers  start 
+  2026-10-02T18:05:35-04:00  +   70.6s  (+   1.7s)  40-drivers  ok    
+  2026-10-02T18:05:35-04:00  +   70.8s  (+   0.1s)  45-winre    start 
+  2026-10-02T18:05:39-04:00  +   75.3s  (+   4.5s)  45-winre    ok    
+  2026-10-02T18:05:40-04:00  +   75.4s  (+   0.1s)  50-boot     start 
+  2026-10-02T18:05:40-04:00  +   75.7s  (+   0.3s)  50-boot     ok    
+  2026-10-02T18:05:40-04:00  +   75.9s  (+   0.2s)  60-unattend start 
+  2026-10-02T18:05:40-04:00  +   76.0s  (+   0.2s)  60-unattend ok    
+  2026-10-02T18:05:40-04:00  +   76.2s  (+   0.1s)  90-reboot   start 
+  2026-10-02T18:05:40-04:00  +   76.2s  (+   0.0s)  90-reboot   ok    
+  2026-10-02T18:05:40-04:00  +   76.3s  (+   0.1s)  ts-done     ok    
+  2026-10-02T18:06:18-04:00  +  113.5s  (+  37.2s)  specialize  ok    
+  2026-10-02T18:06:43-04:00  +  139.2s  (+  25.7s)  firstlogon  ok    host=WIN-PRHH5VSKGM9 build=26100.1 secureboot=False
+  2026-10-02T18:06:45-04:00  +  141.1s  (+   1.9s)  winre       ok    status=Enabled location=\\?\GLOBALROOT\device\harddisk0\partition4\Recovery\WindowsRE windows_partition=3
+$ bin/status hb2
+def33bdc-c8ba-4922-8e41-8b6bb2ddf88a  hb2
+  2026-10-02T18:04:51-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:3c:40:bc nic=01:1a:f4:10:00 chip=SNP bootsrv=10.42.0.1
+  2026-10-02T18:04:52-04:00  +    1.1s  (+   1.1s)  wim         ok    msg=475 MiB in 1.1s (425 MiB/s)
+  2026-10-02T18:04:57-04:00  +    6.8s  (+   5.7s)  ts-start    ok    mode=deploy model=lab-vm product=lab-vm mac=52:54:00:3c:40:bc
+  2026-10-02T18:04:58-04:00  +    7.1s  (+   0.3s)  15-preflight start 
+  2026-10-02T18:04:58-04:00  +    7.3s  (+   0.2s)  15-preflight ok    
+  2026-10-02T18:04:58-04:00  +    7.5s  (+   0.2s)  20-disk     start 
+  2026-10-02T18:05:06-04:00  +   15.2s  (+   7.7s)  20-disk     ok    
+  2026-10-02T18:05:06-04:00  +   15.3s  (+   0.1s)  25-download start 
+  2026-10-02T18:05:09-04:00  +   18.9s  (+   3.6s)  25-download ok    
+  2026-10-02T18:05:10-04:00  +   19.1s  (+   0.1s)  30-apply    start 
+  2026-10-02T18:05:56-04:00  +   65.3s  (+  46.3s)  30-apply    ok    
+  2026-10-02T18:05:56-04:00  +   65.4s  (+   0.1s)  35-updates  start 
+  2026-10-02T18:05:56-04:00  +   65.5s  (+   0.1s)  35-updates  ok    msg=skipped: no UPDATES set
+  2026-10-02T18:05:56-04:00  +   65.7s  (+   0.2s)  40-drivers  start 
+  2026-10-02T18:05:58-04:00  +   67.5s  (+   1.7s)  40-drivers  ok    
+  2026-10-02T18:05:58-04:00  +   67.6s  (+   0.2s)  45-winre    start 
+  2026-10-02T18:06:01-04:00  +   70.8s  (+   3.1s)  45-winre    ok    
+  2026-10-02T18:06:01-04:00  +   70.9s  (+   0.1s)  50-boot     start 
+  2026-10-02T18:06:02-04:00  +   71.2s  (+   0.3s)  50-boot     ok    
+  2026-10-02T18:06:02-04:00  +   71.4s  (+   0.1s)  60-unattend start 
+  2026-10-02T18:06:02-04:00  +   71.6s  (+   0.2s)  60-unattend ok    
+  2026-10-02T18:06:02-04:00  +   71.7s  (+   0.1s)  90-reboot   start 
+  2026-10-02T18:06:02-04:00  +   71.7s  (+   0.0s)  90-reboot   ok    
+  2026-10-02T18:06:02-04:00  +   71.8s  (+   0.1s)  ts-done     ok    
+  2026-10-02T18:06:39-04:00  +  108.7s  (+  36.8s)  specialize  ok    
+  2026-10-02T18:07:04-04:00  +  133.0s  (+  24.3s)  firstlogon  ok    host=WIN-QBQ6P0ADSDU build=26100.1 secureboot=False
+  2026-10-02T18:07:06-04:00  +  135.0s  (+   2.0s)  winre       ok    status=Enabled location=\\?\GLOBALROOT\device\harddisk0\partition4\Recovery\WindowsRE windows_partition=3
+$ bin/status hb3
+ERROR: no events for e45ef26f-a1f4-42de-ae3b-57cb09b336b4
+$ dnsmasq log
+Oct  2 18:04:19 dnsmasq-dhcp[1582618]: 1039769424 DHCPOFFER(pdtbr0) 10.42.0.155 52:54:00:54:35:9a 
+Oct  2 18:04:20 dnsmasq-dhcp[1582618]: 1039769424 DHCPACK(pdtbr0) 10.42.0.155 52:54:00:54:35:9a 
+Oct  2 18:04:20 dnsmasq-tftp[1582618]: sent /home/sqs/scripts/Windows-install-via-Linux/pxe/ipxe.efi to 10.42.0.155
+Oct  2 18:04:20 dnsmasq-tftp[1582618]: sent /home/sqs/scripts/Windows-install-via-Linux/pxe/ipxe.efi to 10.42.0.155
+Oct  2 18:04:20 dnsmasq-dhcp[1582618]: 3331862122 DHCPOFFER(pdtbr0) 10.42.0.155 52:54:00:54:35:9a 
+Oct  2 18:04:21 dnsmasq-dhcp[1582618]: 3331862122 DHCPOFFER(pdtbr0) 10.42.0.155 52:54:00:54:35:9a 
+Oct  2 18:04:23 dnsmasq-dhcp[1582618]: 3331862122 DHCPACK(pdtbr0) 10.42.0.155 52:54:00:54:35:9a 
+Oct  2 18:04:31 dnsmasq-dhcp[1582618]: 1799302836 DHCPOFFER(pdtbr0) 10.42.0.155 52:54:00:54:35:9a 
+Oct  2 18:04:31 dnsmasq-dhcp[1582618]: 1799302836 DHCPACK(pdtbr0) 10.42.0.155 52:54:00:54:35:9a minint-9a9fnr6
+Oct  2 18:04:46 dnsmasq-dhcp[1582618]: 769909967 DHCPOFFER(pdtbr0) 10.42.0.158 52:54:00:3c:40:bc 
+Oct  2 18:04:47 dnsmasq-dhcp[1582618]: 769909967 DHCPACK(pdtbr0) 10.42.0.158 52:54:00:3c:40:bc 
+Oct  2 18:04:47 dnsmasq-tftp[1582618]: sent /home/sqs/scripts/Windows-install-via-Linux/pxe/ipxe.efi to 10.42.0.158
+Oct  2 18:04:47 dnsmasq-tftp[1582618]: sent /home/sqs/scripts/Windows-install-via-Linux/pxe/ipxe.efi to 10.42.0.158
+Oct  2 18:04:47 dnsmasq-dhcp[1582618]: 1381892877 DHCPOFFER(pdtbr0) 10.42.0.158 52:54:00:3c:40:bc 
+Oct  2 18:04:48 dnsmasq-dhcp[1582618]: 1381892877 DHCPOFFER(pdtbr0) 10.42.0.158 52:54:00:3c:40:bc 
+Oct  2 18:04:50 dnsmasq-dhcp[1582618]: 1381892877 DHCPACK(pdtbr0) 10.42.0.158 52:54:00:3c:40:bc 
+Oct  2 18:04:57 dnsmasq-dhcp[1582618]: 2984824580 DHCPOFFER(pdtbr0) 10.42.0.158 52:54:00:3c:40:bc 
+Oct  2 18:04:57 dnsmasq-dhcp[1582618]: 2984824580 DHCPACK(pdtbr0) 10.42.0.158 52:54:00:3c:40:bc minint-86i742t
+Oct  2 18:05:58 dnsmasq-dhcp[1582618]: 3929342239 DHCPOFFER(pdtbr0) 10.42.0.155 52:54:00:54:35:9a 
+Oct  2 18:05:58 dnsmasq-dhcp[1582618]: 3929342239 DHCPACK(pdtbr0) 10.42.0.155 52:54:00:54:35:9a WIN-NS45KCJON3M
+Oct  2 18:06:19 dnsmasq-dhcp[1582618]: 2176900260 DHCPOFFER(pdtbr0) 10.42.0.158 52:54:00:3c:40:bc 
+Oct  2 18:06:19 dnsmasq-dhcp[1582618]: 2176900260 DHCPACK(pdtbr0) 10.42.0.158 52:54:00:3c:40:bc WIN-G8AHEVD95IV
+Oct  2 18:06:28 dnsmasq-dhcp[1582618]: 2519515120 DHCPOFFER(pdtbr0) 10.42.0.155 52:54:00:54:35:9a 
+Oct  2 18:06:28 dnsmasq-dhcp[1582618]: 2519515120 DHCPACK(pdtbr0) 10.42.0.155 52:54:00:54:35:9a WIN-PRHH5VSKGM9
+Oct  2 18:06:49 dnsmasq-dhcp[1582618]: 24867646 DHCPOFFER(pdtbr0) 10.42.0.158 52:54:00:3c:40:bc 
+Oct  2 18:06:49 dnsmasq-dhcp[1582618]: 24867646 DHCPACK(pdtbr0) 10.42.0.158 52:54:00:3c:40:bc WIN-QBQ6P0ADSDU
+
+## lab-netns under kernel.apparmor_restrict_unprivileged_userns=1 with the AppArmor profile, 2026-10-02
+$ sysctl -n kernel.apparmor_restrict_unprivileged_userns
+1
+$ bin/lab-netns run cat /proc/self/attr/current
+pdt-lab-netns (unconfined)
+$ bin/status ns1
+
+## lab-netns under kernel.apparmor_restrict_unprivileged_userns=1 with the AppArmor profile, 2026-10-02 19:01
+$ sysctl -n kernel.apparmor_restrict_unprivileged_userns
+1
+$ bin/lab-netns run cat /proc/self/attr/current
+pdt-lab-netns (unconfined)
+$ bin/status ns1
+1fea39a1-947f-4d2c-864b-959824b71354  ns1
+  2026-10-02T19:01:35-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:a8:be:f9 nic=01:80:86:10:d3 chip=82574l bootsrv=10.42.0.1
+  2026-10-02T19:01:36-04:00  +    0.9s  (+   0.9s)  wim         ok    msg=475 MiB in 0.8s (566 MiB/s)
+  2026-10-02T19:01:43-04:00  +    7.4s  (+   6.6s)  ts-start    ok    mode=deploy model=lab-vm product=lab-vm mac=52:54:00:a8:be:f9
+  2026-10-02T19:01:43-04:00  +    7.6s  (+   0.2s)  15-preflight start 
+  2026-10-02T19:01:43-04:00  +    7.8s  (+   0.1s)  15-preflight ok    
+  2026-10-02T19:01:43-04:00  +    7.9s  (+   0.1s)  20-disk     start 
+  2026-10-02T19:01:51-04:00  +   15.5s  (+   7.6s)  20-disk     ok    
+  2026-10-02T19:01:51-04:00  +   15.7s  (+   0.1s)  25-download start 
+  2026-10-02T19:02:33-04:00  +   57.3s  (+  41.7s)  25-download ok    
+  2026-10-02T19:02:33-04:00  +   57.4s  (+   0.1s)  30-apply    start 
+  2026-10-02T19:03:19-04:00  +  103.9s  (+  46.4s)  30-apply    ok    
+  2026-10-02T19:03:19-04:00  +  104.0s  (+   0.1s)  35-updates  start 
+  2026-10-02T19:03:19-04:00  +  104.1s  (+   0.1s)  35-updates  ok    msg=skipped: no UPDATES set
+  2026-10-02T19:03:20-04:00  +  104.3s  (+   0.2s)  40-drivers  start 
+  2026-10-02T19:03:20-04:00  +  104.3s  (+   0.1s)  40-drivers  ok    msg=skipped: no DRIVERS set
+  2026-10-02T19:03:20-04:00  +  104.5s  (+   0.1s)  45-winre    start 
+  2026-10-02T19:03:20-04:00  +  105.0s  (+   0.5s)  45-winre    ok    
+  2026-10-02T19:03:20-04:00  +  105.1s  (+   0.1s)  50-boot     start 
+  2026-10-02T19:03:21-04:00  +  105.4s  (+   0.3s)  50-boot     ok    
+  2026-10-02T19:03:21-04:00  +  105.5s  (+   0.2s)  60-unattend start 
+  2026-10-02T19:03:21-04:00  +  105.7s  (+   0.2s)  60-unattend ok    
+  2026-10-02T19:03:21-04:00  +  105.8s  (+   0.1s)  90-reboot   start 
+  2026-10-02T19:03:21-04:00  +  105.9s  (+   0.0s)  90-reboot   ok    
+  2026-10-02T19:03:21-04:00  +  105.9s  (+   0.1s)  ts-done     ok    
+  2026-10-02T19:03:57-04:00  +  141.7s  (+  35.7s)  specialize  ok    
+  2026-10-02T19:04:22-04:00  +  166.6s  (+  24.9s)  firstlogon  ok    host=WIN-63HN7VU4A1M build=26100.1 secureboot=False
+  2026-10-02T19:04:24-04:00  +  168.4s  (+   1.8s)  winre       ok    status=Enabled location=\\?\GLOBALROOT\device\harddisk0\partition4\Recovery\WindowsRE windows_partition=3

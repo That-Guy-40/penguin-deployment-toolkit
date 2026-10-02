@@ -100,8 +100,10 @@ bin/lab-netns down                                # stops everything inside
 ```
 
 Nothing on the host's network is touched and the VMs have no internet. It needs
-unprivileged user namespaces (`kernel.apparmor_restrict_unprivileged_userns=0`).
-The same lab on a real host bridge, with root, is `docs/LAB_FROM_SCRATCH.md`.
+unprivileged user namespaces; on a stock Ubuntu 24.04 host that restricts them,
+`bin/lab-netns up` says so and `bin/lab-netns profile` prints the AppArmor
+profile that allows exactly this tool (two sudo commands to install). The same
+lab on a real host bridge, with root, is `docs/LAB_FROM_SCRATCH.md`.
 
 ## Watching and debugging an install
 
@@ -244,9 +246,15 @@ and a half (three VMs were applying one at the same time).
 | winget at first logon | absent on this image; bootstrapping from the release packages works and it then installs software |
 | A task that reports every boot | needs two triggers: "at startup" covers restarts, a Kernel-Boot event trigger covers fast-startup power-ons |
 
-Still not verified: anything on physical hardware (including enrolling a
-certificate in real firmware), a bridge on the real host (needs root), and
-`bin/lab-netns` on a host where unprivileged user namespaces are restricted.
+Later the same day, with root supplied from another shell:
+
+| what | result |
+|---|---|
+| A bridge on the real host (`ip link add`, `/etc/qemu/bridge.conf`, setuid `qemu-bridge-helper`, `pxe-lan --bridge … start` under sudo) | an iPXE-ROM VM and a firmware-PXE virtio VM both deployed; with dnsmasq stopped nothing booted. Found: dnsmasq must keep running as the repo's owner after binding its ports, or it cannot read `pxe/` under a 750 home directory |
+| `bin/lab-netns` on a host that restricts unprivileged user namespaces (`kernel.apparmor_restrict_unprivileged_userns=1`) | fails with a message that says what to do. The narrow fix, an AppArmor profile from `bin/lab-netns profile`, was enough: a full deploy ran inside the namespace with the restriction on |
+
+Still not verified: anything on physical hardware, including enrolling a
+Secure Boot certificate in real firmware.
 
 ## Documents
 

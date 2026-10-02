@@ -72,12 +72,9 @@ README stating the result. Answered ones are in `PLAN.md` §5.
 
 - [ ] Real hardware has still seen none of this (Phase 5). In particular:
   enrolling the Secure Boot certificate in real firmware, and proxy-DHCP on a
-  real switch next to a real router.
-- [ ] A bridge on the real host (setuid `qemu-bridge-helper`,
-  `/etc/qemu/bridge.conf`, firewall) is untested: it needs root.
-  `docs/LAB_FROM_SCRATCH.md` describes it; `bin/lab-netns` is the verified
-  rootless equivalent, itself untested where unprivileged user namespaces are
-  restricted (stock Ubuntu 24.04).
+  real switch next to a real router. (A bridge on the real host, and
+  `bin/lab-netns` on a host that restricts user namespaces, were both verified
+  on 2026-10-02 with root supplied by hand.)
 - [ ] `bin/fetch-iso` has been run for 24H2 and 25H2, professional, en-us. Other
   editions and languages are untested. A `bin/fetch-updates` that keeps just
   the update packages of a UUP set (today: `fetch-iso --keep`, then pick them

@@ -251,6 +251,10 @@ The repo must work on a machine that is not this one. Concretely:
   allow-list of MACs/UUIDs in `http/machines/` gates who gets a wiping task
   sequence (unknown machines get a shell, not `diskpart clean`), and the default
   `boot.ipxe` requires an explicit opt-in before anything destructive.
+- Hosts that restrict unprivileged user namespaces (stock Ubuntu 24.04):
+  `bin/lab-netns profile` prints the AppArmor profile that allows the lab;
+  `INSTALL.md` carries the two sudo lines **[verified: a deploy inside the
+  namespace with the restriction on]**.
 - Tested from scratch: a "clean box" run (fresh VM or container) of `INSTALL.md`
   is part of releasing; the walkthrough's first command must work.
 - Licensing: pick a licence for this repo (MIT is the default suggestion);
