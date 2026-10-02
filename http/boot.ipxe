@@ -1,0 +1,28 @@
+#!ipxe
+# boot.ipxe - what pxe/ipxe.efi chains to. Static: every URL below is relative
+# to this script's own URL, so nothing here names a host or a port.
+#
+# It boots a PRISTINE Windows PE (winpe/boot.wim, straight from the ISO).
+# wimboot copies every extra file listed here into X:\Windows\System32 of the
+# booted image; winpeshl.ini then starts deploy.cmd, the task sequence.
+#
+# This script never decides whether a disk gets wiped. deploy.cmd does, from
+# machines/<uuid>.cfg; a machine without one gets a shell (MODE=shell).
+
+echo PDT: ${manufacturer} ${product}  uuid ${uuid}  mac ${netX/mac}
+
+kernel winpe/wimboot                                              || goto failed
+initrd --name bootmgfw.efi    winpe/bootmgfw.efi                  || goto failed
+initrd --name BCD             winpe/BCD                           || goto failed
+initrd --name boot.sdi        winpe/boot.sdi                      || goto failed
+initrd --name boot.wim        winpe/boot.wim?id=${uuid}           || goto failed
+initrd --name winpeshl.ini    ts/winpeshl.ini                     || goto failed
+initrd --name deploy.cmd      ts/deploy.cmd                       || goto failed
+initrd --name id.cmd          ts/id.cmd?id=${uuid}&mac=${netX/mac} || goto failed
+initrd --name curl.exe        tools/curl.exe                      || goto failed
+initrd --name libcurl-x64.dll tools/libcurl-x64.dll               || goto failed
+boot || goto failed
+
+:failed
+echo PDT: could not load the boot files - dropping to the iPXE shell
+shell

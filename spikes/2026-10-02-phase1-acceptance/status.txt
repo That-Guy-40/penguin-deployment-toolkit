@@ -1,0 +1,8 @@
+$ bin/status
+ID                                    VM     LAST EVENT      AGE        MODE    RUN        PRODUCT  DETAIL
+a127d384-eb06-4230-8a17-1ae83b30de51  lab06  firstlogon ok   4m         deploy  79345113   lab-vm
+f5a3d19a-60c3-4c0d-86d2-2f9033b0cb08  lab02  shell ok        5m         shell   81723315   lab-vm
+e99dfc08-6981-4a5f-898e-271cd1838ca7  lab03  firstlogon ok   7m         deploy  735014460  lab-vm
+435163ea-1c8e-41b5-8c15-9e7f19b92578  lab05  preflight fail  8m   FAIL  deploy  753915276  lab-vm   rc=1 msg=missing: images/missing.wim
+dc3d2dfc-daeb-4c0d-8495-1ff59117496e         download fail   9m   FAIL  deploy  735325209  lab-vm   rc=22
+f94899f5-d5e6-4b64-b1f8-00552426866a  lab01  firstlogon ok   10m        deploy  68707308   lab-vm

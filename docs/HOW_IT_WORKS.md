@@ -2,10 +2,10 @@
 
 A guided tour for someone new to the project: the one idea it is built on, the
 pieces you set up on the Linux host, what happens second by second when a
-machine boots, and where the design is heading. Everything here describes what
-the code and the spike evidence show as of 2026-09-22. `README.md` is the
-reference for the scripts, `PLAN.md` for the direction; this file is the
-narrative that connects them.
+machine boots, and where the design is heading. It describes the code as of
+2026-10-02 (Phase 1 of `PLAN.md`). `README.md` is the reference for the
+scripts, `PLAN.md` for the direction; this file is the narrative that connects
+them.
 
 ## 1. The one idea
 
@@ -13,178 +13,192 @@ A PC that PXE-boots asks the network for something to run. This repo answers
 with a chain of three things, each fetched over the network, each handing off
 to the next:
 
-1. **iPXE** (`ipxe.efi`), a small open-source network bootloader. The
+1. **iPXE** (`pxe/ipxe.efi`), a small open-source network bootloader. The
    firmware's own PXE stack can only run a UEFI binary, so this is the first
    hop. It is the only binary the repo compiles, and the only thing baked into
    it is one URL.
 2. **wimboot**, another small binary from the iPXE project. It takes
    Microsoft's boot manager, its BCD store, `boot.sdi` and a `boot.wim`, and
-   boots Windows PE from RAM as if they had come from a DVD.
-3. **Windows PE** (`boot.wim`, lifted straight from a Windows 11 ISO). A
-   minimal Windows that runs from RAM. Once it is up, it does the actual
-   install using Microsoft's own tools.
+   boots Windows PE from RAM as if they had come from a DVD. It has one more
+   trick, and the whole design leans on it: any *extra* file it is handed
+   appears inside the booted WinPE, in `X:\Windows\System32`.
+3. **Windows PE** (`boot.wim`, lifted unmodified from a Windows 11 ISO). A
+   minimal Windows that runs from RAM. Once it is up it does the actual install
+   with Microsoft's own tools.
 
 The Linux host never runs anything Windows. It serves files. Windows does the
-installing, from inside WinPE, following instructions the Linux host wrote.
-That is the README's tagline: the penguin does the deploying, Windows does the
-installing.
+installing, from inside WinPE, following instructions the Linux host wrote as
+plain text. The penguin does the deploying, Windows does the installing.
 
-Everything on the host is one of four services:
+Everything on the host is one of three services:
 
 | service | job | where it comes from |
 |---|---|---|
-| TFTP | serve `ipxe.efi` for the first hop | QEMU's built-in TFTP (VM) or dnsmasq (LAN) |
-| HTTP | serve everything after that | a rootless nginx started by `04` |
-| a VM | a cheap target to test against | QEMU + OVMF + swtpm, from `05`/`06` |
-| proxy-DHCP | tell real machines on the LAN where TFTP is | dnsmasq, from `07` |
+| TFTP | hand `ipxe.efi` to the firmware | QEMU's built-in TFTP (lab VM) or dnsmasq (`bin/pxe-lan`, real LAN) |
+| HTTP | everything after that, in both directions | a rootless nginx (`bin/serve`) |
+| a VM | a cheap target to test against | QEMU + OVMF (`bin/vm-create`, `bin/vm-boot`) |
 
-## 2. Setting up the underpinnings (`scripts/`, what exists today)
+## 2. Setting up the host (`bin/`)
 
-The numbered scripts are the v1 pipeline. The prefixes are historical; the
-real order is below. Each is short bash you can read in a minute.
+Each script is one verb, short enough to read in a couple of minutes, safe to
+re-run, and reads its settings from `config.sh` through `bin/lib.sh`. None of
+them needs root (only `bin/pxe-lan start` does, for dnsmasq).
 
-**Step 1, `00-bootstrap.sh`.** Creates `pxe/`, `http/winpe/`, `answer/`,
-`vms/` and copies `config.sh.example` to `config.sh`. Everything host-specific
-lives in that one file: ISO path, VM size, HTTP port, OVMF firmware paths.
-Read `config.sh.example` once and you know every knob.
+**`config.sh`.** Copy `config.sh.example`. The settings that matter: `ISO_PATH`
+(your Windows 11 ISO), and `HTTP_HOST` + `HTTP_PORT`, the address targets use
+to reach this server. For the lab VM that is `10.0.2.2`, which is how a QEMU
+user-mode-network guest sees its host.
 
-**Step 2, `01-install-deps.sh`.** Installs the apt packages: wimtools (wimlib,
-for reading and writing WIM images on Linux), nginx, aria2, cabextract,
-chntpw, and the build tools iPXE needs. Then downloads the latest `wimboot`
-release into `pxe/` and checks that it is a PE binary of plausible size.
+**`bin/fetch-iso`** (optional). No ISO? This asks UUP dump for the newest
+public build of a release, downloads its conversion kit and the packages from
+Microsoft's update servers, and assembles an ISO under `iso/`. The Linux kit
+cannot integrate cumulative updates, so you get the release's base build.
 
-**Step 3, `00b-download-iso.sh` (optional).** If you have no Windows 11 ISO,
-this queries UUP dump for the latest 24H2 amd64 build, downloads the
-conversion package, and runs its Linux converter to build an ISO from
-Microsoft's own update servers. It is a 4 to 6 GB download. One limit: the
-Linux converter cannot integrate cumulative updates, so you get the RTM build.
+**`bin/fetch-tools`.** Downloads the third-party pieces: `wimboot`, the
+official Windows `curl.exe` (stock WinPE has no HTTP client that can fetch a
+binary), and wimlib for Windows. Each is pinned by SHA-256 and refused if it
+does not match. That is not paranoia: upstream once replaced the `wimboot
+v2.9.0` release file with a different binary under the same version.
 
-**Step 4, `00c-build-ipxe.sh`.** Clones iPXE, writes a six-line script into
-`build/ipxe/chain.ipxe`, and compiles `ipxe.efi` with that script embedded.
-The script does DHCP, retries until it succeeds, then chains to one URL:
+**`bin/stage-winpe`.** Pulls four files out of the ISO with `7z` into
+`http/winpe/`: `bootx64.efi` (renamed `bootmgfw.efi`), the `BCD` store,
+`boot.sdi`, and `sources/boot.wim`. Nothing is modified. Re-running it compares
+each file with the ISO's copy and extracts only what differs.
 
-```
-chain http://10.0.2.2:8080/boot.ipxe
-```
+**`bin/stage-image`.** Publishes the ISO's `install.wim` as
+`http/images/base.wim`, with a `base.json` sidecar recording exactly what it is
+(edition, build, size, SHA-256, where it came from). An `install.esd` or a
+multi-edition WIM is exported to a single-image WIM with wimlib first.
 
-`10.0.2.2` is how a QEMU user-mode-network guest reaches its host. For real
-hardware, `07` rebuilds this with your LAN IP. The port is baked in too, which
-is why the README says to re-run this after changing `HTTP_PORT`.
-
-**Step 5, `02-extract-winpe.sh`.** Loop-mounts the ISO with sudo and copies
-four files into `http/winpe/`: `bootx64.efi` (renamed `bootmgfw.efi`), the
-`BCD` store, `boot.sdi`, and `sources/boot.wim`. It also symlinks `wimboot`
-in. The plan notes this sudo is unnecessary and 7z can do the same extraction
-unprivileged; that is on the Phase 1 list.
-
-**Step 6, `03-inject-autounattend.sh`.** The v1-specific step, and the one the
-new plan removes. It uses `wimlib-imagex update` to write two files into every
-image inside `boot.wim`: `answer/autounattend.xml` and a generated
-`startnet.cmd`. WinPE runs `startnet.cmd` automatically at boot. The generated
-one calls `wpeinit` (brings up networking), then searches drive letters for
-`\sources\setup.exe` (the ISO is attached to the VM as a CD-ROM) and runs
-Windows Setup with the answer file. The answer file wipes disk 0, lays out GPT
-partitions, creates a local admin named `deploy`, enables autologon and hides
-OOBE.
-
-**Step 7, `04-setup-http.sh`.** Writes `pxe/boot.ipxe`, the second-stage iPXE
-script. It is the whole boot chain in nine lines:
+**`bin/build-ipxe`.** Checks out a pinned iPXE commit, writes a ten-line script
+into `build/ipxe/chain.ipxe`, and compiles `pxe/ipxe.efi` with it embedded. The
+script does DHCP, retries until it succeeds, then chains to one URL:
 
 ```
-set base http://10.0.2.2:8080/winpe
-kernel ${base}/wimboot || shell
-initrd --name bootmgfw.efi ${base}/bootmgfw.efi
-initrd --name BCD          ${base}/BCD
-initrd --name boot.sdi     ${base}/boot.sdi
-initrd --name boot.wim     ${base}/boot.wim
-boot
+chain http://10.0.2.2:8090/boot.ipxe?uuid=${uuid}&mac=${netX/mac}&product=${product:uristring}&…
 ```
 
-Then it generates an nginx config under `run/` and starts nginx as your own
-user on `HTTP_PORT`, document root `http/`. No system nginx, no sudo. It
-refuses to start if the port is taken and never kills anything else.
+The query string does nothing for iPXE. It is there so the server's access log
+records who booted.
 
-**Step 8, `05-create-vm.sh`.** Makes a qcow2 disk, a swtpm state directory
-(software TPM 2.0, because Windows 11 Setup demands one) and a copy of the
-OVMF UEFI variable store. It asks before recreating an existing disk.
+**`bin/serve`.** Writes `run/nginx.conf` and starts nginx as your own user,
+document root `http/`. Besides static files it has three special locations:
 
-**Step 9, `06-boot-vm.sh`.** Starts swtpm, then QEMU with: the
-Secure-Boot-capable OVMF build paired with the *empty* variables template (so
-the firmware is "capable" but not enforcing, which lets the unsigned
-self-built `ipxe.efi` load), the disk on AHCI, the ISO as a CD, and a
-user-mode NIC whose built-in TFTP server serves `pxe/` with `ipxe.efi` as the
-boot file. Boot order is disk, then network, then CD. An empty disk falls
-through to PXE; once Windows is installed the disk boots first and there is no
-reinstall loop. The script resets NVRAM only while the disk is effectively
-empty, for the same reason.
+- `GET /beacon?…` answers `ok` and logs the query string as one line in
+  `run/beacons.log`. This is how targets report progress.
+- `GET /ts/id.cmd?id=…&mac=…` answers with a generated three-line batch file:
+  `set "SRV=http://<the host:port you called>"`, `set "ID=<uuid>"`,
+  `set "MAC=…"`. More on this below.
+- `PUT /uploads/<id>/<run>/<file>` stores a file under `http/uploads/`. Upload
+  only: a GET of the same path is refused.
 
-**Physical machines, `07-setup-physical.sh`.** Detects your LAN interface and
-IP, rebuilds `ipxe.efi` and `boot.ipxe` for that IP, and writes a dnsmasq
-config in proxy-DHCP mode. Proxy-DHCP does not hand out addresses, so it
-coexists with your router. It only answers UEFI x64 PXE clients with "your
-boot file is `ipxe.efi`" and serves it over TFTP. The script prints the
-command to start dnsmasq and a warning: any UEFI machine that PXE-boots on
-that LAN will have disk 0 wiped.
+It refuses to start if the port is taken (it never kills anything), and it
+tests its own endpoints every time it starts.
 
-**`99-teardown.sh`** stops QEMU, swtpm, this repo's nginx and dnsmasq, and
-with `--purge` deletes VM state and generated configs.
+**`bin/lint`.** Reads `boot.ipxe`, the task sequence and every machine cfg and
+checks that each file they refer to exists, that images match their sidecars,
+that files Windows runs have CRLF line endings, that `ipxe.efi` still matches
+`config.sh`. A typo that would be a 404 three minutes into a boot is a `FAIL`
+row before anything boots. Each run also breaks a scratch copy in eleven known
+ways and requires all eleven to be reported, so a green result means the
+checker is actually checking.
+
+**`bin/vm-create <name>`, `bin/vm-boot <name>`.** A lab VM: empty disk, UEFI
+variables, and a fixed SMBIOS UUID and MAC of its own (QEMU's default UUID is
+all zeros, which would make every VM the same machine). The hardware is chosen
+so stock WinPE needs no extra drivers: an e1000e NIC and an AHCI disk.
+`vm-create` also writes `http/machines/<uuid>.cfg` with `MODE=deploy`, which is
+what allows this VM, and only this VM, to be installed.
 
 ## 3. What happens at boot, in order
 
-1. Firmware PXE gets a DHCP lease and a boot file name. In the VM that comes
-   from QEMU's built-in DHCP/TFTP. On a LAN it comes from dnsmasq proxy-DHCP.
-2. Firmware fetches `ipxe.efi` over TFTP and runs it.
-3. iPXE does its own DHCP, then fetches `boot.ipxe` over HTTP. This is the
-   first request you see in `run/access.log`.
-4. iPXE fetches wimboot and the four WinPE files over HTTP (about 500 MB,
-   mostly `boot.wim`), then hands control to wimboot.
-5. wimboot boots WinPE from RAM. WinPE runs `startnet.cmd`.
-6. In v1, `startnet.cmd` runs Windows Setup from the attached ISO with the
-   answer file. Setup partitions the disk, applies the image, reboots into the
-   installed OS, and the answer file's OOBE settings take you to a desktop.
+1. **Firmware PXE** gets a DHCP lease and a boot file name, fetches
+   `ipxe.efi` over TFTP and runs it.
+2. **iPXE** does its own DHCP and fetches `boot.ipxe` over HTTP, with its
+   identity in the query string. First line in `run/access.log`.
+3. **`http/boot.ipxe`** is static, and every URL in it is relative to itself,
+   so it names no host or port. It loads wimboot, the four WinPE files (about
+   500 MB, mostly `boot.wim`) and five extra files: `winpeshl.ini`,
+   `deploy.cmd`, `id.cmd`, `curl.exe`, `libcurl-x64.dll`.
+4. **wimboot** boots WinPE from RAM with those five files sitting in
+   `X:\Windows\System32`. `winpeshl.ini` is the file WinPE consults to decide
+   what to run instead of its default shell; ours says: run `deploy.cmd`.
+5. **`deploy.cmd`, the task sequence**, starts by calling `id.cmd`. That is
+   the generated file from `bin/serve`: iPXE asked for it with the machine's
+   UUID in the URL, the server echoed the UUID back inside a batch file, and
+   now WinPE knows who it is and where the server is without detecting
+   anything. Then:
+   - bring up the network (`wpeinit`), wait for `SRV/health`;
+   - fetch `machines/<id>.cfg`. **No file, or `MODE` other than `deploy`: report
+     `shell`, push the log, stop at a prompt.** Nothing has been touched;
+   - `preflight`: check that the image, unattend, diskpart script and driver
+     pack this install needs are all on the server, *before* destroying anything;
+   - `disk`: `diskpart` with `ts/diskpart/uefi-gpt.txt` (GPT: ESP, MSR, Windows);
+   - `download`: `images/base.wim` to the new Windows partition with `curl`;
+   - `apply`: `dism /apply-image`;
+   - `drivers` (if the cfg names a pack): apply the pack, `dism /add-driver`;
+   - `boot`: `bcdboot` writes the boot files and firmware entry;
+   - `unattend`: copy `unattend/default.xml` to `W:\Windows\Panther\`, and
+     leave `C:\pdt\` on the new disk with `id.cmd` (now also carrying the run
+     token) and two small scripts for later;
+   - reboot.
+   Every step sends `ev=start` then `ev=ok` or `ev=fail` to `/beacon`, writes
+   its output to `X:\pdt\ts.log`, and uploads the logs after it finishes.
+6. **The installed Windows** boots from disk. The unattend file runs
+   `C:\pdt\beacon.cmd specialize ok`, creates the local account, logs on once,
+   and runs `C:\pdt\firstlogon.cmd`, which reports `firstlogon` and uploads
+   Setup's own logs. Same id, same run token: one continuous timeline from
+   iPXE to desktop.
 
-Verified end to end on 2026-06-02, including the disk booting on its own
-afterwards.
+The lab VM's network is QEMU's user-mode stack by default, with QEMU itself
+answering DHCP and TFTP. `bin/lab-netns` runs the same lab on a bridge inside a
+private network namespace, with dnsmasq doing DHCP and TFTP exactly as it would
+for real hardware, and still without root (README, "The bridged lab").
 
-## 4. Where it is going (`PLAN.md`)
-
-The v2 spikes of 2026-09-22 (`spikes/2026-09-22-wimboot-task-sequence/`)
-changed two things, and both follow from one discovery: wimboot injects any
-extra `initrd` file into `X:\Windows\System32` of the booted WinPE. That means:
-
-- **`boot.wim` stays pristine.** Step 6 goes away. The task sequence becomes
-  text files on the HTTP server (`winpeshl.ini`, `deploy.cmd`, steps), and
-  editing the install is editing a text file. No WIM rewrite.
-- **Setup.exe goes away too.** The task sequence does what MDT does:
-  `diskpart` from a script, download `install.wim` over HTTP with an injected
-  `curl.exe`, `dism /apply-image`, `dism /add-driver` from a driver pack built
-  on Linux with wimlib, `bcdboot`, drop an `unattend.xml` into Panther,
-  reboot. That gives a place to do things between apply and first boot, such
-  as drivers, which Setup.exe never offered. The spike ran the whole thing in
-  about two and a half minutes on a VM.
-
-The rest of the plan is layering: per-machine config keyed on the SMBIOS UUID
-that iPXE sends in the `boot.ipxe` query string, role images captured from a
-sysprepped reference VM, winget at first logon, then real hardware, then
-making it installable by someone else. `PLAN.md` §3.2 is the observability
-layer under all of it: beacons with identity, logs pushed back over HTTP,
-steps you can stop before and re-run by hand.
-
-## 5. Trying it
-
-The README's "State of this host" note matters: port 8088 in `config.sh` was
-taken on the original host, and the v1 pipeline is torn down there. On a
-fresh Ubuntu 24.04 box with KVM, OVMF and swtpm installed, the nine steps in
-§2, in that order, should get you to a Windows desktop in a VM:
+In the lab VM the whole thing takes about two and a half minutes. Follow it
+with `bin/status --watch`, or script it:
 
 ```bash
-bash scripts/00-bootstrap.sh        # dirs + config.sh (set ISO_PATH, or run 00b)
-bash scripts/01-install-deps.sh
-bash scripts/00b-download-iso.sh    # optional
-bash scripts/00c-build-ipxe.sh
-bash scripts/02-extract-winpe.sh    # sudo (loop mount)
-bash scripts/03-inject-autounattend.sh
-bash scripts/04-setup-http.sh
-bash scripts/05-create-vm.sh
-bash scripts/06-boot-vm.sh          # HEADLESS=1 for no window
+bin/vm-boot lab01 && bin/await lab01 firstlogon 900 && bin/vm-shot lab01
+```
+
+## 4. Why it is built this way
+
+- **`boot.wim` stays pristine.** The first version of this repo rewrote
+  `boot.wim` with wimlib to add a script and an answer file. Injection at boot
+  makes that unnecessary: changing the install is editing a text file under
+  `http/ts/` and rebooting the target.
+- **`dism`, not `setup.exe`.** The first version ran Windows Setup with an
+  `autounattend.xml`. Applying the image ourselves is what MDT does, and it
+  gives a place to do things between "image on disk" and "first boot", such as
+  injecting drivers, that Setup never offered.
+- **One channel, HTTP.** Boot files, images, driver packs, instructions,
+  progress and logs all go over the same nginx. No SMB share, no credentials.
+- **Static files are the control plane.** Which machine may be wiped is a file
+  (`machines/<uuid>.cfg`). What the install does is a file (`ts/deploy.cmd`).
+  What happened is two log files. There is no database and no dispatcher.
+
+The retired first version, with its own notes, is in
+`docs/history/v1-setup-exe/`.
+
+## 5. Where it is going (`PLAN.md`)
+
+Phase 2 splits `deploy.cmd` into one file per step that can each be re-run by
+hand from the WinPE prompt, adds the recovery partition, and per-model driver
+selection. Then winget at first logon (Phase 3), role images captured from a
+sysprepped reference VM (Phase 4), real hardware on a real LAN (Phase 5), and
+an install guide good enough that someone else can stand the server up
+(Phase 6). `TODO.md` has the order and the open questions.
+
+## 6. Trying it
+
+The README's quick start is the whole procedure. On a fresh Ubuntu 24.04 box
+with KVM and a Windows 11 ISO:
+
+```bash
+cp config.sh.example config.sh     # set ISO_PATH
+bin/fetch-tools && bin/stage-winpe && bin/stage-image && bin/build-ipxe
+bin/serve && bin/lint
+bin/vm-create lab01 && bin/vm-boot lab01
+bin/await lab01 firstlogon 900 && bin/status lab01
 ```

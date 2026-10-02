@@ -1,0 +1,44 @@
+$ bin/logs lab06
+a127d384-eb06-4230-8a17-1ae83b30de51  run 79345113  (1 run(s): 79345113)
+       21444  2026-10-02 03:34:23  dism.log
+      274141  2026-10-02 03:35:30  panther-setupact.log
+          85  2026-10-02 03:35:30  panther-setuperr.log
+        9779  2026-10-02 03:34:23  ts.log
+  (http/uploads/a127d384-eb06-4230-8a17-1ae83b30de51/79345113)
+
+$ bin/logs lab06 --tail 25 ts.log
+
+Deployment Image Servicing and Management tool
+Version: 10.0.26100.1
+
+Image Version: 10.0.26100.1
+
+Searching for driver packages to install...
+Found 3 driver package(s) to install.
+Installing 1 of 3 - W:\Drivers\NetKVM\w11\amd64\netkvm.inf: The driver package was successfully installed.
+Installing 2 of 3 - W:\Drivers\vioscsi\w11\amd64\vioscsi.inf: The driver package was successfully installed.
+Installing 3 of 3 - W:\Drivers\viostor\w11\amd64\viostor.inf: The driver package was successfully installed.
+The operation completed successfully.
+[pdt] beacon drivers ok 
+
+[pdt] ===== boot 
+[pdt] beacon boot start 
+Boot files successfully created.
+[pdt] beacon boot ok 
+
+[pdt] ===== unattend 
+[pdt] beacon unattend start 
+        1 file(s) copied.
+[pdt] beacon unattend ok 
+[pdt] beacon ts-done ok 
+
+
+$ bin/logs lab05 --tail 8 ts.log   (preflight failure)
+[pdt] beacon ts-start ok 
+
+[pdt] ===== preflight 
+[pdt] beacon preflight start 
+curl: (22) The requested URL returned error: 404
+[pdt] not on the server: images/missing.wim 
+[pdt] beacon preflight fail 
+

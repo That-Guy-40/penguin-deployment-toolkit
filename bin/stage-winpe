@@ -1,0 +1,50 @@
+#!/bin/bash
+# stage-winpe - copy the four WinPE boot files out of the Windows ISO into
+# http/winpe/, unmodified. Uses 7z: no loop mount, no sudo.
+#
+#   bootmgfw.efi  <- efi/boot/bootx64.efi
+#   BCD           <- efi/microsoft/boot/bcd
+#   boot.sdi      <- boot/boot.sdi
+#   boot.wim      <- sources/boot.wim   (pristine; wimboot injects the task sequence at boot)
+#
+# Idempotent: a file is re-extracted only when it differs from the ISO's copy.
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+need 7z cmp wimlib-imagex
+need_iso
+
+OUT="$HTTP_DIR/winpe"
+mkdir -p "$OUT"
+
+# target name | path inside the ISO
+MAP=(
+"bootmgfw.efi|efi/boot/bootx64.efi"
+"BCD|efi/microsoft/boot/bcd"
+"boot.sdi|boot/boot.sdi"
+"boot.wim|sources/boot.wim"
+)
+
+for entry in "${MAP[@]}"; do
+    IFS='|' read -r name want <<<"$entry"
+    src="$(iso_path "$want")"
+    [[ -n "$src" ]] || die "$want not found in $ISO_PATH"
+    if [[ -f "$OUT/$name" ]] && 7z e -so "$ISO_PATH" "$src" 2>/dev/null | cmp -s - "$OUT/$name"; then
+        info "unchanged  http/winpe/$name"
+        continue
+    fi
+    info "extracting http/winpe/$name  <- $src"
+    rm -f "$OUT/$name.part"
+    7z e -so "$ISO_PATH" "$src" > "$OUT/$name.part" 2>/dev/null || die "7z failed extracting $src"
+    [[ "$(stat -c%s "$OUT/$name.part")" == "$(iso_size "$src")" ]] || die "$name: extracted size differs from the ISO entry"
+    chmod 0644 "$OUT/$name.part"
+    mv -f "$OUT/$name.part" "$OUT/$name"
+done
+
+# wimboot APPENDS injected files to \Windows\System32 without checking for an
+# existing name, so the booted image must not already contain a winpeshl.ini.
+BOOT_IDX="$(wimlib-imagex info "$OUT/boot.wim" | awk -F': *' '/^Boot Index:/ {print $2}')"
+[[ -n "$BOOT_IDX" && "$BOOT_IDX" != 0 ]] || die "boot.wim has no Boot Index"
+BOOT_FILES="$(wimlib-imagex dir "$OUT/boot.wim" "$BOOT_IDX")" || die "cannot list boot.wim image $BOOT_IDX"
+if grep -qix '/Windows/System32/winpeshl.ini' <<<"$BOOT_FILES"; then
+    die "boot.wim image $BOOT_IDX already contains winpeshl.ini; wimboot injection would collide"
+fi
+info "boot.wim: boot image is index $BOOT_IDX ($(wimlib-imagex info "$OUT/boot.wim" "$BOOT_IDX" | awk -F': *' '/^Name:/ {print $2}')), no winpeshl.ini inside"

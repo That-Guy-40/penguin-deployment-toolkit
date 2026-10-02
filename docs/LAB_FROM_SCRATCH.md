@@ -345,13 +345,23 @@ side is done. Everything after it is the task sequence: the repo's
 
 ## Mapping to the repo
 
-| this runbook | repo (PLAN.md §3) |
-|---|---|
-| step 5 | `bin/build-ipxe` (chain to `${next-server}`, no per-network rebuild) |
-| steps 6, 8 | `bin/fetch-tools` (pinned, hash-checked) |
-| step 7 | `bin/stage-winpe` (7z, no sudo) |
-| step 9 | `http/boot.ipxe`, `http/default.ipxe`, `http/machines/<uuid>.ipxe` |
-| step 11 | `bin/pxe-lan --bridge` (authoritative) vs `bin/pxe-lan` (proxy) |
-| step 12 | `bin/serve` (+ `PUT /uploads/` from §3.2) |
-| steps 13, 14 | `vms.tsv` read by `bin/vm-create` and `bin/vm-boot`; `bin/vm-shot` |
-| step 15 | `bin/status`, `bin/timeline`, `bin/await` over `beacons.log` |
+`bin/` exists as of 2026-10-02 (Phase 1). It automates this runbook two ways:
+the **user-mode-network** lab (no bridge, no root: the README quick start), and
+this runbook's bridged lab **without root**, inside a private network namespace
+(`bin/lab-netns`; verified, see `spikes/2026-10-02-bridged-lab-netns/`). The
+root-only steps above (2, 3, and `sudo dnsmasq` in 11) are what `lab-netns`
+replaces; on a real host bridge they are still needed and still untested by
+the scripts. Where the scripts ended up differing from the hand-made version:
+
+| this runbook | repo | difference |
+|---|---|---|
+| step 5 | `bin/build-ipxe` | embeds the literal `HTTP_HOST:HTTP_PORT` from `config.sh`, not `${next-server}`; rebuild after changing either (`bin/lint` notices a stale binary) |
+| steps 6, 8 | `bin/fetch-tools` | pinned by SHA-256, refused on mismatch |
+| step 7 | `bin/stage-winpe` | same 7z extraction, plus a check that `boot.wim` has no `winpeshl.ini` of its own |
+| step 9 | `http/boot.ipxe` | one static script with relative URLs; no `default.ipxe` or per-machine `.ipxe`. The allow-list is `http/machines/<uuid>.cfg` (`MODE=deploy`), read by the task sequence; unlisted machines boot WinPE to a prompt |
+| step 10 | `http/ts/deploy.cmd` | identity comes from the generated `ts/id.cmd` (no `wmic`), beacons carry `id`/`run`/`step`/`ev` |
+| steps 2, 3 | `bin/lab-netns up` | rootless: bridge and `bridge.conf` exist only inside a namespace |
+| step 11 | `bin/pxe-lan --bridge <br> <range>` (authoritative) vs `bin/pxe-lan` (proxy) | `--bridge` verified in `lab-netns`; every client is handed `ipxe.efi` (no direct-to-HTTP shortcut for iPXE ROMs), own lease file under `run/`. Proxy mode untested live |
+| step 12 | `bin/serve` | plus `PUT /uploads/`, `/ts/id.cmd`, and a self-test at start |
+| steps 13, 14 | `bin/vm-create`, `bin/vm-boot` | one directory per VM (`vms/<name>/vm.conf`) instead of `vms.tsv`; `--net bridge:br0` for this runbook's bridge |
+| step 15 | `bin/status`, `bin/await`, `bin/logs`, `bin/vm-shot` | |

@@ -1,0 +1,7 @@
+# Files that Windows executes must be CRLF in the working tree (nginx serves
+# them as they are). LF in the repository, CRLF on checkout.
+http/ts/*.cmd           text eol=crlf
+http/ts/*.ini           text eol=crlf
+http/ts/diskpart/*.txt  text eol=crlf
+http/post/*.cmd         text eol=crlf
+*.png                   binary

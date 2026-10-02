@@ -1,0 +1,45 @@
+#!/bin/bash
+# vm-type - type into a lab VM blind, through the QEMU monitor (sendkey).
+#   vm-type <name> 'dir X:\pdt'        type the text, then Enter
+#   vm-type <name> --no-enter 'text'   type without Enter
+#   vm-type <name> --key ctrl-alt-delete    send one raw QEMU key combination
+# US keyboard layout. Pair it with bin/vm-shot to see the result.
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+need socat python3
+
+NAME="${1:-}"; [[ -n "$NAME" && "$NAME" != -* ]] || die "usage: vm-type <name> [--no-enter|--key <combo>] <text>"
+shift
+vm_load "$NAME"
+vm_pid "$NAME" >/dev/null || die "VM $NAME is not running"
+
+ENTER=1
+case "${1:-}" in
+    --key) vm_monitor "$NAME" "sendkey ${2:?}" >/dev/null; exit 0 ;;
+    --no-enter) ENTER=0; shift ;;
+esac
+TEXT="${1:?text to type}"
+
+python3 - "$TEXT" "$ENTER" <<'PY' | socat -t 2 - "TCP:127.0.0.1:${VM_MONITOR_PORT}" >/dev/null
+import sys
+text, enter = sys.argv[1], sys.argv[2] == "1"
+plain = {" ": "spc", "-": "minus", "=": "equal", "[": "bracket_left", "]": "bracket_right",
+         "\\": "backslash", ";": "semicolon", "'": "apostrophe", "`": "grave_accent",
+         ",": "comma", ".": "dot", "/": "slash", "\t": "tab", "\n": "ret"}
+shifted = {"!": "1", "@": "2", "#": "3", "$": "4", "%": "5", "^": "6", "&": "7", "*": "8",
+           "(": "9", ")": "0", "_": "minus", "+": "equal", "{": "bracket_left",
+           "}": "bracket_right", "|": "backslash", ":": "semicolon", '"': "apostrophe",
+           "~": "grave_accent", "<": "comma", ">": "dot", "?": "slash"}
+for ch in text + ("\n" if enter else ""):
+    if ch.isalnum() and ch.isascii():
+        key = ch.lower() if not ch.isupper() else "shift-" + ch.lower()
+    elif ch in plain:
+        key = plain[ch]
+    elif ch in shifted:
+        key = "shift-" + shifted[ch]
+    else:
+        sys.exit(f"vm-type: cannot type character {ch!r}")
+    print(f"sendkey {key} 40")
+PY
+# The monitor queues the keys; give the guest time to receive them all before
+# the caller takes a screenshot.
+sleep "$(python3 -c 'import sys; print(0.5 + len(sys.argv[1]) * 0.12)' "$TEXT")"

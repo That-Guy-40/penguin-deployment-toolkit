@@ -1,0 +1,90 @@
+#!/bin/bash
+# vm-boot - start a lab VM (headless by default).
+#
+#   vm-boot <name> [--gui] [--pxe] [--nic e1000e|virtio-net-pci]
+#
+# Hardware is chosen so stock WinPE needs no extra drivers: an e1000e NIC and
+# an AHCI disk (both inbox). Boot order is disk, then network: an empty disk
+# falls through to PXE and gets deployed; an installed disk just boots.
+#   --pxe   network first, to redeploy a VM that already has an OS
+#   --gui   open a window instead of running headless
+#   --nic   override the NIC model for this boot (e.g. to test injected drivers)
+#           Do this only after a FULL shutdown inside Windows (shutdown /s /t 0):
+#           vm-stop's ACPI power-off makes Windows hibernate (fast startup), and
+#           resuming with different hardware can hang.
+#
+# Watch it with bin/status, bin/vm-shot <name>; stop it with bin/vm-stop <name>.
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+need qemu-system-x86_64 qemu-img python3
+
+NAME="" DISPLAY_MODE="none" PXE_FIRST=0 NIC=""
+while (( $# )); do
+    case "$1" in
+        --gui) DISPLAY_MODE="gtk"; shift ;;
+        --pxe) PXE_FIRST=1; shift ;;
+        --nic) NIC="${2:?}"; shift 2 ;;
+        -h|--help) sed -n '2,17p' "$0"; exit 0 ;;
+        -*) die "unknown option: $1" ;;
+        *)  [[ -z "$NAME" ]] || die "one VM name only"; NAME="$1"; shift ;;
+    esac
+done
+[[ -n "$NAME" ]] || die "usage: vm-boot <name> [--gui] [--pxe] [--nic <model>]"
+vm_load "$NAME"
+NIC="${NIC:-$VM_NIC}"
+
+if pid="$(vm_pid "$NAME")"; then die "VM $NAME is already running (pid $pid)"; fi
+[[ -f "${OVMF_CODE:?}" ]] || die "OVMF firmware not found: $OVMF_CODE"
+[[ -f "$PXE_DIR/ipxe.efi" ]] || die "pxe/ipxe.efi not found; run bin/build-ipxe"
+
+case "$NIC" in
+    e1000e)         ROM="$IPXE_ROM_DIR/efi-e1000e.rom" ;;
+    virtio-net-pci) ROM="$IPXE_ROM_DIR/efi-virtio.rom" ;;
+    *) die "unsupported --nic $NIC (use e1000e or virtio-net-pci)" ;;
+esac
+[[ -f "$ROM" ]] || die "iPXE option ROM not found: $ROM (package ipxe-qemu)"
+
+case "$VM_NET" in
+    user)     NETDEV="user,id=net0,tftp=$PXE_DIR,bootfile=ipxe.efi" ;;
+    bridge:*) NETDEV="bridge,id=net0,br=${VM_NET#bridge:}" ;;
+    *) die "vm.conf: bad VM_NET=$VM_NET" ;;
+esac
+
+# Stale NVRAM boot entries only matter while there is no OS: reset the
+# variables while the disk is effectively empty, keep them once it has data
+# (Windows records its boot entry there).
+ALLOC="$(qemu-img info --output=json "$VM_DIR/disk.qcow2" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("actual-size", 0))')"
+if (( ALLOC < 104857600 )) || (( PXE_FIRST )); then cp "$OVMF_VARS_TEMPLATE" "$VM_DIR/vars.fd"; fi
+
+if (( PXE_FIRST )); then DISK_IDX=2 NET_IDX=1; else DISK_IDX=1 NET_IDX=2; fi
+
+QEMU=(
+    qemu-system-x86_64
+    -name "pdt-$NAME" -enable-kvm -cpu host
+    # smm + secure pflash are required by the Secure-Boot OVMF build.
+    -machine q35,smm=on
+    -global driver=cfi.pflash01,property=secure,value=on
+    -global ICH9-LPC.disable_s3=1
+    -m "$VM_MEMORY" -smp "$VM_CPUS"
+    -uuid "$VM_UUID"
+    -smbios "type=1,manufacturer=PDT,product=lab-vm,serial=$VM_NAME"
+    -drive "if=pflash,format=raw,unit=0,readonly=on,file=$OVMF_CODE"
+    -drive "if=pflash,format=raw,unit=1,file=$VM_DIR/vars.fd"
+    -drive "file=$VM_DIR/disk.qcow2,format=qcow2,if=none,id=hd0"
+    -device "ide-hd,drive=hd0,bus=ide.0,bootindex=$DISK_IDX"
+    -netdev "$NETDEV"
+    -device "$NIC,netdev=net0,mac=$VM_MAC,romfile=$ROM,bootindex=$NET_IDX"
+    -monitor "tcp:127.0.0.1:$VM_MONITOR_PORT,server,nowait"
+    -serial "file:$VM_DIR/serial.log"
+    -pidfile "$VM_DIR/qemu.pid"
+)
+if [[ "$DISPLAY_MODE" == none ]]; then
+    QEMU+=(-display none -daemonize)
+    "${QEMU[@]}" || die "QEMU failed to start"
+else
+    QEMU+=(-display "$DISPLAY_MODE")
+    "${QEMU[@]}" &
+    sleep 1
+fi
+pid="$(vm_pid "$NAME")" || die "QEMU exited immediately"
+info "VM $NAME running: pid $pid, nic $NIC, boot $([[ $PXE_FIRST == 1 ]] && echo 'network first' || echo 'disk then network'), monitor 127.0.0.1:$VM_MONITOR_PORT"
+info "id for bin/status and bin/await: $VM_UUID"

@@ -1,161 +1,201 @@
 # Penguin Deployment Toolkit
 
-*Windows 11 unattended install via iPXE + WinPE, from Linux. A small, Linux-hosted stand-in for Microsoft Deployment Toolkit: the penguin does the deploying, Windows does the installing.*
+*Deploy Windows 11 over the network from a Linux host: iPXE + WinPE + DISM. A
+small, Linux-hosted stand-in for Microsoft Deployment Toolkit: the penguin does
+the deploying, Windows does the installing.*
 
-Install Windows 11 into a QEMU/KVM VM (or onto a physical machine) by PXE-booting
-WinPE from the Linux host and running Setup unattended. All infrastructure (TFTP,
-HTTP, the VM) runs on the host. No Windows machine and no Windows ADK.
+No Windows machine, no ADK, no MDT, no SMB share. The Linux host serves files
+over HTTP; Windows PE on the target does the install with Microsoft's own tools
+(`diskpart`, `dism`, `bcdboot`, an unattend file), following a plain-text task
+sequence the host serves.
 
-> **Where things stand (2026-09-22).** This README documents the pipeline that
-> exists in `scripts/` today (the "v1", `setup.exe`-driven flow, verified working
-> on 2026-06-02). The project's direction has changed: `PLAN.md` describes the
-> next design (pristine boot.wim, task sequence injected at boot, DISM
-> apply-image, HTTP-only, driver packs), which was proven in throwaway spikes on
-> 2026-09-22 (see `spikes/`). The v1 scripts still work and are the fallback.
+> **Status (2026-10-02).** Phase 1 of `PLAN.md` is done: the layout below is
+> what runs, verified end to end in a lab VM (see [Verification](#verification)).
+> Real hardware (Phase 5) and an install guide for other people (Phase 6) are
+> not done yet; `TODO.md` has the order of work. The first version of this repo
+> (Windows Setup + `autounattend.xml`) is retired to `docs/history/v1-setup-exe/`.
 
-## Boot chain (v1, as implemented)
+## How a machine gets installed
 
 ```
-QEMU VM (UEFI/OVMF Secure-Boot-capable firmware + TPM 2.0 via swtpm)
- └─ OVMF UEFI PXE ─(QEMU built-in TFTP)→ pxe/ipxe.efi   (our build; embeds the chain URL)
-      └─ iPXE ─HTTP→ boot.ipxe ─HTTP→ wimboot + bootmgfw.efi + BCD + boot.sdi + boot.wim
-           └─ WinPE boots; startnet.cmd (injected into boot.wim by 03) runs
-                setup.exe /unattend:X:\autounattend.xml from the attached ISO
-                     └─ Windows 11 installs unattended onto the AHCI system disk
+firmware PXE ─TFTP→ pxe/ipxe.efi            the one binary we build; embeds one URL
+  └─ iPXE ─HTTP→ http/boot.ipxe             static; loads wimboot + a PRISTINE boot.wim
+       └─ wimboot injects into X:\Windows\System32:
+            winpeshl.ini, deploy.cmd, id.cmd, curl.exe
+            └─ WinPE runs deploy.cmd (the task sequence):
+                 machines/<uuid>.cfg says MODE=deploy?  no → report, stop at a prompt
+                 disk      diskpart (GPT: ESP, MSR, Windows)
+                 download  images/base.wim over HTTP
+                 apply     dism /apply-image
+                 drivers   optional driver pack → dism /add-driver
+                 boot      bcdboot
+                 unattend  Panther unattend.xml + C:\pdt\ scripts, reboot
+                 └─ installed Windows: specialize → first logon → desktop
 ```
 
-`ipxe.efi` is required because OVMF's PXE stack can only execute a UEFI binary,
-not an iPXE script. Inside a VM the host is `10.0.2.2` (QEMU user-net); on a LAN
-`07-setup-physical.sh` rebuilds `ipxe.efi` for the host's real IP and runs
-dnsmasq as proxy-DHCP/TFTP.
+Every step reports `start` and `ok`/`fail` to the server and pushes its logs
+there, so an install can be followed, and a failure diagnosed, without looking
+at the machine's screen.
+
+**Nothing is wiped unless you list the machine.** A machine is deployed only if
+`http/machines/<its SMBIOS UUID>.cfg` exists and says `MODE=deploy`. Any other
+machine that PXE-boots gets WinPE at a prompt, shows up in `bin/status`, and is
+left untouched.
+
+## Quick start (lab VM on this host)
+
+Needs Ubuntu 24.04 with KVM, plus: `qemu-system-x86 qemu-utils ovmf ipxe-qemu
+nginx wimtools p7zip-full socat uuid-runtime curl unzip python3 python3-pil
+build-essential liblzma-dev git`. And a Windows 11 ISO.
+
+```bash
+cp config.sh.example config.sh     # set ISO_PATH; pick a free HTTP_PORT
+bin/fetch-iso                      # only if you have no ISO: builds one via UUP dump (4-6 GB)
+bin/fetch-tools                    # wimboot, curl.exe, wimlib for Windows (pinned by hash)
+bin/stage-winpe                    # boot.wim + boot files out of the ISO (7z, no sudo)
+bin/stage-image                    # install.wim -> http/images/base.wim + sidecar
+bin/build-ipxe                     # pxe/ipxe.efi, chaining to HTTP_HOST:HTTP_PORT
+bin/serve                          # rootless nginx on HTTP_PORT, self-tested
+bin/lint                           # every referenced file exists; exit 1 if not
+
+bin/vm-create lab01                # empty disk + machines/<uuid>.cfg with MODE=deploy
+bin/vm-boot lab01                  # headless; PXE → WinPE → install
+bin/await lab01 firstlogon 900     # blocks until the desktop is reached (or fails)
+bin/status lab01                   # every event of that boot, with timings
+bin/vm-shot lab01                  # screenshot, if you want to look
+```
+
+None of it needs root. `bin/teardown` stops everything; `bin/teardown --purge`
+also deletes the lab VMs and logs.
+
+## The bridged lab, without root
+
+The quick start uses QEMU's user-mode network, where QEMU itself plays DHCP and
+TFTP server. To exercise what real hardware does (DHCP and TFTP from dnsmasq,
+VMs on a bridge) without sudo, run the lab inside a private network namespace:
+
+```bash
+# config.sh: HTTP_HOST="10.42.0.1"   then: bin/build-ipxe
+bin/lab-netns up                                  # bridge br0 = 10.42.0.1/24, visible only inside
+bin/lab-netns run bin/serve
+bin/lab-netns run bin/pxe-lan --bridge br0 10.42.0.100,10.42.0.199 start
+bin/vm-create lab01 --net bridge:br0
+bin/lab-netns run bin/vm-boot lab01
+bin/await lab01 firstlogon 900                    # reads log files: works from outside
+bin/lab-netns run bin/vm-shot lab01               # talks to QEMU: must run inside
+bin/lab-netns down                                # stops everything inside
+```
+
+Nothing on the host's network is touched and the VMs have no internet. It needs
+unprivileged user namespaces (`kernel.apparmor_restrict_unprivileged_userns=0`).
+The same lab on a real host bridge, with root, is `docs/LAB_FROM_SCRATCH.md`.
+
+## Watching and debugging an install
+
+| command | what it tells you |
+|---|---|
+| `bin/status [--watch]` | one row per machine: last event, age, mode, product. `FAIL` and `STUCK?` are flagged |
+| `bin/status <id\|vm>` | every event of that machine's latest boot with timings (iPXE request, `boot.wim` transfer rate, each step) |
+| `bin/await <id\|vm> <step> [secs]` | block until that step reports ok; exit 1 on any `fail`, 2 on timeout. Makes the lab scriptable |
+| `bin/logs <id\|vm> [--cat ts.log]` | what the machine uploaded: `ts.log`, `dism.log`, Setup's Panther logs |
+| `bin/lint` | static check of `http/` and the host set-up; self-tests by injecting known defects |
+| `bin/vm-shot`, `bin/vm-type` | screenshot / type into a lab VM through the QEMU monitor (last resort; VMs only) |
+
+Raw data, if you prefer `tail -f`: `run/beacons.log` (one line per event),
+`run/access.log` (every file request, with transfer time), `http/uploads/<id>/<run>/`.
 
 ## Repository map
 
 | Path | What it is |
 |---|---|
-| `config.sh.example` | template; `00-bootstrap.sh` copies it to `config.sh` (host-specific; this directory is not a git repo) |
-| `scripts/00-bootstrap.sh` | creates `pxe/ http/winpe answer/ vms/` and `config.sh` |
-| `scripts/01-install-deps.sh` | apt packages (wimtools, nginx, aria2, cabextract, chntpw, genisoimage, iPXE build deps) and downloads `pxe/wimboot` |
-| `scripts/00b-download-iso.sh` | optional: builds a Win11 ISO from UUP dump into `tools/uupdump-work/`, sets `ISO_PATH` |
-| `scripts/00c-build-ipxe.sh` | clones iPXE into `build/ipxe/ipxe`, builds `pxe/ipxe.efi` with `build/ipxe/chain.ipxe` embedded (host + `HTTP_PORT` baked in) |
-| `scripts/02-extract-winpe.sh` | `sudo mount` the ISO, copy `bootmgfw.efi BCD boot.sdi boot.wim` to `http/winpe/` (the only step needing sudo) |
-| `scripts/03-inject-autounattend.sh` | `wimlib-imagex update`: `answer/autounattend.xml` + a generated `startnet.cmd` into **every** image of `http/winpe/boot.wim` |
-| `scripts/04-setup-http.sh` | writes `pxe/boot.ipxe` (+ copy in `http/`), generates `run/nginx.conf`, starts a **rootless** nginx on `HTTP_PORT` |
-| `scripts/05-create-vm.sh` | qcow2 disk, swtpm state dir, OVMF NVRAM copy under `vms/` |
-| `scripts/06-boot-vm.sh` | starts swtpm and QEMU (`HEADLESS=1` for no window; serial log at `/tmp/qemu-serial.log`) |
-| `scripts/07-setup-physical.sh` | rebuilds `ipxe.efi`/`boot.ipxe` for the LAN IP, writes `pxe/dnsmasq.conf` (proxy-DHCP + TFTP), prints how to start it |
-| `scripts/99-teardown.sh` | stops QEMU/swtpm/our nginx/our dnsmasq, unmounts the ISO; `--purge` also deletes VM state and generated configs |
-| `answer/autounattend.xml` | answer file: wipe disk 0 (GPT: 512 MB EFI, 16 MB MSR, rest NTFS), local admin **`deploy` with a blank password**, autologon once, OOBE hidden, `WIN11-VM`, UTC |
-| `pxe/` | TFTP root: `ipxe.efi`, `wimboot`; `boot.ipxe` and `dnsmasq.conf` are generated here |
-| `http/` | nginx document root: `winpe/` (boot files; `wimboot` is a symlink to `pxe/wimboot`), `boot.ipxe` |
-| `build/ipxe/` | iPXE source checkout and build output (cache; safe to delete) |
-| `tools/uupdump-work/` | UUP dump working directory (downloaded packages, ~4 GB; cache) |
-| `win11.iso` | the ISO built by `00b` on this host: build 26100.1 (24H2), Professional, en-US, `sources/install.wim` 3.5 GB (single image), `sources/boot.wim` 498 MB |
-| `run/` | created by `04`: nginx config, pid, logs (deleted by `99 --purge`) |
-| `vms/` | VM disk, TPM state, NVRAM (deleted by `99 --purge`) |
-| `spikes/` | dated experiments with their scripts and screenshots (see `PLAN.md`) |
-| `docs/history/` | superseded plan reviews |
+| `config.sh.example` | template for `config.sh`, the only place host-specific values live |
+| `bin/lib.sh` | shared by every script: loads `config.sh`, helpers |
+| `bin/fetch-iso` | optional: build a Windows 11 ISO from Microsoft's update servers via UUP dump, into `iso/` with a sidecar (base build only: no cumulative updates on Linux) |
+| `bin/fetch-tools` | third-party binaries, pinned by SHA-256, into `http/winpe/` and `http/tools/`; `fetch-tools virtio` builds a virtio driver pack |
+| `bin/stage-winpe` | `boot.wim`, `bootmgfw.efi`, `BCD`, `boot.sdi` from the ISO, unmodified |
+| `bin/stage-image` | the ISO's install image → `http/images/base.wim` + `base.json` |
+| `bin/pack-drivers` | a directory of drivers → `http/drivers/<name>.wim` |
+| `bin/build-ipxe` | builds `pxe/ipxe.efi` from a pinned iPXE commit |
+| `bin/serve` | rootless nginx: static files, `GET /beacon`, `GET /ts/id.cmd`, `PUT /uploads/` |
+| `bin/pxe-lan` | dnsmasq + TFTP: proxy-DHCP for a real LAN (not yet run against hardware), or `--bridge` authoritative DHCP for a lab bridge (verified) |
+| `bin/lab-netns` | a rootless host-only bridge in a private network namespace, for running the bridged lab without sudo |
+| `bin/vm-create`, `vm-boot`, `vm-stop`, `vm-shot`, `vm-type` | the lab VM |
+| `bin/status`, `await`, `logs`, `lint` | read-only tools over the logs and `http/` |
+| `bin/teardown` | stop services; optionally delete lab state |
+| `http/boot.ipxe` | the iPXE script every target runs (static, relative URLs) |
+| `http/ts/` | the WinPE task sequence: `winpeshl.ini`, `deploy.cmd`, `diskpart/` |
+| `http/unattend/` | Panther unattend files (`default.xml`: local admin `deploy`, **blank password**, one autologon: lab defaults) |
+| `http/post/` | scripts copied to `C:\pdt\` and run by the installed system |
+| `http/machines/` | `<uuid>.cfg` per deployable machine (not tracked; see its README) |
+| `http/winpe/ tools/ images/ drivers/ uploads/` | fetched, extracted or uploaded content (not tracked) |
+| `iso/` | ISOs built by `bin/fetch-iso` (not tracked) |
+| `pxe/` | TFTP root: `ipxe.efi`, generated `dnsmasq.conf` (not tracked) |
+| `run/` | nginx config, pid, logs, `beacons.log` (not tracked) |
+| `vms/` | lab VMs: disk, NVRAM, `vm.conf` (not tracked) |
+| `docs/` | `HOW_IT_WORKS.md` (tour), `LAB_FROM_SCRATCH.md` (bridged-lab runbook), `history/` (retired v1 and old reviews) |
+| `spikes/` | dated experiments with their evidence |
 
-## Prerequisites (Ubuntu 24.04)
+## Design points worth knowing
 
-Expected on the host already: `qemu-system-x86_64` with KVM, OVMF (`/usr/share/OVMF/OVMF_CODE_4M.secboot.fd`,
-`OVMF_VARS_4M.fd`), `swtpm`, the iPXE option ROMs in `/usr/lib/ipxe/qemu/`,
-`python3`, `curl`. `01-install-deps.sh` installs the rest. You need a Windows 11
-ISO: set `ISO_PATH` in `config.sh` or build one with `00b-download-iso.sh`.
+- **`boot.wim` is never modified.** wimboot copies extra files into
+  `X:\Windows\System32` at boot. Changing the install is editing a text file
+  under `http/ts/` and rebooting the target.
+- **`winpeshl.ini`, not `startnet.cmd`.** wimboot appends files without checking
+  for an existing name; `startnet.cmd` already exists in the image.
+- **Identity is decided once, by iPXE.** `boot.ipxe` requests
+  `ts/id.cmd?id=${uuid}&mac=…`; nginx answers with a three-line `.cmd` (`SRV`,
+  `ID`, `MAC`) that wimboot injects. WinPE therefore knows who it is and where
+  the server is without detecting anything, and the id it reports is by
+  construction the one the server saw at boot.
+- **HTTP only.** Stock WinPE has no `curl`, PowerShell or `bitsadmin`, so the
+  official Windows `curl.exe` is injected too.
+- **Lab hardware WinPE already understands.** e1000e NIC and AHCI disk (inbox
+  drivers). No TPM: the apply path performs no Windows 11 hardware check.
+- **Pinned by hash, not by version.** The `wimboot` `v2.9.0` release asset was
+  replaced upstream with different contents under the same version; `fetch-tools`
+  refuses a download whose SHA-256 is not the reviewed one.
+- **Secure Boot capable, not enforcing** (OVMF secboot build with empty
+  variables), so the unsigned `ipxe.efi` loads. Enforcing mode is Phase 5.
 
-## Run order
+## Verification
 
-The prefixes are historical; the real dependency order is:
+Verified on 2026-10-02 on this host (Ubuntu 24.04, QEMU 8.2, Windows 11 Pro
+24H2 build 26100.1), entirely through `bin/`, as an unprivileged user. Evidence:
+`spikes/2026-10-02-phase1-acceptance/`.
 
-| Step | Script | Notes |
-|---|---|---|
-| 1 | `00-bootstrap.sh` | dirs + `config.sh` |
-| 2 | `01-install-deps.sh` | must run before `00b`/`00c` (they need its packages) |
-| 3 | `00b-download-iso.sh` | optional, ~4–6 GB download |
-| 4 | `00c-build-ipxe.sh` | bakes `HTTP_PORT` into `ipxe.efi`; re-run after changing the port |
-| 5 | `02-extract-winpe.sh` | sudo (loop mount) |
-| 6 | `03-inject-autounattend.sh` | edits `http/winpe/boot.wim` in place |
-| 7 | `04-setup-http.sh` | errors (does not kill anything) if `HTTP_PORT` is taken |
-| 8 | `05-create-vm.sh` | asks before recreating an existing disk; wipes TPM state + NVRAM only when you say yes |
-| 9 | `06-boot-vm.sh` | installs Windows; with an already-installed disk it boots Windows instead |
+| what | result |
+|---|---|
+| Full deploy, lab VM, with a driver pack | PXE to `firstlogon` in 140 s (preflight 0.2 s, disk 4 s, 3.5 GB download 12 s, `dism` apply 47 s, drivers 1.5 s, first boot to first logon 67 s); desktop confirmed by screenshot |
+| Unlisted machine (no `machines/` entry) | boots WinPE, reports `shell`, disk untouched |
+| Cfg naming a missing image | `preflight fail` naming the file, disk untouched, `bin/await` exits 1, log uploaded |
+| Driver pack | VM deployed with `virtio-w11` has network on a virtio NIC; VM deployed without it has none (same NIC, cold boot) |
+| `bin/lint` | 11/11 injected defects reported; real tree all PASS; FAILs on a deliberately broken cfg |
+| `bin/serve` | self-test on every start: uploads stored, not readable back; malformed id rejected |
 
-Physical machines: steps 1–7, then `07-setup-physical.sh` and start dnsmasq as it
-prints. **That wipes disk 0 of any UEFI machine that PXE-boots on that LAN.**
+Two things the timings do not mean: `firstlogon` is sent while Windows still
+shows its first-sign-in animation (the desktop followed within two minutes),
+and the numbers come from a fast local disk over a loopback network.
 
-## Key design decisions (v1)
+Lab caveat: `bin/vm-stop` uses the ACPI power button, which Windows turns into
+fast startup (hibernation). Change VM hardware (`vm-boot --nic …`) only after a
+full shutdown from inside Windows (`shutdown /s /t 0`).
 
-- **Inject into every boot.wim image.** A stock boot.wim has two images
-  (1 = Windows PE, 2 = Windows Setup); the WIM "Boot Index" is 2. An earlier
-  version injected only into index 1, so Setup ran interactively. `03` writes into
-  all images.
-- **Custom `startnet.cmd`.** Neither image ships `winpeshl.ini`, so WinPE runs
-  `startnet.cmd`; ours calls `wpeinit` then `setup.exe /unattend:X:\autounattend.xml`
-  from the first drive that has `\sources\setup.exe` (the attached ISO). Setup only
-  auto-discovers `autounattend.xml` on removable media, not on `X:`.
-- **AHCI system disk, not virtio.** Stock WinPE has `storahci` but no virtio
-  drivers, so a virtio-blk disk is invisible to Setup. The NIC is virtio only
-  because the iPXE ROM drives PXE and v1 never uses the network inside WinPE.
-- **Boot order disk → PXE → CD.** An empty disk falls through to PXE; once Windows
-  is installed the disk boots it. `06` resets NVRAM only while the disk is
-  effectively empty (< 100 MiB allocated) and preserves it afterwards.
-- **Secure Boot capable, Setup Mode.** Windows 11 Setup requires Secure-Boot-
-  capable firmware, so the secboot OVMF build is used with the *empty* vars
-  template: capable but not enforcing, so the unsigned self-built `ipxe.efi` loads.
-  `config.sh` documents how to sign and enrol for enforcing mode.
+Later the same day (evidence: `spikes/2026-10-02-bridged-lab-netns/`):
 
-## Verification status
+| what | result |
+|---|---|
+| Bridged lab: `vm-create --net bridge:br0`, `pxe-lan --bridge`, inside `bin/lab-netns` | dnsmasq leased an address and served `ipxe.efi` over TFTP (the path real hardware takes); full deploy to `firstlogon` in 122 s. With dnsmasq stopped the same VM never left "Start PXE over IPv4" |
+| `bin/fetch-iso --release 24H2` | built a 4.1 GB ISO in about two minutes on this connection; a VM deployed from it reached `firstlogon` in 156 s (evidence: `spikes/2026-10-02-fetch-iso/`) |
 
-- **2026-06-02, v1 end to end [verified]:** full watched install in the VM. Setup
-  ran unattended, passed the Secure Boot/TPM checks, partitioned the AHCI disk,
-  rebooted through specialize/OOBE, autologon worked, and the installed disk then
-  booted directly (no PXE loop).
-- **2026-09-22, v2 spikes [verified]:** see `PLAN.md` §2 and `spikes/`. Summary:
-  pristine boot.wim + wimboot-injected task sequence + `curl.exe` → diskpart →
-  `install.wim` over HTTP → `dism /apply-image` → virtio driver pack via
-  `dism /add-driver` → `bcdboot` → Panther `unattend.xml` → first logon, in
-  ~2.5 minutes wall clock on this host. Negative control (injection disabled)
-  behaved as expected.
+Not verified: proxy-DHCP mode (`bin/pxe-lan` without `--bridge`) next to a real
+DHCP server, a bridge on the real host (setuid helper, `/etc/qemu/bridge.conf`,
+firewall), and anything on physical hardware.
 
-## State of this host (2026-09-22)
+## Documents
 
-The v1 pipeline is currently **torn down** (`99-teardown.sh --purge` was run):
-`vms/` is empty, there is no `run/` and no `pxe/boot.ipxe`. `http/winpe/` still
-holds the extracted, injected boot.wim, and `pxe/ipxe.efi` is built for port
-**8088** (`config.sh`). **Port 8088 is now occupied on 127.0.0.1 by another
-process** (as is 8080), so `04` will refuse to start until `HTTP_PORT` is
-changed in `config.sh` and `00c` is re-run. 8090 was free and was used by the
-spikes. Re-running v1 from here:
-
-```bash
-# in config.sh: HTTP_PORT="8090"   (or another free port)
-bash scripts/00c-build-ipxe.sh
-bash scripts/04-setup-http.sh
-bash scripts/05-create-vm.sh
-bash scripts/06-boot-vm.sh
-```
-
-## Troubleshooting
-
-- **Setup complains about Secure Boot / TPM.** Uncomment the three `LabConfig`
-  lines in `03`'s `startnet.cmd` and re-run `03`.
-- **`04` says the port is in use.** It never kills other services. Pick a free
-  port in `config.sh`, re-run `00c` (port is baked into `ipxe.efi`) and `04`.
-- **`boot.wim` is root-owned / permission denied.** `02` normalises ownership when
-  run via sudo; `03` takes ownership if needed.
-- **Re-running `06` reinstalls Windows.** Only if the disk was wiped. Otherwise
-  disk-first boot order boots the installed OS.
-- **Watching a headless run.** `HEADLESS=1 bash scripts/06-boot-vm.sh`; serial
-  output lands in `/tmp/qemu-serial.log` (firmware/iPXE only; WinPE does not
-  write to serial). The spikes show how to screenshot via the QEMU monitor.
-
-## Document status
-
-- `README.md` (this file): what the code in `scripts/` does today.
-- `docs/HOW_IT_WORKS.md`: a ground-up tour for newcomers: the boot chain, what each
-  script sets up, what happens at boot, and where the plan goes.
-- `docs/LAB_FROM_SCRATCH.md`: hand-followable runbook: iPXE + TFTP + DHCP + nginx for
-  a batch of VMs on a host-only bridge, ending at a WinPE beacon.
-- `PLAN.md`: the current design and roadmap (v2), with verified/unknown tags.
-- `spikes/`: evidence for the plan; each spike has a README with results.
-- `TODO.md`: ordered next steps.
-- `docs/history/`: superseded reviews of the original plan.
+- `PLAN.md`: design and roadmap, each claim tagged verified / read / unknown.
+- `TODO.md`: ordered next steps and open questions to spike.
+- `docs/HOW_IT_WORKS.md`: a ground-up tour for newcomers.
+- `docs/LAB_FROM_SCRATCH.md`: the same lab built by hand on a host-only bridge.
+- `docs/history/v1-setup-exe/`: the retired Setup-based pipeline and its notes.
+- `spikes/`: evidence behind the plan.

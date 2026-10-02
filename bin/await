@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+"""await - block until a machine reports a step, so the lab can be scripted.
+
+  await <id|vm-name> <step> [timeout-seconds]      (default timeout 600)
+
+Exit status:
+  0  the event <step> ev=ok arrived (use --ev to wait for another ev)
+  1  the machine reported ev=fail for any step first
+  2  timeout (the last event seen for the machine is printed: that is where it is stuck)
+
+Only events that arrive AFTER await starts count, so a result from an earlier
+run cannot satisfy it. Use --from-start to consider the whole log.
+
+  bin/vm-boot lab01 && bin/await lab01 firstlogon 900 && bin/vm-shot lab01
+"""
+import argparse
+import os
+import sys
+import time
+
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
+import _pdt
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("id")
+    ap.add_argument("step")
+    ap.add_argument("timeout", nargs="?", type=float, default=600)
+    ap.add_argument("--ev", default="ok")
+    ap.add_argument("--from-start", action="store_true")
+    a = ap.parse_args()
+
+    path = _pdt.paths()["BEACON_LOG"]
+    mid = _pdt.resolve_id(a.id)
+    pos = 0
+    if not a.from_start and os.path.exists(path):
+        pos = os.path.getsize(path)
+    deadline = time.time() + a.timeout
+    last = None
+    buf = ""
+    while True:
+        if os.path.exists(path):
+            with open(path, errors="replace") as f:
+                f.seek(pos)
+                buf += f.read()
+                pos = f.tell()
+            *lines, buf = buf.split("\n")
+            for line in lines:
+                e = _pdt.parse_beacon(line)
+                if not e or e["id"] != mid:
+                    continue
+                last = e
+                shown = f'{e["iso"]} {e["step"]} {e["ev"]}' + (f' rc={e["rc"]}' if e.get("rc") else "")
+                if e["step"] == a.step and e["ev"] == a.ev:
+                    print(f"await: {shown}")
+                    return 0
+                if e["ev"] == "fail":
+                    print(f"await: FAILED before {a.step}: {shown}", file=sys.stderr)
+                    return 1
+        if time.time() >= deadline:
+            where = f'last event: {last["step"]} {last["ev"]} at {last["iso"]}' if last else "no event from this machine at all"
+            print(f"await: TIMEOUT after {a.timeout:.0f}s waiting for {a.step} {a.ev}; {where}", file=sys.stderr)
+            return 2
+        time.sleep(0.5)
+
+
+sys.exit(main())

@@ -1,0 +1,102 @@
+#!/bin/bash
+# fetch-tools - download the third-party binaries the boot chain needs, pinned
+# by SHA-256, into http/winpe/ and http/tools/. Nothing is vendored in git.
+#
+#   fetch-tools            fetch + verify wimboot, curl for Windows, wimlib for Windows
+#   fetch-tools check      verify what is installed against the pins (no network)
+#   fetch-tools virtio     also fetch virtio-win and build http/drivers/virtio-w11.wim
+#
+# A version string is not an identity (the wimboot v2.9.0 asset was re-uploaded
+# with different contents in 2026-05), so every artefact is pinned by hash.
+# To move a pin: change URL + hash together, run fetch-tools, then re-verify a
+# deployment (bin/test-deploy once it exists; a lab VM run until then).
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+need curl unzip sha256sum
+
+DL="$BUILD_DIR/dl"
+
+# name|url|sha256 of the download
+DOWNLOADS=(
+"wimboot|https://github.com/ipxe/wimboot/releases/download/v2.9.0/wimboot|5f067ccdc4d084d5bf77b6c853bd0f8402dfc2b4cd1b103d358993ae97fae8e3"
+"curl-win64.zip|https://curl.se/windows/dl-8.22.0_1/curl-8.22.0_1-win64-mingw.zip|7f23b039f6ea4197362d4468e1a0e71428201222e1bef3b680d5ef7b2aefb714"
+"wimlib-win64.zip|https://wimlib.net/downloads/wimlib-1.14.4-windows-x86_64-bin.zip|6d99e242bfbc6d36fc987d433d63772180551b7f2d8de43e9561535a3e2c16d8"
+)
+VIRTIO="virtio-win.iso|https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/virtio-win-0.1.302-1/virtio-win.iso|303f7ae40dad495d6ae474fdc571df58958a4dbc5c37a522d80f9a203867949d"
+
+# installed path (relative to http/)|sha256 of the installed file
+INSTALLED=(
+"winpe/wimboot|5f067ccdc4d084d5bf77b6c853bd0f8402dfc2b4cd1b103d358993ae97fae8e3"
+"tools/curl.exe|57309336350df718d9d3f76694d86a997bf9dc6708ce2d86b658294707572b3c"
+"tools/libcurl-x64.dll|10c8871b2188095c26b28767b4f99dc97d0f6fab58a70be47f6679cd9126b13f"
+"tools/wimlib-imagex.exe|401bf99d6dec2b749b464183f71d146327ae0856a968c309955f71a0c398a348"
+"tools/libwim-15.dll|6480b53d4ecd4423af9e100fe15e3d2c3d114eff33fba07977e46c1ab124342e"
+)
+
+# fetch <name|url|sha>: download into $DL unless a verified copy is already there.
+fetch() {
+    local name url sha
+    IFS='|' read -r name url sha <<<"$1"
+    mkdir -p "$DL"
+    if [[ -f "$DL/$name" ]] && sha256_is "$DL/$name" "$sha"; then
+        info "cached   $name"
+        return 0
+    fi
+    info "fetching $name"
+    curl -fsSL --retry 3 -o "$DL/$name.part" "$url" || die "download failed: $url"
+    if ! sha256_is "$DL/$name.part" "$sha"; then
+        local got; got="$(sha256sum "$DL/$name.part" | cut -d' ' -f1)"
+        rm -f "$DL/$name.part"
+        die "$name: SHA-256 mismatch
+  expected $sha
+  got      $got
+The upstream file changed. Do not use it until the pin is reviewed and updated."
+    fi
+    mv "$DL/$name.part" "$DL/$name"
+}
+
+check() {
+    local rc=0 entry path sha
+    for entry in "${INSTALLED[@]}"; do
+        IFS='|' read -r path sha <<<"$entry"
+        if [[ ! -f "$HTTP_DIR/$path" ]]; then
+            echo "FAIL     http/$path: missing (run bin/fetch-tools)"; rc=1
+        elif sha256_is "$HTTP_DIR/$path" "$sha"; then
+            echo "PASS     http/$path matches its pin"
+        else
+            echo "FAIL     http/$path: does not match its pinned SHA-256"; rc=1
+        fi
+    done
+    return $rc
+}
+
+install_all() {
+    local d
+    for d in "${DOWNLOADS[@]}"; do fetch "$d"; done
+    mkdir -p "$HTTP_DIR/winpe" "$HTTP_DIR/tools"
+    # A symlink from the v1 layout may be in the way; replace it with the real file.
+    rm -f "$HTTP_DIR/winpe/wimboot"
+    install -m 0644 "$DL/wimboot" "$HTTP_DIR/winpe/wimboot"
+    unzip -q -o -j "$DL/curl-win64.zip" '*/bin/curl.exe' '*/bin/libcurl-x64.dll' -d "$HTTP_DIR/tools"
+    unzip -q -o -j "$DL/wimlib-win64.zip" 'wimlib-imagex.exe' 'libwim-15.dll' -d "$HTTP_DIR/tools"
+    chmod 0644 "$HTTP_DIR"/tools/*
+    check
+}
+
+virtio() {
+    need 7z
+    fetch "$VIRTIO"
+    VIRTIO_TMP="$(mktemp -d "$BUILD_DIR/virtio.XXXXXX")"   # global: the EXIT trap outlives this function
+    trap 'rm -rf "$VIRTIO_TMP"' EXIT
+    7z x -y -o"$VIRTIO_TMP" "$DL/virtio-win.iso" NetKVM/w11/amd64 viostor/w11/amd64 vioscsi/w11/amd64 >/dev/null \
+        || die "could not extract the w11/amd64 drivers from virtio-win.iso"
+    find "$VIRTIO_TMP" -name '*.pdb' -delete
+    "$PDT_ROOT/bin/pack-drivers" "$VIRTIO_TMP" virtio-w11
+}
+
+case "${1:-all}" in
+    all)    install_all ;;
+    check)  check ;;
+    virtio) virtio ;;
+    -h|--help) sed -n '2,12p' "$0" ;;
+    *) die "unknown argument: $1 (try --help)" ;;
+esac

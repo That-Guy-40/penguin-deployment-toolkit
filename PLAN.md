@@ -1,9 +1,10 @@
 # Plan: a small, Linux-hosted replacement for MDT
 
-> **Status (2026-09-22):** this is the *current* plan. It supersedes the original
-> design note (now in `docs/history/`, together with two early reviews). What the
-> repo does **today** is documented in `README.md`; this file says where it is
-> going and why. Every claim below is tagged **[verified]** (run on this host),
+> **Status (2026-10-02):** this is the *current* plan. **Phase 1 is done** (§4);
+> Phase 2 is next. It supersedes the original design note (now in
+> `docs/history/`, together with two early reviews and the retired v1 pipeline).
+> What the repo does **today** is documented in `README.md`; this file says where
+> it is going and why. Every claim below is tagged **[verified]** (run on this host),
 > **[read]** (derived from source or docs, not executed) or **[unknown]**.
 
 ## 1. North star
@@ -56,6 +57,15 @@ Available: `${manufacturer}`, `${product}`, `${serial}`, `${uuid}`, `${asset}`,
 vendor:device of the NIC). Inside WinPE the same facts come from the registry
 (`HKLM\HARDWARE\DESCRIPTION\System\BIOS`, no WMI needed) and `wmic csproduct`
 (still present in build 26100 WinPE) **[verified]**.
+
+WinPE does not have to rediscover the identity at all **[verified, Phase 1]**:
+`boot.ipxe` requests `ts/id.cmd?id=${uuid}&mac=${netX/mac}`, nginx answers with
+a generated three-line `.cmd` (`SRV` from the request's Host header, `ID`,
+`MAC`), and wimboot injects it like any other file. The id a machine reports is
+therefore by construction the one the server saw at boot (no SMBIOS byte-order
+or case surprises between iPXE and WMI), and nothing under `http/` names a host
+or port: `boot.ipxe` uses URLs relative to itself, so the only place the
+server's address is written down is `config.sh` (baked into `ipxe.efi`).
 
 ### 2.3 boot.wim is used **pristine**; customisation is injected by wimboot **[verified]**
 
@@ -164,6 +174,7 @@ penguin-deployment-toolkit/
 ├── config.sh                 # host settings (port, IPs, paths); from config.sh.example
 ├── bin/                      # one verb per script, no numbering
 │   ├── preflight             # PASS/FAIL/UNKNOWN per prerequisite (with known-failing rows)
+│   ├── fetch-iso             # optional: build a Windows ISO via UUP dump -> iso/
 │   ├── build-ipxe            # ipxe.efi with the chain URL (+identity query)
 │   ├── stage-winpe           # 7z-extract boot.wim/bootmgfw/BCD/boot.sdi from the ISO
 │   ├── stage-image           # ISO -> images/base.wim (wimexport/optimize) + sidecar .json
@@ -172,8 +183,11 @@ penguin-deployment-toolkit/
 │   ├── serve                 # rootless nginx: static + GET /beacon + PUT /uploads/ (3.2)
 │   ├── lint                  # every file boot.ipxe/the task sequence reference exists; cfg + sidecars parse (3.2)
 │   ├── status / timeline / await   # read beacons.log: fleet view, per-run step timings, block until a step (3.2)
+│   ├── logs                  # what a machine uploaded for a run (3.2)
 │   ├── vm-shot / vm-type     # QEMU monitor screendump / sendkey into the lab VM (3.2)
-│   ├── pxe-lan               # dnsmasq proxy-DHCP + TFTP for physical targets (today's 07)
+│   ├── vm-stop               # ACPI power-down, then by PID
+│   ├── pxe-lan               # dnsmasq proxy-DHCP + TFTP for physical targets; --bridge for a lab bridge
+│   ├── lab-netns             # rootless host-only bridge in a network namespace (bridged lab without sudo)
 │   ├── vm-create / vm-boot   # lab VM (e1000e + AHCI; virtio once drvload is settled)
 │   ├── capture-image         # sysprepped VM disk -> images/<role>.wim (Linux-side, Phase 4)
 │   └── teardown
@@ -218,9 +232,11 @@ The repo must work on a machine that is not this one. Concretely:
 - Running as a service: a `systemd` unit (or `--daemon` flag) for `serve` and
   `pxe-lan`, so the server survives reboots. Logs and state under the repo (or a
   configurable `STATE_DIR`), never in `/tmp`.
-- Reproducible inputs: `fetch-tools` pins versions and verifies sizes/hashes
-  (curl.exe, wimboot, iPXE commit, virtio-win); the README says which Windows
-  build the flow was last verified against.
+- Reproducible inputs: `fetch-tools` pins by SHA-256 and refuses anything else
+  (curl.exe, wimboot, wimlib, virtio-win), `build-ipxe` pins an iPXE commit
+  **[done, Phase 1]**; the README says which Windows build the flow was last
+  verified against. Pin by hash, never by version: upstream replaced the
+  `wimboot v2.9.0` asset with a different binary under the same tag.
 - Safety rails for a shared LAN: proxy-DHCP only answers PXE clients, an
   allow-list of MACs/UUIDs in `http/machines/` gates who gets a wiping task
   sequence (unknown machines get a shell, not `diskpart clean`), and the default
@@ -256,16 +272,20 @@ sequence, `unattend.xml` and first-logon scripts alike:
 GET /beacon?id=<uuid>&run=<token>&step=<name>&ev=start|ok|fail[&rc=<n>][&msg=<text>][&k=v…]
 ```
 
-- `id` is the SMBIOS UUID, lowercase (iPXE `${uuid}`, WinPE `wmic csproduct`;
-  the tools normalise case). `run` is a token the task sequence mints at
+- `id` is the SMBIOS UUID, lowercase, exactly as iPXE reported it: the server
+  hands it to WinPE in `ts/id.cmd` (§2.2), and the task sequence leaves it in
+  `C:\pdt\id.cmd` for the installed OS **[verified]**. `run` is a token the task sequence mints at
   `ts-start` (`%RANDOM%`-based is enough) and repeats on every later event and
-  upload path, so two boots of the same machine never interleave.
+  upload path, so two boots of the same machine never interleave. (`%RANDOM%`
+  is seeded from the clock: two VMs started in the same second minted the same
+  token **[verified]**. That is harmless, because events and uploads are always
+  keyed by `id` *and* `run`; never treat `run` as globally unique.)
 - Every step sends `ev=start` *and* `ev=ok|fail`. A `start` with nothing after
   it is the answer to "where is it stuck" (in DISM, in a download) without a
   screenshot. The first event of a run also carries `mode`, `product`, `mac`.
 - `serve` logs `location = /beacon` to its own file with its own format:
   `log_format beacon '$time_iso8601 $msec $remote_addr $args'` →
-  `run/beacons.log` **[read]**. Append-only, never rotated away; boot-file
+  `run/beacons.log` **[verified]**. Append-only, never rotated away; boot-file
   requests stay in the access log. Two synthetic events are derived from the
   access log by the tools, not sent by anyone: `ipxe` (the `boot.ipxe?…`
   request with identity) and `wim` (`boot.wim` served in full, with
@@ -273,7 +293,7 @@ GET /beacon?id=<uuid>&run=<token>&step=<name>&ev=start|ok|fail[&rc=<n>][&msg=<te
   open question 4).
 
 **Logs.** Everything a step prints goes to `X:\pdt\ts.log` (console shows only
-banners), DISM is pointed at `X:\pdt\dism.log` with `/LogPath` **[read]**, and
+banners), DISM is pointed at `X:\pdt\dism.log` with `/LogPath` **[verified]**, and
 `deploy.cmd` pushes both after every step and on failure:
 
 ```
@@ -283,7 +303,9 @@ curl -sS -T X:\pdt\ts.log %SRV%/uploads/%ID%/%RUN%/ts.log
 The endpoint is defined once, here, and implemented by `serve` in Phase 1:
 `PUT /uploads/<id>/<run>/…` via nginx's `http_dav_module` (present in Ubuntu's
 nginx build **[verified]**), with `dav_methods PUT`, `create_full_put_path on`,
-`client_max_body_size 0` **[read]**; write-only, never listed or served back.
+`client_max_body_size 0` **[verified]**; write-only (`limit_except PUT { deny all; }`:
+a GET of an uploaded file is refused, and `serve` self-tests exactly that on
+every start), never listed or served back.
 Phase 3 adds the installed-OS files to it (`C:\Windows\Panther\setupact.log`,
 `setuperr.log`, `Logs\DISM\dism.log`, `reagentc /info` output, winget's
 `DiagOutputDir`); Phase 4 uses it for captured WIMs.
@@ -297,8 +319,12 @@ once at `ts-start`): `STOP_BEFORE=<step>` / `STOP_AFTER=<step>` drop to the
 shell with `env.cmd` loaded (this is how a new step is developed: run up to it,
 try it by hand, then let the sequence own it); `MODE=shell` is the default for
 unknown machines and still identifies, beacons and pushes logs, so a strange
-box that PXE-boots shows up in `status` as "shell, waiting". On failure: `fail`
-beacon with `step`+`rc`, push logs, shell. The VM screen (`vm-shot`) and blind
+box that PXE-boots shows up in `status` as "shell, waiting" **[verified]**. On
+failure: `fail` beacon with `step`+`rc`, push logs, shell **[verified]**.
+Nothing destructive happens before a `preflight` step has confirmed that every
+file the install needs (image, unattend, diskpart script, driver pack, post
+scripts) is on the server: a typo in a cfg costs a reboot, not a disk
+**[verified: the first version wiped the disk and then failed the download]**. The VM screen (`vm-shot`) and blind
 typing (`vm-type`, QEMU `sendkey`) stay the last resort for VMs; physical boxes
 have no equivalent, which is why logs are pushed and not merely kept.
 
@@ -327,7 +353,16 @@ machines (open question 6).
 
 ## 4. Roadmap
 
-**Phase 1 — restructure (next).** Move the verified spike into the layout above:
+**Phase 1 — restructure. DONE 2026-10-02** (evidence: `README.md`
+"Verification"). Delivered as planned, plus four things pulled forward because
+they were cheaper to build in than to add: `MODE` gating from `machines/<uuid>.cfg`
+(default `shell`), the `preflight` step, the iPXE→WinPE identity hand-off
+(`ts/id.cmd`, §2.2), and `specialize`/`firstlogon` beacons with Panther log
+upload from the installed OS. Follow-ups the same day: bridged networking with
+real DHCP + TFTP verified inside a rootless network namespace (`bin/lab-netns`,
+`spikes/2026-10-02-bridged-lab-netns/`), and the v1 ISO builder ported as
+`bin/fetch-iso`. Still not exercised: proxy-DHCP on a real LAN. The original scope, for the record:
+Move the verified spike into the layout above:
 `stage-winpe` via 7z (drops sudo), delete WIM injection (`03`), `serve` with a
 `/beacon` location and a log format that keeps query strings, `vm-boot` with
 `e1000e` + AHCI, `fetch-tools` for curl. Keep the old `setup.exe` path only as a
@@ -341,7 +376,7 @@ and push `ts.log`; `bin/lint`, `bin/status`, `bin/await` and `bin/vm-shot`
 exist before Phase 2 starts splitting steps, because they are how Phase 2 is
 debugged.
 
-**Phase 2 — task sequence.** Split `deploy2.cmd` into steps (`00-net`,
+**Phase 2 — task sequence (next).** Split `deploy.cmd` into steps (`00-net`,
 `10-identify`, `20-disk`, `30-apply`, `35-updates` (optional `dism /add-package`
 for an LCU, see 2.7), `40-drivers`, `45-winre`, `50-boot`, `60-unattend`,
 `90-reboot`), each reporting a beacon and aborting to a shell on failure.
@@ -368,10 +403,12 @@ step; `bin/timeline` reproduces the §2.4 table from `beacons.log`.
 **Phase 3 — post-install.** winget DSC per role at first logon; upload
 `C:\Windows\Panther\*.log`, DISM logs, `reagentc /info` and winget logs to the
 `PUT /uploads/` endpoint from §3.2 (`curl -T`); final "deployed" beacon. The
-installed OS carries `id` and `run` forward (the task sequence writes them into
-`unattend.xml` before copying it to Panther) so the run's timeline continues
-across the reboot, and a reliable "I booted" probe replaces the `onstart` task
-that never fired (TODO, spikes).
+installed OS carries `id` and `run` forward so the run's timeline continues
+across the reboot (done in Phase 1 without templating XML: the task sequence
+leaves `C:\pdt\id.cmd` + `beacon.cmd`, and the unattend calls them
+**[verified]**), and a reliable every-boot "I booted" probe replaces the
+`onstart` task that never fired (TODO, spikes; `beacon.cmd` already retries
+until the network is up).
 *Capture groundwork:* the same post-install path builds the **reference VM**
 for a role (deploy `base.wim` + role DSC), and a `prepare-capture` step runs
 `sysprep /generalize /oobe /shutdown` (with an `unattend.xml` that keeps the
@@ -427,7 +464,8 @@ exists so this phase is small:
 pinned/verified inputs, and a from-scratch run of the install instructions on a
 clean machine (see 3.1). The clean-box run is `bin/test-deploy` (vm-create,
 vm-boot, `await` each step, `vm-shot` at the end) so it is a command, not a
-checklist; `INSTALL.md` has a "watching an install" section built on `status`,
+checklist; run inside `bin/lab-netns` it also covers DHCP + TFTP from dnsmasq
+without needing root, which makes it usable in CI; `INSTALL.md` has a "watching an install" section built on `status`,
 `timeline`, `logs`. Cut a tagged release when that run passes.
 
 **Later / optional — after Phase 6, each spiked before it is layered on.**

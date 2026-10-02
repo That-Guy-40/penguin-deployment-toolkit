@@ -5,49 +5,35 @@ Ordered; the top item is the next thing to do. Details and rationale live in
 
 ## Next
 
-- [ ] **Phase 1 (PLAN.md §4): restructure into the modular `bin/` + `http/` layout,
-  replace the sudo mount with 7z extraction, and retire the WIM-injection script.**
-  - [ ] Create `bin/` with one verb per script (`build-ipxe`, `stage-winpe`,
-    `stage-image`, `pack-drivers`, `fetch-tools`, `serve`, `pxe-lan`, `vm-create`,
-    `vm-boot`, `teardown`); each idempotent and confined to this directory tree.
-  - [ ] `stage-winpe`: extract `boot.wim`, `bootmgfw.efi`, `BCD`, `boot.sdi` from
-    the ISO with `7z x` (no loop mount, no sudo). Keep `boot.wim` pristine.
-  - [ ] Retire `scripts/03-inject-autounattend.sh`; the task sequence
-    (`winpeshl.ini`, `deploy.cmd`, steps, `diskpart.txt`) is served from `http/ts/`
-    and injected by wimboot at boot (see `spikes/2026-09-22-wimboot-task-sequence/`).
-  - [ ] `fetch-tools`: download the Windows `curl.exe` + `libcurl-x64.dll` into `http/tools/`.
-  - [ ] `serve`: rootless nginx with a `/beacon` location logged to
-    `run/beacons.log` (`$time_iso8601 $msec $remote_addr $args`), `$request_time`
-    in the access log, and `PUT /uploads/<id>/<run>/…` (dav, `create_full_put_path`,
-    write-only); `build-ipxe`: chain URL carries the iPXE identity query.
-  - [ ] Beacon contract from PLAN.md §3.2 in the spike's `deploy2.cmd`: `id`
-    (lowercase SMBIOS UUID), `run` token minted at `ts-start`, `step`/`ev`/`rc`;
-    step output to `X:\pdt\ts.log`, DISM `/LogPath`, both pushed with `curl -T`
-    after each step and on failure.
-  - [ ] `bin/lint` (every `%SRV%`/`initrd` path referenced by `boot.ipxe` and the
-    task sequence exists under `http/`; sidecars present; driver packs contain
-    an `.inf`), `bin/status [--watch]`, `bin/await <id> <step> [timeout]`,
-    `bin/logs <id>`; all read-only over `run/beacons.log` and `http/uploads/`.
-  - [ ] `vm-boot`: `e1000e` NIC + AHCI disk (inbox WinPE drivers), headless option,
-    QEMU monitor on TCP; `vm-shot` (screendump → png) and `vm-type` (sendkey)
-    from the spike's `shot.sh`.
-  - [ ] Move the v1 `setup.exe` flow to `docs/history/` as the documented fallback;
-    update `README.md` to describe the new layout.
+- [ ] **Phase 2 (PLAN.md §4): split the task sequence into steps, add the
+  recovery partition, per-model configuration.**
+  - [ ] `http/ts/env.cmd` (SRV, ID, RUN, MODE, drive letters, the machine cfg)
+    that every step `call`s first; `deploy.cmd` becomes a short loop over
+    `steps\NN-*.cmd`; `deploy NN` resumes from a step; each step runs standalone
+    when typed at the WinPE prompt. boot.ipxe injects each step file.
+  - [ ] Steps: `00-net`, `10-identify`, `15-preflight`, `20-disk`, `30-apply`,
+    `35-updates` (optional `dism /add-package`), `40-drivers`, `45-winre`,
+    `50-boot`, `60-unattend`, `90-reboot`; `ev=start` + `ev=ok|fail` each (the
+    helpers already exist in today's `deploy.cmd`).
+  - [ ] `STOP_BEFORE=<step>` / `STOP_AFTER=<step>` in the machine cfg.
+  - [ ] **Recovery partition + WinRE (required):** 1 GB recovery partition in
+    the diskpart script, `Winre.wim` copied, `reagentc /setreimage`, and a
+    first-boot `reagentc /info` beacon proving it is enabled.
+  - [ ] Per-model config: `machines/<product-slug>/` defaults under the
+    per-UUID cfg (driver pack by `${product}`); `MODE=capture` + `capture.cmd`.
+  - [ ] `bin/timeline <id>`: `bin/status <id>` already prints per-step timings;
+    decide whether a separate command is still wanted or fold it in.
+  - [ ] Teach `bin/lint` the step files (it already resolves `for` lists and
+    machine cfgs) and add self-test defects for them.
 
 ## After that
 
-- [ ] Phase 2: split the task sequence into steps with beacons and per-model /
-  per-UUID config directories; recovery partition + WinRE (`reagentc`) are
-  required, with a first-boot `reagentc /info` check (PLAN.md §4).
-  Driving/introspection (§3.2): `env.cmd` so every `steps\NN-*.cmd` runs
-  standalone from the shell and `deploy NN` resumes; `ev=start` + `ev=ok|fail`
-  per step; `STOP_BEFORE`/`STOP_AFTER` and `MODE=shell` in the machine cfg;
-  `bin/timeline <id>` reproduces the §2.4 stage table from `beacons.log`.
 - [ ] Phase 3: post-install (winget DSC at first logon, log upload, final
   beacon); reference-VM build + `prepare-capture` (sysprep) for a role.
-  Carry `id`/`run` into `unattend.xml` so the installed OS continues the same
-  timeline; upload Panther, DISM, `reagentc /info` and winget logs to
-  `/uploads/<id>/<run>/`; a reliable "I booted" probe (see spikes).
+  Already in place from Phase 1: the installed OS continues the run's
+  timeline (`C:\pdt\id.cmd` + `beacon.cmd`) and uploads Setup's Panther logs.
+  Still to do: `reagentc /info` and winget logs to `/uploads/<id>/<run>/`, a
+  final "deployed" beacon, and a reliable every-boot probe (see spikes).
 - [ ] Phase 4: image capture from a reference VM → `http/images/<role>.wim`:
   Linux-side `bin/capture-image` (qemu-img convert + wimlib NTFS capture) first,
   WinPE-side `capture.cmd` for physical reference machines; round-trip deploy
@@ -118,5 +104,36 @@ README stating the result (verified / unknown), like
 
 ## Housekeeping
 
-- [ ] `config.sh`: port 8088 is taken on this host; pick a free port and re-run
-  `00c` before using the v1 pipeline again (see `README.md`, "State of this host").
+- [ ] `bin/pxe-lan` in **proxy-DHCP** mode has never been run (needs sudo and
+  a LAN with its own DHCP server); only its generated config is validated by
+  `dnsmasq --test`. `--bridge` mode is verified (below). First real use is Phase 5.
+- [ ] A bridge on the real host (setuid `qemu-bridge-helper`,
+  `/etc/qemu/bridge.conf`, firewall) is untested; `docs/LAB_FROM_SCRATCH.md`
+  describes it. The rootless equivalent, `bin/lab-netns`, is verified.
+- [ ] `bin/fetch-iso` has only been run for 24H2 / professional / en-us
+  (25H2, other editions and languages are untested).
+- [ ] Would `HTTP_HOST='${next-server}'` in the embedded iPXE script remove the
+  need to rebuild `ipxe.efi` per network? Cheap to try in `bin/lab-netns` now.
+- [ ] `http/unattend/default.xml` ships a blank-password local admin (`deploy`)
+  for the lab. Per-role unattend files with real credentials handling belong
+  to Phase 3.
+- [ ] Ports 8080 and 8088 are taken on this host by other software; `config.sh`
+  here uses 8090.
+
+## Done
+
+- [x] **Phase 1 (2026-10-02): modular `bin/` + `http/` layout.** 7z extraction
+  (no sudo), pristine `boot.wim` with wimboot injection, pinned tools, `serve`
+  with beacons / uploads / identity hand-off, the §3.2 beacon contract and log
+  push in `deploy.cmd`, `lint` / `status` / `await` / `logs`, lab VM scripts,
+  v1 retired to `docs/history/v1-setup-exe/`. Verified end to end in lab VMs,
+  with negative controls; evidence in `README.md` "Verification".
+  Pulled forward from later phases: `MODE` gating (default `shell`), a
+  `preflight` step before anything destructive, `specialize`/`firstlogon`
+  beacons and Panther log upload from the installed OS.
+- [x] **Bridged networking tested (2026-10-02)** in a rootless network
+  namespace (`bin/lab-netns`): `vm-create --net bridge:`, `pxe-lan --bridge`
+  (real DHCP + TFTP), full deploy, with a no-dnsmasq negative control.
+  Evidence: `spikes/2026-10-02-bridged-lab-netns/`.
+- [x] **ISO builder ported (2026-10-02)** as `bin/fetch-iso` (UUP dump); a VM
+  was deployed from the ISO it built.

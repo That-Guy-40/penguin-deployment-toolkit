@@ -1,0 +1,52 @@
+#!/bin/bash
+# build-ipxe - build pxe/ipxe.efi, the one binary this repo compiles.
+#
+# Firmware PXE can only run a UEFI binary, so the first hop is iPXE itself with
+# a tiny embedded script: DHCP, then chain to
+#   http://HTTP_HOST:HTTP_PORT/boot.ipxe?uuid=..&mac=..&product=..
+# The query string exists only so the server's access log records who booted.
+# HTTP_HOST/HTTP_PORT come from config.sh and are baked in: re-run this after
+# changing either (bin/lint notices a stale binary).
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+need git make gcc sha256sum
+: "${IPXE_REF:?config.sh: IPXE_REF is not set}"
+
+SRC="$BUILD_DIR/ipxe/ipxe"
+EMBED="$BUILD_DIR/ipxe/chain.ipxe"
+mkdir -p "$BUILD_DIR/ipxe" "$PXE_DIR"
+
+if [[ ! -d "$SRC/.git" ]]; then
+    info "cloning iPXE..."
+    git init -q "$SRC"
+    git -C "$SRC" remote add origin https://github.com/ipxe/ipxe.git
+fi
+if [[ "$(git -C "$SRC" rev-parse HEAD 2>/dev/null || true)" != "$IPXE_REF" ]]; then
+    info "checking out iPXE $IPXE_REF"
+    git -C "$SRC" fetch -q --depth 1 origin "$IPXE_REF" || die "could not fetch iPXE commit $IPXE_REF"
+    git -C "$SRC" checkout -q FETCH_HEAD
+fi
+
+CHAIN="${BASE_URL}/boot.ipxe"
+cat > "$EMBED" <<IPXE
+#!ipxe
+echo === PDT iPXE chainloader ===
+:retry_dhcp
+dhcp && goto got_dhcp
+echo DHCP failed, retrying in 3s...
+sleep 3
+goto retry_dhcp
+:got_dhcp
+chain ${CHAIN}?uuid=\${uuid}&mac=\${netX/mac}&product=\${product:uristring}&mfr=\${manufacturer:uristring}&serial=\${serial:uristring} || goto failed
+:failed
+echo Could not chain to ${CHAIN} - dropping to the iPXE shell
+shell
+IPXE
+
+info "building ipxe.efi (chain target ${CHAIN})..."
+make -C "$SRC/src" bin-x86_64-efi/ipxe.efi EMBED="$EMBED" -j"$(nproc)" > "$BUILD_DIR/ipxe/build.log" 2>&1 \
+    || die "iPXE build failed; see build/ipxe/build.log"
+install -m 0644 "$SRC/src/bin-x86_64-efi/ipxe.efi" "$PXE_DIR/ipxe.efi"
+
+# The outcome we care about: the binary we will serve embeds the URL from config.sh.
+grep -aqF "chain ${CHAIN}?" "$PXE_DIR/ipxe.efi" || die "built ipxe.efi does not contain the expected chain URL"
+info "pxe/ipxe.efi built: iPXE ${IPXE_REF:0:12}, chains to ${CHAIN}, sha256 $(sha256sum "$PXE_DIR/ipxe.efi" | cut -c1-16)…"

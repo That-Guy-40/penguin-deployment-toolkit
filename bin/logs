@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+"""logs - what a machine uploaded (PUT /uploads/<id>/<run>/...).
+
+  logs <id|vm-name>                 list the files of the latest run
+  logs <id|vm-name> --run <run>     ... of a specific run
+  logs <id|vm-name> --cat ts.log    print one file
+  logs <id|vm-name> --tail 40 ts.log
+
+The task sequence pushes X:\\pdt\\ts.log and dism.log after every step and on
+failure; the installed system adds Setup's Panther logs at first logon.
+"""
+import argparse
+import os
+import sys
+import time
+
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
+import _pdt
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("id")
+    ap.add_argument("--run")
+    ap.add_argument("--cat", metavar="FILE")
+    ap.add_argument("--tail", nargs=2, metavar=("N", "FILE"))
+    a = ap.parse_args()
+
+    mid = _pdt.resolve_id(a.id)
+    base = os.path.join(_pdt.paths()["HTTP_DIR"], "uploads", mid)
+    if not os.path.isdir(base):
+        _pdt.die(f"nothing uploaded by {mid}")
+    runs = sorted(os.listdir(base), key=lambda r: os.path.getmtime(os.path.join(base, r)))
+    run = a.run or runs[-1]
+    d = os.path.join(base, run)
+    if not os.path.isdir(d):
+        _pdt.die(f"no run {run} for {mid} (runs: {', '.join(runs)})")
+
+    want = a.cat or (a.tail[1] if a.tail else None)
+    if want:
+        f = os.path.join(d, os.path.basename(want))
+        if not os.path.isfile(f):
+            _pdt.die(f"{want} was not uploaded for run {run}")
+        text = open(f, "rb").read()
+        # DISM logs are UTF-16 with a BOM; everything else is OEM/ASCII text.
+        text = text.decode("utf-16") if text[:2] in (b"\xff\xfe", b"\xfe\xff") else text.decode("utf-8", "replace")
+        lines = text.replace("\r\n", "\n").split("\n")
+        if a.tail:
+            lines = lines[-int(a.tail[0]):]
+        print("\n".join(lines))
+        return
+    print(f"{mid}  run {run}  ({len(runs)} run(s): {', '.join(runs)})")
+    for name in sorted(os.listdir(d)):
+        st = os.stat(os.path.join(d, name))
+        print(f'  {st.st_size:>10}  {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(st.st_mtime))}  {name}')
+    print(f"  ({os.path.relpath(d, _pdt.ROOT)})")
+
+
+main()

@@ -1,0 +1,33 @@
+#!/bin/bash
+# pack-drivers - turn a directory of Windows drivers (.inf + .sys + .cat ...)
+# into a driver pack: http/drivers/<name>.wim, plus a <name>.json sidecar.
+#
+#   pack-drivers <driver-dir> <name>
+#
+# The task sequence applies the pack to W:\Drivers and runs
+# dism /image:W:\ /add-driver /recurse. Refuses a directory with no .inf.
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+need wimlib-imagex python3
+
+[[ $# == 2 ]] || die "usage: pack-drivers <driver-dir> <name>"
+SRC="$1" NAME="$2"
+[[ -d "$SRC" ]] || die "not a directory: $SRC"
+[[ "$NAME" =~ ^[A-Za-z0-9._-]+$ ]] || die "name must match [A-Za-z0-9._-]+ (got: $NAME)"
+
+mapfile -t INFS < <(cd "$SRC" && find . -type f -iname '*.inf' | sed 's|^\./||' | sort)
+(( ${#INFS[@]} )) || die "no .inf files under $SRC; that is not a driver pack"
+
+OUT_DIR="$HTTP_DIR/drivers"
+mkdir -p "$OUT_DIR"
+rm -f "$OUT_DIR/$NAME.wim"
+wimlib-imagex capture "$SRC" "$OUT_DIR/$NAME.wim" "$NAME" --compress=LZX >/dev/null \
+    || die "wimlib capture failed"
+chmod 0644 "$OUT_DIR/$NAME.wim"
+
+python3 - "$OUT_DIR/$NAME.wim" "$OUT_DIR/$NAME.json" "${INFS[@]}" <<'PY'
+import json, os, sys, time
+wim, sidecar, *infs = sys.argv[1:]
+json.dump({"file": os.path.basename(wim), "size": os.path.getsize(wim), "kind": "drivers",
+           "infs": infs, "created": time.strftime("%Y-%m-%dT%H:%M:%S%z")}, open(sidecar, "w"), indent=2)
+PY
+info "http/drivers/$NAME.wim: ${#INFS[@]} .inf file(s), $(( $(stat -c%s "$OUT_DIR/$NAME.wim") / 1024 )) KiB"

@@ -1,0 +1,26 @@
+#!/bin/bash
+# vm-shot - screenshot a lab VM through the QEMU monitor.
+#   vm-shot <name> [out.png]      (default: run/shots/<name>-<time>.png)
+# The last resort for seeing what a VM is doing; physical machines have no
+# equivalent, which is why the task sequence pushes logs (bin/logs).
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+need socat python3
+
+NAME="${1:-}"; [[ -n "$NAME" && "$NAME" != -* ]] || die "usage: vm-shot <name> [out.png]"
+vm_load "$NAME"
+vm_pid "$NAME" >/dev/null || die "VM $NAME is not running"
+OUT="${2:-$STATE_DIR/shots/$NAME-$(date +%H%M%S).png}"
+[[ "$OUT" == /* ]] || OUT="$PWD/$OUT"
+mkdir -p "$(dirname "$OUT")"
+PPM="$VM_DIR/shot.ppm"
+rm -f "$PPM"
+vm_monitor "$NAME" "screendump $PPM" >/dev/null
+for _ in 1 2 3 4 5 6 7 8 9 10; do [[ -s "$PPM" ]] && break; sleep 0.3; done
+[[ -s "$PPM" ]] || die "QEMU did not write a screendump"
+python3 - "$PPM" "$OUT" <<'PY' || die "could not convert the screenshot (python3-pil missing?); raw image: $PPM"
+import sys
+from PIL import Image
+Image.open(sys.argv[1]).save(sys.argv[2])
+PY
+rm -f "$PPM"
+echo "$OUT"
