@@ -1,0 +1,3 @@
+# winget package ids, one per line (winget search <name> shows them).
+7zip.7zip
+Notepad++.Notepad++

@@ -6,7 +6,8 @@
 # Hardware is chosen so stock WinPE needs no extra drivers: an e1000e NIC and
 # an AHCI disk (both inbox). Boot order is disk, then network: an empty disk
 # falls through to PXE and gets deployed; an installed disk just boots.
-#   --pxe   network first, to redeploy a VM that already has an OS
+#   --pxe   network first, to redeploy a VM that already has an OS. Not for a
+#           new VM: it stays network-first and redeploys itself after 90-reboot
 #   --gui   open a window instead of running headless
 #   --nic   override the NIC model for this boot (e.g. to test injected drivers)
 #           Do this only after a FULL shutdown inside Windows (shutdown /s /t 0):

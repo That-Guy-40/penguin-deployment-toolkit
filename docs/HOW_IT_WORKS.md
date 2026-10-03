@@ -180,17 +180,29 @@ read what machines report; `teardown` stops it all. Every script answers
    the recovery environment is enabled and sits on the recovery partition
    (`winre ok`), and uploads Setup's own logs. Same id, same run token: one continuous timeline from
    iPXE to desktop.
+7. **The role.** If the machine file says `ROLE=<name>`, step `60-unattend`
+   has already put `http/roles/<name>/` into `C:\pdt\role\` (preflight checked
+   it exists). `firstlogon.cmd` now bootstraps winget from packages this server
+   serves (`post/winget/`, pinned by `bin/fetch-tools winget`; an image built
+   from install media has no App Installer), installs each id in the role's
+   `apps.txt` (`apps ok installed=… failed=…`), applies `FASTSTARTUP=off`,
+   registers the every-boot probe (`boot ok trigger=…` after each boot, two
+   scheduled tasks because no single trigger fires in every case), runs the
+   role's and the machine's post scripts, and sends `deployed ok role=<name>`,
+   the event a fleet waits for. A reference machine (`REFERENCE=yes`) then
+   generalizes itself with its role on board, and the image captured from it
+   says so in its sidecar.
 
 The lab VM's network is QEMU's user-mode stack by default, with QEMU itself
 answering DHCP and TFTP. `bin/lab-netns` runs the same lab on a bridge inside a
 private network namespace, with dnsmasq doing DHCP and TFTP exactly as it would
 for real hardware, and still without root (README, "The bridged lab").
 
-In the lab VM the whole thing takes about two and a half minutes. Follow it
+In the lab VM the whole thing takes about two and a half minutes to the desktop, three and a half with a role of two apps. Follow it
 with `bin/status --watch`, or script it:
 
 ```bash
-bin/vm-boot lab01 && bin/await lab01 firstlogon 900 && bin/vm-shot lab01
+bin/vm-boot lab01 && bin/await lab01 deployed 900 && bin/vm-shot lab01
 ```
 
 ## 4. Why it is built this way
@@ -224,7 +236,8 @@ WinPE (`MODE=capture`); drivers for hardware WinPE itself cannot see
 (`http/winpe-drivers/`); and an `ipxe.efi` signed for firmware that enforces
 Secure Boot (`SB_KEY`/`SB_CERT`).
 
-Next is winget at first logon and per-role configuration (Phase 3), real hardware on a real LAN (Phase 5), and
+Roles (Phase 3) are in: a directory per role with a winget list, a post
+script, an unattend and the fast-startup policy. Next is real hardware on a real LAN (Phase 5), and
 an install guide good enough that someone else can stand the server up
 (Phase 6). `TODO.md` has the order and the open questions.
 
@@ -238,5 +251,5 @@ cp config.sh.example config.sh     # set ISO_PATH
 bin/fetch-tools && bin/stage-winpe && bin/stage-image && bin/build-ipxe
 bin/serve && bin/lint
 bin/vm-create lab01 && bin/vm-boot lab01
-bin/await lab01 firstlogon 900 && bin/status lab01
+bin/await lab01 deployed 900 && bin/status lab01
 ```

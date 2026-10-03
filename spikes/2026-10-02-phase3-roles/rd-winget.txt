@@ -1,0 +1,20 @@
+winget.cmd Sat 10/03/2026  0:31:51.41 apps=C:\pdt\role\apps.txt
+=== download post/winget/
+=== Add-AppxProvisionedPackage (all users, licensed) + Add-AppxPackage (this user)
+add rc 0
+=== winget --version
+v1.29.380
+=== winget install 7zip.7zip
+The `msstore` source requires that you view the following agreements before using.
+Terms of Transaction: https://aka.ms/microsoft-store-terms-of-transaction
+The source requires the current machine's 2-letter geographic region to be sent to the backend service to function properly (ex. "US").
+
+Found an existing package already installed. Trying to upgrade the installed package...
+No available upgrade found.
+No newer package versions are available from the configured sources.
+rc -1978335189
+=== winget install Notepad++.Notepad++
+Found an existing package already installed. Trying to upgrade the installed package...
+No available upgrade found.
+No newer package versions are available from the configured sources.
+rc -1978335189

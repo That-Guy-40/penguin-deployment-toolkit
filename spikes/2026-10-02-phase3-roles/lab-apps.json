@@ -1,0 +1,24 @@
+{
+  "file": "lab-apps.wim",
+  "size": 3359294954,
+  "sha256": "04c3f3a06735268f42e2199d141acda073007646e6fadeb6bcf3298756921c1c",
+  "kind": "captured",
+  "image_name": "captured 07055ab4-3bc0-40f7-96b0-6b3c169ba904",
+  "edition": "Professional",
+  "build": "26100.1",
+  "languages": "en-US",
+  "source": {
+    "machine": "07055ab4-3bc0-40f7-96b0-6b3c169ba904",
+    "vm": "rb",
+    "via": "bin/capture-image (wimlib NTFS capture of the VM disk)"
+  },
+  "provenance": {
+    "stamp": "reference 07055ab4-3bc0-40f7-96b0-6b3c169ba904 run 79797842 role lab-apps apps 7516a7ad808f97c1675111d814c1227411b1b66527b3f46f546fad75c8bb6615",
+    "run": "79797842",
+    "role": "lab-apps",
+    "apps_sha256": "7516a7ad808f97c1675111d814c1227411b1b66527b3f46f546fad75c8bb6615",
+    "reference_machine": "07055ab4-3bc0-40f7-96b0-6b3c169ba904"
+  },
+  "created": "2026-10-02T20:29:09-0400",
+  "wimlib": "wimlib-imagex 1.14.4-1.1build2 (using wimlib 1.14.4-1.1build2)"
+}

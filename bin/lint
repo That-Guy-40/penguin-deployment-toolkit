@@ -49,7 +49,9 @@ import _pdt
 VIRTUAL = ("ts/id.cmd", "beacon", "health")
 VIRTUAL_PREFIX = ("uploads/",)
 # What a model file may set (models/<slug>.cfg) and what only a machine file may.
-MODEL_KEYS = ("IMAGE", "UNATTEND", "DISKPART", "DRIVERS", "UPDATES", "POST")
+MODEL_KEYS = ("IMAGE", "UNATTEND", "DISKPART", "DRIVERS", "UPDATES", "POST", "ROLE")
+ROLE_KEYS = ("UNATTEND", "APPS", "POST", "FASTSTARTUP")   # roles/<name>/role.cfg
+ROLE_RE = re.compile(r"^[A-Za-z0-9_-]+$")
 MACHINE_ONLY_KEYS = ("MODE", "STOP_BEFORE", "STOP_AFTER", "REFERENCE")
 CFG_KEYS = MACHINE_ONLY_KEYS + MODEL_KEYS
 # Variables in a %SRV%/... path that are resolved per machine or at run time.
@@ -270,6 +272,9 @@ def lint_tree(http, deep=False, programs=None):
                 var = re.search(r"[%!](\w+)(?::[^%!]*)?[%!]", path)   # %VAR% or %VAR:a=b%
                 if var and var.group(1).upper() in RUNTIME_VARS:
                     continue  # resolved per machine below
+                if path.startswith("post/winget/"):
+                    R.ok(where, "the files post/winget/files.txt lists; checked with the roles")
+                    continue
                 R.unknown(where, "contains a variable lint does not resolve")
             elif exists(path):
                 R.ok(where)
@@ -401,7 +406,86 @@ def lint_tree(http, deep=False, programs=None):
                 R.fail(f"{who} {key}={val}", checked[(key, path)])
             else:
                 R.ok(f"{who} {key}={val}", path)
+        role = v.get("ROLE", "")
+        if role:
+            if os.path.isfile(os.path.join(http, "roles", role, "role.cfg")):
+                R.ok(f"{who} ROLE={role}", f"roles/{role}/role.cfg")
+            else:
+                R.fail(f"{who} ROLE={role}", f"http/roles/{role}/role.cfg does not exist")
+
+    # --- roles: roles/<name>/role.cfg and the files it names --------------------
+    winget_ok = None   # checked once, the first time a role wants apps
+    for rc in sorted(glob.glob(os.path.join(http, "roles", "*", "role.cfg"))):
+        name = os.path.basename(os.path.dirname(rc))
+        who = f"roles/{name}"
+        if not ROLE_RE.match(name):
+            R.fail(who, "role names are letters, digits, _ and - (it becomes a URL and a cmd variable)")
+            continue
+        vals = {}
+        for n, raw in enumerate(read(rc).splitlines(), 1):
+            if not raw.strip() or raw.startswith("#"):
+                continue
+            if "=" not in raw:
+                R.fail(f"{who}/role.cfg line {n}", f"not KEY=VALUE: {raw.strip()!r}")
+                continue
+            k, val = raw.split("=", 1)
+            if k.upper() not in ROLE_KEYS or k != k.strip():
+                R.fail(f"{who}/role.cfg line {n}", f"unknown key {k!r} (known: {', '.join(ROLE_KEYS)})")
+                continue
+            if val != val.strip() or "#" in val:
+                R.fail(f"{who}/role.cfg line {n}", f"{k}={val!r} has trailing spaces or an inline comment")
+            vals[k.upper()] = val
+        for k in ("UNATTEND", "APPS", "POST"):
+            if k not in vals:
+                continue
+            f = os.path.join(http, "roles", name, vals[k])
+            if "/" in vals[k] or "\\" in vals[k] or not os.path.isfile(f):
+                R.fail(f"{who} {k}={vals[k]}", f"http/roles/{name}/{vals[k]} does not exist (a plain file name in the role directory)")
+                continue
+            if k == "UNATTEND":
+                try:
+                    xml.dom.minidom.parse(f)
+                except Exception as e:  # noqa: BLE001
+                    R.fail(f"{who} {k}={vals[k]}", f"not well-formed XML ({e})")
+                    continue
+            if k == "APPS":
+                ids = [l.strip() for l in read(f).splitlines() if l.strip() and not l.startswith("#")]
+                bad = [i for i in ids if not re.match(r"^[\w.+-]+$", i)]
+                if not ids:
+                    R.fail(f"{who} {k}={vals[k]}", "lists no package id")
+                    continue
+                if bad:
+                    R.fail(f"{who} {k}={vals[k]}", f"not a winget package id: {', '.join(bad)}")
+                    continue
+                if winget_ok is None:
+                    winget_ok = winget_packages(http)
+                if winget_ok:
+                    R.fail(f"{who} {k}={vals[k]}", winget_ok)
+                    continue
+            R.ok(f"{who} {k}={vals[k]}")
+        if "FASTSTARTUP" in vals:
+            if vals["FASTSTARTUP"].lower() == "off":
+                R.ok(f"{who} FASTSTARTUP=off")
+            else:
+                R.fail(f"{who} FASTSTARTUP={vals['FASTSTARTUP']}", "the only value is off (leave the key out for Windows' default)")
+        if not vals:
+            R.fail(who, "role.cfg sets nothing")
     return R
+
+
+def winget_packages(http):
+    """'' if post/winget/ holds what post/winget.cmd will download, else the problem."""
+    d = os.path.join(http, "post", "winget")
+    lst = os.path.join(d, "files.txt")
+    if not os.path.isfile(lst):
+        return "roles with APPS need winget served from post/winget/: run bin/fetch-tools winget"
+    names = [l.strip() for l in read(lst).splitlines() if l.strip() and not l.startswith("#")] + ["License1.xml"]
+    missing = [n for n in names if not os.path.isfile(os.path.join(d, n))]
+    if missing:
+        return f"post/winget/ lacks {', '.join(missing)}: run bin/fetch-tools winget"
+    if not any(n.lower().endswith(".msixbundle") for n in names):
+        return "post/winget/files.txt names no .msixbundle: run bin/fetch-tools winget"
+    return ""
 
 
 def check_asset(http, key, path, deep):
@@ -497,8 +581,14 @@ def selftest():
             shutil.rmtree(d, ignore_errors=True)
             os.makedirs(d)
             shutil.copy(os.path.join(src, "boot.ipxe"), d)
-            for sub in ("ts", "post", "unattend"):
+            for sub in ("ts", "post", "unattend", "roles"):
                 shutil.copytree(os.path.join(src, sub), os.path.join(d, sub))
+            wg = os.path.join(d, "post", "winget")   # a host that has not run fetch-tools winget
+            if not os.path.isfile(os.path.join(wg, "files.txt")):
+                os.makedirs(wg, exist_ok=True)
+                for n in ("dep.appx", "App.msixbundle", "License1.xml"):
+                    open(os.path.join(wg, n), "w").write("x")
+                open(os.path.join(wg, "files.txt"), "w").write("dep.appx\nApp.msixbundle\n")
             for sub in ("winpe", "tools", "images", "machines", "models", "drivers", "updates"):
                 os.makedirs(os.path.join(d, sub))
             for _cmd, url, _name in ipxe_refs(read(os.path.join(d, "boot.ipxe"))):
@@ -555,6 +645,10 @@ def selftest():
             ("a machine names a POST script that does not exist", lambda d: cfg(d, "MODE=deploy\nPOST=ghost.cmd\n"), "POST=ghost.cmd"),
             ("a machine names an update pack that does not exist", lambda d: cfg(d, "MODE=deploy\nUPDATES=ghost\n"), "UPDATES=ghost"),
             ("deploy.cmd stops fetching a helper the steps call", lambda d: sub_text(d, "ts/deploy.cmd", "push.cmd pushloop.cmd slug.js", "push.cmd slug.js"), "pushloop.cmd"),
+            ("a machine names a role that does not exist", lambda d: cfg(d, "MODE=deploy\nROLE=ghost\n"), "ROLE=ghost"),
+            ("a role names an apps list that does not exist", lambda d: sub_text(d, "roles/lab-apps/role.cfg", "APPS=apps.txt", "APPS=nope.txt"), "APPS=nope.txt"),
+            ("a role wants apps but winget was never fetched", lambda d: shutil.rmtree(os.path.join(d, "post", "winget")), "fetch-tools winget"),
+            ("a role.cfg has a key firstlogon.cmd does not read", lambda d: open(os.path.join(d, "roles", "lab-apps", "role.cfg"), "a", newline="").write("APS=x\r\n"), "APS"),
         ]
 
         control = lint_tree(fresh(), programs=SELFTEST_PROGRAMS)

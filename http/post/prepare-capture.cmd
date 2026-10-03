@@ -20,8 +20,22 @@ set SPDIR=%WINDIR%\System32\Sysprep
 set RESULT=fail
 
 > "%OUT%" echo prepare-capture %DATE% %TIME%
-> "%WINDIR%\pdt-image.txt" echo reference %ID% run %RUN%
+rem The stamp names the role and the apps list (its SHA-256) baked into this image.
+set APPSHASH=-
+if exist "%~dp0role\role.cfg" for /f "usebackq eol=# tokens=1,* delims==" %%a in ("%~dp0role\role.cfg") do (
+  if /i "%%a"=="APPS" for /f "delims=" %%h in ('certutil -hashfile "%~dp0role\%%b" SHA256 ^| find /v ":"') do set "APPSHASH=%%h"
+)
+if not defined ROLE set ROLE=-
+> "%WINDIR%\pdt-image.txt" echo reference %ID% run %RUN% role %ROLE% apps %APPSHASH%
 
+rem winget's source index (Microsoft.Winget.Source) is installed per user the
+rem first time winget runs and is never provisioned; sysprep then refuses to
+rem generalize (0x80073cf2 "installed for a user, but not provisioned for all
+rem users": verified). Remove it; winget fetches it again when next used. Any
+rem other such package makes sysprep fail the same way, and its log names it.
+>> "%OUT%" echo === per-user Appx packages that are not provisioned (sysprep refuses these)
+powershell -NoProfile -Command "$p = (Get-AppxProvisionedPackage -Online).DisplayName; Get-AppxPackage | Where-Object { $_.SignatureKind -ne 'System' -and -not $_.IsFramework -and $p -notcontains $_.Name } | ForEach-Object { $_.PackageFullName }" >> "%OUT%" 2>&1
+powershell -NoProfile -Command "Get-AppxPackage Microsoft.Winget.Source | Remove-AppxPackage" >> "%OUT%" 2>&1
 del "%SPDIR%\Sysprep_succeeded.tag" 2>nul
 start "" /wait "%SPDIR%\sysprep.exe" /generalize /oobe /quit /quiet
 >> "%OUT%" echo sysprep exit code %errorlevel%

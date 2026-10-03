@@ -1,0 +1,28 @@
+winget.cmd Sat 10/03/2026  0:02:43.48 apps=C:\pdt\role\apps.txt
+=== download post/winget/
+=== Add-AppxProvisionedPackage (all users, licensed) + Add-AppxPackage (this user)
+add rc 0
+=== winget --version
+v1.29.380
+=== winget install 7zip.7zip
+The `msstore` source requires that you view the following agreements before using.
+Terms of Transaction: https://aka.ms/microsoft-store-terms-of-transaction
+The source requires the current machine's 2-letter geographic region to be sent to the backend service to function properly (ex. "US").
+
+Found 7-Zip [7zip.7zip] Version 26.03
+This application is licensed to you by its owner.
+Microsoft is not responsible for, nor does it grant any licenses to, third-party packages.
+Downloading https://www.7-zip.org/a/7z2603-x64.msi
+Successfully verified installer hash
+Starting package install...
+Successfully installed
+rc 0
+=== winget install Notepad++.Notepad++
+Found Notepad++ [Notepad++.Notepad++] Version 8.9.8.1
+This application is licensed to you by its owner.
+Microsoft is not responsible for, nor does it grant any licenses to, third-party packages.
+Downloading https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.9.8.1/npp.8.9.8.1.Installer.x64.msi
+Successfully verified installer hash
+Starting package install...
+Successfully installed
+rc 0

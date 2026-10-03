@@ -75,7 +75,7 @@ def detail(arg):
     print(f"{mid}  {_pdt.vm_names().get(mid, '')}")
     t0 = prev = evs[0]["t"]
     for e in evs:
-        extra = " ".join(f"{k}={e[k]}" for k in ("mode", "model", "product", "mac", "nic", "chip", "bootsrv", "host", "build", "secureboot", "image", "before", "after", "status", "location", "windows_partition", "rc", "msg") if e.get(k))
+        extra = " ".join(f"{k}={e[k]}" for k in ("mode", "model", "product", "mac", "nic", "chip", "bootsrv", "host", "build", "secureboot", "image", "role", "version", "installed", "failed", "state", "trigger", "sevenzip", "before", "after", "status", "location", "windows_partition", "rc", "msg") if e.get(k))
         print(f'  {e["iso"]}  +{e["t"] - t0:7.1f}s  (+{e["t"] - prev:6.1f}s)  {e["step"]:<11} {e["ev"]:<5} {extra}')
         prev = e["t"]
 

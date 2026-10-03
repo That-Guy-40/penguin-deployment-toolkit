@@ -1,0 +1,75 @@
+=== tasks
+ERROR: Access is denied.
+ERROR: Access is denied.
+=== Kernel-Boot 27
+Event[0]
+  Log Name: System
+  Source: Microsoft-Windows-Kernel-Boot
+  Date: 2026-10-03T00:03:58.6960000Z
+  Event ID: 27
+  Task: N/A
+  Level: Information
+  Opcode: Info
+  Keyword: N/A
+  User: S-1-5-18
+  User Name: NT AUTHORITY\SYSTEM
+  Computer: WIN-V3Q1FGRE6VN
+  Description: 
+The boot type was 0x0.
+Event[1]
+  Log Name: System
+  Source: Microsoft-Windows-Kernel-Boot
+  Date: 2026-10-03T00:02:02.7490000Z
+  Event ID: 27
+  Task: N/A
+  Level: Information
+  Opcode: Info
+  Keyword: N/A
+  User: S-1-5-18
+  User Name: NT AUTHORITY\SYSTEM
+  Computer: WIN-V3Q1FGRE6VN
+  Description: 
+The boot type was 0x0.
+Event[2]
+  Log Name: System
+  Source: Microsoft-Windows-Kernel-Boot
+  Date: 2026-10-03T07:01:31.5390000Z
+  Event ID: 27
+  Task: N/A
+  Level: Information
+  Opcode: Info
+  Keyword: N/A
+  User: S-1-5-18
+  User Name: NT AUTHORITY\SYSTEM
+  Computer: WIN-CFHMSRVCU4D
+  Description: 
+The boot type was 0x0.
+=== task scheduler operational log for PDT-boot-event
+=== powercfg /a
+The following sleep states are not available on this system:
+    Standby (S1)
+	The system firmware does not support this standby state.
+	An internal system component has disabled this standby state.
+		Graphics
+    Standby (S2)
+	The system firmware does not support this standby state.
+	An internal system component has disabled this standby state.
+		Graphics
+    Standby (S3)
+	The system firmware does not support this standby state.
+	An internal system component has disabled this standby state.
+		Graphics
+    Hibernate
+	Hibernation has not been enabled.
+    Standby (S0 Low Power Idle)
+	The system firmware does not support this standby state.
+    Hybrid Sleep
+	Standby (S3) is not available.
+	Hibernation is not available.
+    Fast Startup
+	Hibernation is not available.
+=== hiberfil
+ Volume in drive C is Windows
+ Volume Serial Number is 103C-7D41
+ Directory of C:\
+File Not Found

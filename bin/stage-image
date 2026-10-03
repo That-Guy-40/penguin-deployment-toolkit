@@ -52,6 +52,23 @@ with open(wim, "rb") as f:
     for chunk in iter(lambda: f.read(1 << 22), b""):
         h.update(chunk)
 ver = subprocess.run(["wimlib-imagex", "--version"], capture_output=True, text=True).stdout.splitlines()[0]
+# A reference machine stamps itself (post/prepare-capture.cmd):
+# "reference <id> run <run> role <role|-> apps <sha256 of the apps list|->".
+provenance = None
+if kind == "captured":
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        r = subprocess.run(["wimlib-imagex", "extract", wim, "1", "/Windows/pdt-image.txt", "--dest-dir=" + tmp, "--no-acls"],
+                           capture_output=True, text=True, env={**os.environ, "WIMLIB_IMAGEX_IGNORE_CASE": "1"})
+        stamp = open(os.path.join(tmp, "pdt-image.txt")).read().strip() if r.returncode == 0 else None
+    if stamp:
+        w = stamp.split()
+        provenance = {"stamp": stamp}
+        for key in ("run", "role", "apps"):
+            if key in w and w.index(key) + 1 < len(w) and w[w.index(key) + 1] != "-":
+                provenance[key if key != "apps" else "apps_sha256"] = w[w.index(key) + 1]
+        if w and w[0] == "reference" and len(w) > 1:
+            provenance["reference_machine"] = w[1]
 json.dump({
     "file": os.path.basename(wim),
     "size": os.path.getsize(wim),
@@ -62,6 +79,7 @@ json.dump({
     "build": f'{field("Build")}.{field("Service Pack Build")}',
     "languages": field("Languages"),
     "source": json.loads(source),
+    **({"provenance": provenance} if provenance else {}),
     "created": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
     "wimlib": ver,
 }, open(sidecar, "w"), indent=2)

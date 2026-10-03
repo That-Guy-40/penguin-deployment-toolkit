@@ -6,6 +6,8 @@
 #   fetch-tools check      verify what is installed against the pins (no network)
 #   fetch-tools virtio     also fetch virtio-win: http/drivers/virtio-w11.wim for the
 #                          installed system, http/winpe-drivers/ for WinPE itself
+#   fetch-tools winget     also fetch winget (App Installer) and its dependencies into
+#                          http/post/winget/, for roles that install apps at first logon
 #
 # A version string is not an identity (the wimboot v2.9.0 asset was re-uploaded
 # with different contents in 2026-05), so every artefact is pinned by hash.
@@ -21,6 +23,14 @@ DOWNLOADS=(
 "wimboot|https://github.com/ipxe/wimboot/releases/download/v2.9.0/wimboot|5f067ccdc4d084d5bf77b6c853bd0f8402dfc2b4cd1b103d358993ae97fae8e3"
 "curl-win64.zip|https://curl.se/windows/dl-8.22.0_1/curl-8.22.0_1-win64-mingw.zip|7f23b039f6ea4197362d4468e1a0e71428201222e1bef3b680d5ef7b2aefb714"
 "wimlib-win64.zip|https://wimlib.net/downloads/wimlib-1.14.4-windows-x86_64-bin.zip|6d99e242bfbc6d36fc987d433d63772180551b7f2d8de43e9561535a3e2c16d8"
+)
+# winget v1.29.380. The hashes are the ones Microsoft publishes next to the
+# release (Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.txt, DesktopAppInstaller_Dependencies.txt).
+WINGET_REL="https://github.com/microsoft/winget-cli/releases/download/v1.29.380"
+WINGET=(
+"winget.msixbundle|$WINGET_REL/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle|65dea9c01ce08ee7b763366b27c0e651f97db857c11ca9b9c301826c10092f2e"
+"winget-deps.zip|$WINGET_REL/DesktopAppInstaller_Dependencies.zip|ba875afe9d190f61218985ac0292a99d1db710bf93e13c68944ca9d89f0d82d1"
+"winget-license.xml|$WINGET_REL/e53e159d00e04f729cc2180cffd1c02e_License1.xml|bcb15118ec47df24e3e6013a7006147c3a15b3a8104ed660fe87c8b4ed01f485"
 )
 VIRTIO="virtio-win.iso|https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/virtio-win-0.1.302-1/virtio-win.iso|303f7ae40dad495d6ae474fdc571df58958a4dbc5c37a522d80f9a203867949d"
 
@@ -118,10 +128,27 @@ virtio() {
     info "http/winpe-drivers/01:1a:f4:10:{00,41}.ipxe: WinPE-side virtio drivers (netkvm, viostor, vioscsi)"
 }
 
+winget() {
+    need unzip
+    local d
+    for d in "${WINGET[@]}"; do fetch "$d"; done
+    local wd="$HTTP_DIR/post/winget"
+    rm -rf "$wd"; mkdir -p "$wd"
+    install -m 0644 "$DL/winget.msixbundle" "$wd/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+    install -m 0644 "$DL/winget-license.xml" "$wd/License1.xml"
+    # Only the x64 dependencies; one flat directory the first-logon script fetches by name.
+    unzip -q -o -j "$DL/winget-deps.zip" 'x64/*.appx' -d "$wd"
+    chmod 0644 "$wd"/*
+    # The list the installed system downloads, in install order (dependencies first).
+    (cd "$wd" && ls *.appx && echo Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle) | sed 's/$/\r/' > "$wd/files.txt"
+    info "http/post/winget/: $(ls "$wd" | tr '\n' ' ')"
+}
+
 case "${1:-all}" in
     all)    install_all ;;
     check)  check ;;
     virtio) virtio ;;
+    winget) winget ;;
     -h|--help) sed -n '2,12p' "$0" ;;
     *) die "unknown argument: $1 (try --help)" ;;
 esac

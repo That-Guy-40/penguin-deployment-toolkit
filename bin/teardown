@@ -23,6 +23,7 @@ done
 
 confirm() {
     (( YES )) && return 0
+    [[ -t 0 ]] || die "$1  -- no terminal to ask on; pass --yes"
     read -rp "$1 (y/N) " reply
     [[ "$reply" =~ ^[Yy]$ ]] || { info "cancelled"; exit 0; }
 }

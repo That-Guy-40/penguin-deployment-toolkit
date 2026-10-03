@@ -2,7 +2,10 @@
 rem firstlogon.cmd - run once by unattend.xml (FirstLogonCommands) from C:\pdt\.
 rem Reports that the first logon was reached, checks that the recovery
 rem environment is enabled AND lives on the recovery partition, and pushes
-rem Setup's own logs. Phase 3 hangs the winget / role configuration off this file.
+rem Setup's own logs. Then the role (C:\pdt\role\, put there by 60-unattend):
+rem winget and its apps, the fast-startup policy; the every-boot probe; the
+rem role's and the machine's post scripts; the "deployed" verdict; and on a
+rem reference machine, prepare-capture.
 setlocal EnableExtensions EnableDelayedExpansion
 call "%~dp0id.cmd"
 
@@ -39,8 +42,35 @@ for %%f in (setupact.log setuperr.log) do (
   if exist "%WINDIR%\Panther\%%f" curl.exe -sS -T "%WINDIR%\Panther\%%f" "%SRV%/uploads/%ID%/%RUN%/panther-%%f" -o nul --max-time 120
 )
 
-rem --- POST=<file> in the cfg: this machine's (or model's) own post-install -----
+rem --- the role: roles/<ROLE>/role.cfg, fetched by 60-unattend ------------------
+set APPS=
+set ROLE_POST=
+set FASTSTARTUP=
+if exist "%~dp0role\role.cfg" for /f "usebackq eol=# tokens=1,* delims==" %%a in ("%~dp0role\role.cfg") do (
+  if /i "%%a"=="APPS" set "APPS=%~dp0role\%%b"
+  if /i "%%a"=="POST" set "ROLE_POST=%~dp0role\%%b"
+  if /i "%%a"=="FASTSTARTUP" set "FASTSTARTUP=%%b"
+)
+if defined APPS call "%~dp0winget.cmd" "%APPS%"
+rem FASTSTARTUP=off: no hibernation, so every shutdown is a real shutdown and
+rem the next power-on a real boot (a resumed system does not run "at startup"
+rem tasks and trips over hardware changes). Default: leave Windows' default on.
+if /i "%FASTSTARTUP%"=="off" (
+  powercfg /h off
+  set HIBER=
+  for /f "tokens=3" %%h in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Power" /v HibernateEnabled ^| find "HibernateEnabled"') do set HIBER=%%h
+  if "!HIBER!"=="0x0" (call "%~dp0beacon.cmd" faststartup ok "state=off") else call "%~dp0beacon.cmd" faststartup fail "state=!HIBER!" "msg=powercfg /h off did not take"
+)
+
+rem --- the every-boot probe: a "boot" beacon after each real boot or resume -----
+call "%~dp0boot-probe.cmd"
+
+rem --- the role's post script, then POST=<file> from the machine's cfg ---------
+if defined ROLE_POST call "%ROLE_POST%"
 if exist "%~dp0post.cmd" call "%~dp0post.cmd"
+
+rem --- the verdict: this machine is deployed as asked --------------------------
+call "%~dp0beacon.cmd" deployed ok "role=%ROLE%" "host=%COMPUTERNAME%"
 
 rem --- reference machine: generalize and shut down, ready for MODE=capture -----
 if /i "%REFERENCE%"=="yes" call "%~dp0prepare-capture.cmd"

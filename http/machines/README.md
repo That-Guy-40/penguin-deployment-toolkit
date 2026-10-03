@@ -13,6 +13,7 @@ UNATTEND=default.xml
 DRIVERS=virtio-w11
 UPDATES=lcu-2026-09
 DISKPART=uefi-gpt.txt
+ROLE=workstation
 POST=install-apps.cmd
 STOP_BEFORE=40-drivers
 ```
@@ -25,7 +26,8 @@ STOP_BEFORE=40-drivers
 | `DRIVERS` | `http/drivers/<name>.wim` (`bin/pack-drivers`) | none |
 | `UPDATES` | `http/updates/<name>.wim` (`bin/pack-updates`) | none |
 | `DISKPART` | file under `http/ts/diskpart/` | `uefi-gpt.txt` |
-| `POST` | a script under `http/post/` that the installed system runs, elevated, at first logon | none |
+| `ROLE` | a directory `http/roles/<name>/`: what the machine becomes after Windows is on it (apps via winget, a post script, its own unattend, the fast-startup policy). See `http/roles/README.md` | none |
+| `POST` | a script under `http/post/` that the installed system runs, elevated, at first logon, after the role | none |
 | `REFERENCE` | `yes`: a reference machine. After first logon (and `POST`) it generalizes itself with sysprep and shuts down, ready to be captured with `bin/capture-image` (a VM) or `MODE=capture` (any machine) | no |
 | `STOP_BEFORE`, `STOP_AFTER` | a step name (`45-winre`) or its number (`45`): stop there and leave a prompt with the environment loaded. Continue by typing `deploy <number>` | none |
 

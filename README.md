@@ -9,11 +9,11 @@ over HTTP; Windows PE on the target does the install with Microsoft's own tools
 (`diskpart`, `dism`, `bcdboot`, an unattend file), following a plain-text task
 sequence the host serves.
 
-> **Status (2026-10-02).** Phases 1 and 2 of `PLAN.md` are done and Phase 4
-> (role images) in its mechanics: the layout below is what runs, verified end
-> to end in lab VMs (see [Verification](#verification)). Post-install
-> software (Phase 3), real hardware (Phase 5) and an install guide for other
-> people (Phase 6) are not done yet; `TODO.md` has the order of work. The first version of this repo
+> **Status (2026-10-02).** Phases 1 to 4 of `PLAN.md` are done: install,
+> step-based task sequence, post-install roles (winget, scripts, policy) and
+> role images. The layout below is what runs, verified end to end in lab VMs
+> (see [Verification](#verification)). Real hardware (Phase 5) and an install
+> guide for other people (Phase 6) are not done yet; `TODO.md` has the order of work. The first version of this repo
 > (Windows Setup + `autounattend.xml`) is retired to `docs/history/v1-setup-exe/`.
 
 ## How a machine gets installed
@@ -65,6 +65,7 @@ build-essential liblzma-dev git`. And a Windows 11 ISO.
 cp config.sh.example config.sh     # set ISO_PATH; pick a free HTTP_PORT
 bin/fetch-iso                      # only if you have no ISO: builds one via UUP dump (4-6 GB)
 bin/fetch-tools                    # wimboot, curl.exe, wimlib for Windows (pinned by hash)
+bin/fetch-tools winget             # if roles install apps: winget + dependencies, served to first logon
 bin/stage-winpe                    # boot.wim + boot files out of the ISO (7z, no sudo)
 bin/stage-image                    # install.wim -> http/images/base.wim + sidecar
 bin/build-ipxe                     # pxe/ipxe.efi, chaining to HTTP_HOST:HTTP_PORT
@@ -72,9 +73,9 @@ bin/serve                          # rootless nginx on HTTP_PORT, self-tested
 bin/lint                           # every referenced file exists; exit 1 if not
 
 bin/vm-create lab01                # empty disk + machines/<uuid>.cfg with MODE=deploy
-                                   #   (--nic/--disk virtio, --reference, --image <role>: see --help)
+                                   #   (--role <name>, --nic/--disk virtio, --reference, --image <role>: see --help)
 bin/vm-boot lab01                  # headless; PXE → WinPE → install
-bin/await lab01 firstlogon 900     # blocks until the desktop is reached (or fails)
+bin/await lab01 deployed 900       # blocks until first logon has done the role (or something fails)
 bin/status lab01                   # every event of that boot, with timings
 bin/vm-shot lab01                  # screenshot, if you want to look
 ```
@@ -127,7 +128,7 @@ Raw data, if you prefer `tail -f`: `run/beacons.log` (one line per event),
 | `config.sh.example` | template for `config.sh`, the only place host-specific values live |
 | `bin/lib.sh` | shared by every script: loads `config.sh`, helpers |
 | `bin/fetch-iso` | optional: build a Windows 11 ISO from Microsoft's update servers via UUP dump, into `iso/` with a sidecar (base build only: no cumulative updates on Linux) |
-| `bin/fetch-tools` | third-party binaries, pinned by SHA-256, into `http/winpe/` and `http/tools/`; `fetch-tools virtio` builds a virtio driver pack |
+| `bin/fetch-tools` | third-party binaries, pinned by SHA-256, into `http/winpe/` and `http/tools/`; `fetch-tools virtio` builds a virtio driver pack; `fetch-tools winget` serves winget and its dependencies from `http/post/winget/` |
 | `bin/stage-winpe` | `boot.wim`, `bootmgfw.efi`, `BCD`, `boot.sdi` from the ISO, unmodified |
 | `bin/stage-image` | the ISO's install image → `http/images/base.wim` + `base.json` + `base.winre.wim`; `--from-upload <vm>` publishes an image captured by `MODE=capture` |
 | `bin/capture-image` | capture a role image from a switched-off, generalized lab VM's disk on Linux (wimlib), publish it |
@@ -143,7 +144,8 @@ Raw data, if you prefer `tail -f`: `run/beacons.log` (one line per event),
 | `http/boot.ipxe` | the iPXE script every target runs (static, relative URLs) |
 | `http/ts/` | the WinPE task sequence: `deploy.cmd` (bootstrap + runner), `env.cmd` (all state), `step.cmd`/`beacon.cmd`/`push.cmd` (helpers), `*.seq` (which steps a MODE runs), `steps/` (one file per step), `diskpart/` |
 | `http/unattend/` | Panther unattend files (`default.xml`: local admin `deploy`, **blank password**, one autologon: lab defaults) |
-| `http/post/` | scripts run by the installed system from `C:\pdt\`: `firstlogon.cmd`, `prepare-capture.cmd` (sysprep, for `REFERENCE=yes`), and your own (`POST=` in a cfg) |
+| `http/post/` | scripts run by the installed system from `C:\pdt\`: `firstlogon.cmd` (orchestrates the rest), `winget.cmd` (bootstrap + the role's apps), `boot-probe.cmd` (a `boot` beacon after every boot), `prepare-capture.cmd` (sysprep, for `REFERENCE=yes`), and your own (`POST=` in a cfg); `winget/` holds the fetched packages (not tracked) |
+| `http/roles/` | `<name>/role.cfg` + files: what a machine becomes after Windows is on it (winget apps, post script, unattend, fast-startup policy); `ROLE=<name>` in a cfg selects it (see its README) |
 | `http/winpe-drivers/` | drivers WinPE itself needs, injected per NIC PCI id or product (see its README; generated content not tracked) |
 | `http/machines/` | `<uuid>.cfg` per machine: MODE and overrides (not tracked; see its README) |
 | `http/models/` | `<product-slug>.cfg` per hardware model: defaults such as the driver pack (not tracked; see its README) |
@@ -169,6 +171,11 @@ Raw data, if you prefer `tail -f`: `run/beacons.log` (one line per event),
   construction the one the server saw at boot.
 - **HTTP only.** Stock WinPE has no `curl`, PowerShell or `bitsadmin`, so the
   official Windows `curl.exe` is injected too.
+- **What a machine becomes is a directory.** `ROLE=<name>` names
+  `http/roles/<name>/`: a winget list, a post script, an unattend, the
+  fast-startup policy. First logon works through it and ends with a `deployed`
+  beacon; a reference machine with a role bakes it into the image it becomes,
+  and the image's sidecar records which role and which apps list.
 - **A recovery partition, always.** The disk layout ends with a 1 GB recovery
   partition and step `45-winre` puts WinRE on it; the installed system then
   reports whether WinRE is enabled and *not* on the Windows partition.
@@ -186,10 +193,11 @@ Raw data, if you prefer `tail -f`: `run/beacons.log` (one line per event),
 
 ## Verification
 
-Four passes, all on this host, all in lab VMs, each with its evidence under
+Five passes, all on this host, all in lab VMs, each with its evidence under
 `spikes/`: the Phase 1 acceptance, the bridged lab and ISO builder, the Phase 2
-acceptance, and the "not verified" list worked through (twice, the second time
-with root supplied by hand). Nothing has run on physical hardware.
+acceptance, the "not verified" list worked through (twice, the second time
+with root supplied by hand), and the Phase 3 acceptance. Nothing has run on
+physical hardware.
 
 Verified on 2026-10-02 on this host (Ubuntu 24.04, QEMU 8.2, Windows 11 Pro
 24H2 build 26100.1), entirely through `bin/`, as an unprivileged user. Evidence:
@@ -258,6 +266,20 @@ Later the same day, with root supplied from another shell:
 |---|---|
 | A bridge on the real host (`ip link add`, `/etc/qemu/bridge.conf`, setuid `qemu-bridge-helper`, `pxe-lan --bridge … start` under sudo) | an iPXE-ROM VM and a firmware-PXE virtio VM both deployed; with dnsmasq stopped nothing booted. Found: dnsmasq must keep running as the repo's owner after binding its ports, or it cannot read `pxe/` under a 750 home directory |
 | `bin/lab-netns` on a host that restricts unprivileged user namespaces (`kernel.apparmor_restrict_unprivileged_userns=1`) | fails with a message that says what to do. The narrow fix, an AppArmor profile from `bin/lab-netns profile`, was enough: a full deploy ran inside the namespace with the restriction on |
+
+**Phase 3, 2026-10-02** (evidence: `spikes/2026-10-02-phase3-roles/`):
+
+| what | result |
+|---|---|
+| `vm-create --role lab-apps` (7-Zip, Notepad++, `FASTSTARTUP=off`, a post script) | PXE to `deployed` in 3 m 20 s: `winget ok` 8 s after first logon, `apps ok installed=7zip.7zip,Notepad++.Notepad++ failed=`, `faststartup ok state=off`, `boot-tasks ok`, `role-post ok sevenzip=yes` |
+| The fast-startup policy | after it, `vm-stop` (ACPI) is a full shutdown; in the guest `powercfg /a`: "Fast Startup: Hibernation is not available", no `hiberfil.sys` |
+| The every-boot probe, which trigger fires | cold boot: `onstart` only; restart: both; forced power-off: `onstart`; fast-startup power-on: `event` only. Two triggers are needed, and suffice |
+| `ROLE=ghost` | `15-preflight fail msg=missing: roles/ghost/role.cfg`, disk untouched |
+| A role with an app id that does not exist | `apps fail installed=7zip.7zip failed=No.Such.Package.Zzz(…)`, still `deployed` |
+| Reference VM with the role, captured on Linux | first attempt: sysprep refused (winget's per-user source package; fixed in `prepare-capture.cmd`); second: generalized, captured in 82 s, sidecar `provenance` names the role and the apps list's SHA-256, equal to the served file's |
+| Deployed from that image without a role, with a probe script | `firstlogon … image=reference … role lab-apps apps 7516a7ad…`; probe: `sevenzip=yes npp=yes stale_role=no`; no winget/apps events; `deployed role=`. The boot probe baked into the image reported the *new* machine's id on its first boot |
+| Deployed from that image with the same role again | idempotent: `winget ok` in 4 s, `apps ok installed=7zip.7zip,Notepad++.Notepad++` (winget: "already installed", 0x8A15002B, counted as installed), `deployed` in 3 m 10 s |
+| `bin/lint` | 28/28 injected defects reported, four of them about roles |
 
 Still not verified: anything on physical hardware, including enrolling a
 Secure Boot certificate in real firmware.

@@ -1,10 +1,10 @@
 # Plan: a small, Linux-hosted replacement for MDT
 
-> **Status (2026-10-02):** this is the *current* plan. **Phases 1 and 2 are
-> done** (§4), Phase 4 (role images) is done in its mechanics, and most of the
-> open questions of §5 have been answered by experiment
-> (`spikes/2026-10-02-unverified-items/`); what is deliberately parked is in
-> `DEFERRED.md`. Phase 3 is next. It supersedes the original design note (now in
+> **Status (2026-10-02):** this is the *current* plan. **Phases 1 to 4 are
+> done** (§4): install, step-based task sequence, post-install roles, role
+> images. Most of the open questions of §5 have been answered by experiment
+> (`spikes/2026-10-02-unverified-items/`, `spikes/2026-10-02-phase3-roles/`);
+> what is deliberately parked is in `DEFERRED.md`. Phase 5 (real hardware) is next. It supersedes the original design note (now in
 > `docs/history/`, together with two early reviews and the retired v1 pipeline).
 > What the repo does **today** is documented in `README.md`; this file says where
 > it is going and why. Every claim below is tagged **[verified]** (run on this host),
@@ -154,20 +154,29 @@ is the reason `00b` produces build 26100.1 (24H2 RTM). Do those in WinPE on the
 applied image (`dism /image:W:\ /add-package`) or accept Windows Update doing it
 post-install.
 
-### 2.8 Post-install configuration: unattend for the OS, winget for software **[partly verified]**
+### 2.8 Post-install configuration: unattend for the OS, a role directory for the rest **[verified]**
 
 - The Panther `unattend.xml` (specialize + oobeSystem only) sets computer name,
   locale, local admin, autologon, hides OOBE, and runs `FirstLogonCommands`
   **[verified]**.
-- winget only exists in the full OS. Plan: a first-logon step that runs
-  `winget configure -f <role>.dsc.yaml` (declarative, idempotent) or a plain
-  `winget install --id … ` list, with a fallback that installs the App Installer
-  msixbundle first. **[verified]**: on an image built from UUP dump winget is
-  absent and App Installer is not staged; the release's `msixbundle` with its
-  `DesktopAppInstaller_Dependencies.zip` installs at first logon and
-  `winget install` then works. `winget configure` (DSC) is still untested.
-- Progress and logs go back to the server with `curl`: beacons now, DISM/Setup
-  logs via `curl -T` to the `PUT /uploads/` endpoint (§3.2).
+- A **role** is a directory, `http/roles/<name>/`, named by `ROLE=` in a machine
+  or model cfg: `role.cfg` with `APPS` (a winget id list), `POST` (a script),
+  `UNATTEND` (its own answer file) and `FASTSTARTUP=off`. WinPE's preflight
+  checks the role's files before the disk is touched; `60-unattend` puts them in
+  `C:\pdt\role\`; `firstlogon.cmd` works through them and ends with a
+  `deployed` beacon **[verified]**.
+- winget only exists in the full OS, and on an image built from install media
+  not even there: App Installer is not staged. `bin/fetch-tools winget` pins the
+  release `msixbundle`, its x64 dependencies and licence and serves them from
+  `http/post/winget/`; `post/winget.cmd` provisions the package for all users
+  (with the licence, so sysprep accepts it) and registers it for the current
+  user, then runs `winget install --id … -e --silent` per line of the list
+  **[verified: 8 s to a working winget, 14 s for 7-Zip and Notepad++]**.
+  `winget configure` (DSC) was not pursued: a plain id list is enough and is
+  what `lint` can check.
+- Progress and logs go back to the server with `curl`: beacons, DISM/Setup
+  logs, `reagentc`, winget's transcript and `DiagOutputDir` via `curl -T` to
+  the `PUT /uploads/` endpoint (§3.2) **[verified]**.
 
 ### 2.9 Lab: QEMU VM with hardware WinPE already understands **[verified]**
 
@@ -208,8 +217,9 @@ penguin-deployment-toolkit/
 │   ├── ts/                   # winpeshl.ini, deploy.cmd (runner), env.cmd, step/beacon/push.cmd, *.seq, steps/*.cmd, diskpart/*.txt
 │   ├── images/               # base.wim, <role>.wim, each with a <name>.json sidecar
 │   ├── drivers/              # <product-slug>.wim driver packs (+ drvload/ for WinPE-side drivers)
-│   ├── unattend/             # <role>.xml Panther unattend files
-│   ├── post/                 # <role>.dsc.yaml (winget) + first-logon scripts
+│   ├── unattend/             # Panther unattend files (default.xml; a role may bring its own)
+│   ├── post/                 # first-logon scripts: firstlogon, winget, boot-probe, prepare-capture; winget/ packages
+│   ├── roles/                # <name>/role.cfg + apps.txt, post.cmd, unattend.xml: what a machine becomes (its README)
 │   ├── machines/             # <uuid>.cfg: MODE, IMAGE, DRIVERS, UPDATES, STOP_BEFORE/AFTER… (its README)
 │   ├── models/               # <product-slug>.cfg: per-model defaults; can never set MODE (its README)
 │   ├── updates/              # <name>.wim update packs (bin/pack-updates) for step 35-updates
@@ -236,7 +246,7 @@ The repo must work on a machine that is not this one. Concretely:
   + TCP `HTTP_PORT`, an ISO), a first-run walkthrough (`bin/preflight`,
   `bin/build-ipxe`, `bin/stage-winpe`, `bin/stage-image`, `bin/serve`,
   `bin/pxe-lan`), then "boot a VM" and "boot a real machine" sections, and how
-  to add a model (driver pack) or a role (unattend + winget DSC).
+  to add a model (driver pack) or a role (a directory under `http/roles/`).
 - `bin/preflight`: checks every prerequisite and prints PASS/FAIL/UNKNOWN per
   row, including deliberate failing rows so an all-PASS run is distinguishable
   from a run that checked nothing.
@@ -476,25 +486,41 @@ from what was planned:
 - *`bin/lint`* knows sequences, steps, the fetched toolkit, `STOP_*`, model
   files and cfg hygiene; its self-test injects 21 defects.
 
-**Phase 3 — post-install (next).** Known from the spikes: winget is not in
-the image and has to be bootstrapped from the release's `msixbundle` +
-`DesktopAppInstaller_Dependencies.zip` (so: fetched and pinned by `fetch-tools`,
-served from `http/post/`, installed by the first-logon script before anything
-uses it); the `POST=` key already lets a machine or model name a first-logon
-script; a boot probe needs two triggers (§5.8). Then: winget DSC per role at first logon; upload
-`C:\Windows\Panther\*.log`, DISM logs, `reagentc /info` and winget logs to the
-`PUT /uploads/` endpoint from §3.2 (`curl -T`); final "deployed" beacon. The
-installed OS carries `id` and `run` forward so the run's timeline continues
-across the reboot (done in Phase 1 without templating XML: the task sequence
-leaves `C:\pdt\id.cmd` + `beacon.cmd`, and the unattend calls them
-**[verified]**), and a reliable every-boot "I booted" probe replaces the
-`onstart` task that never fired (TODO, spikes; `beacon.cmd` already retries
-until the network is up).
-*Capture groundwork:* the same post-install path builds the **reference VM**
-for a role (deploy `base.wim` + role DSC), and a `prepare-capture` step runs
-`sysprep /generalize /oobe /shutdown` (with an `unattend.xml` that keeps the
-DSC-installed software and drops the lab account) so the VM is left ready to
-capture.
+**Phase 3 — post-install roles. DONE 2026-10-02** (evidence:
+`spikes/2026-10-02-phase3-roles/`):
+
+- *Roles as directories* (§2.8): `ROLE=<name>` → `http/roles/<name>/role.cfg`
+  with `APPS`, `POST`, `UNATTEND`, `FASTSTARTUP`. Preflight in WinPE checks the
+  role's files (a `ROLE` naming no directory fails there, disk untouched
+  **[verified]**); `lint` checks keys, files, package ids and that the winget
+  packages were fetched (four more self-test defects).
+- *winget bootstrapped from this server*, pinned (`fetch-tools winget`), then
+  the apps list; `apps ok|fail installed= failed=` names each outcome and the
+  transcript is uploaded. A list with an id that does not exist gives `apps
+  fail … failed=No.Such.Package.Zzz(…)` and the machine is still reported
+  `deployed` **[verified]**: a missing app is a finding, not a dead machine.
+- *The fast-startup policy* (was in `DEFERRED.md`): `FASTSTARTUP=off` →
+  `powercfg /h off` at first logon, checked back from the registry
+  (`faststartup ok state=off`). Afterwards `vm-stop` (ACPI) is a full shutdown
+  and the next power-on a real boot **[verified]**; `powercfg /a` in the guest
+  says "Fast Startup: Hibernation is not available", no `hiberfil.sys`.
+- *The every-boot probe* (`post/boot-probe.cmd`, registered on every machine):
+  two SYSTEM tasks that run the same file with a trigger name, beaconing
+  `boot ok trigger=onstart|event`. Which fires **[verified]**: restart → both;
+  cold boot after a full shutdown → `onstart` only (Kernel-Boot 27 is logged
+  2 s after power-on, before Task Scheduler is up); power-on after a
+  fast-startup shutdown → `event` only (spike); forced power-off (QEMU killed)
+  with fast startup off → `onstart` within 20 s. One trigger would miss a case.
+- *`deployed`* is the verdict: sent after the role's post script and the
+  machine's `POST=` script, with `role=`; `bin/await <m> deployed`.
+- *Reference machines carry their role:* `REFERENCE=yes` + `ROLE=` installs the
+  role before `prepare-capture`; the stamp inside the image records the role and
+  the SHA-256 of its apps list; `stage-image` copies it into the sidecar as
+  `provenance`. `60-unattend` recreates `C:\pdt` on every deploy, so a machine
+  made from that image does not inherit the reference's role files or scripts.
+- Timings in the lab: PXE to `deployed` with two apps in 3 m 20 s.
+- Not done: credentials handling in unattend files (the lab's blank password
+  stays, §6); `winget configure` (DSC) not pursued.
 
 **Phase 4 — image capture from a reference VM (role images). Mechanics DONE
 2026-10-02** (evidence: `spikes/2026-10-02-unverified-items/` §2):
@@ -520,8 +546,8 @@ capture.
 - *Sidecars:* kind, source machine/VM/run, method, build, size, SHA-256, wimlib
   version; `lint` refuses an image whose sidecar is missing or does not match.
 
-What remains of Phase 4 is what Phase 3 brings: the role's software in the
-reference before capture, and its DSC file hash in the sidecar.
+Phase 3 completed it: the role's software goes into the reference before
+capture, and the sidecar's `provenance` names the role and its apps list hash.
 
 **Phase 5 — real hardware over the network (the goal).** Everything above
 exists so this phase is small:
@@ -595,7 +621,8 @@ Answered on 2026-10-02 (`spikes/2026-10-02-unverified-items/`):
 7. *`${next-server}` instead of a baked-in server address:* **no.** Behind
    proxy-DHCP it is the router, not us.
 8. *A reliable every-boot probe:* two scheduled tasks, "at startup" (restarts,
-   cold boots) and one on System event Kernel-Boot 27 (fast-startup power-ons).
+   cold boots, forced power-offs) and one on System event Kernel-Boot 27
+   (restarts, fast-startup power-ons). Built as `post/boot-probe.cmd`, Phase 3.
 
 Still open:
 

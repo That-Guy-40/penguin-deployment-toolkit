@@ -6,30 +6,14 @@ parked are in `DEFERRED.md`, not here.
 
 ## Next
 
-- [ ] **Phase 3 (PLAN.md §4): post-install.**
-  - [ ] winget: it is not in the image (verified). `fetch-tools` fetches and
-    pins the release `msixbundle` + `DesktopAppInstaller_Dependencies.zip`,
-    served from `http/post/`; the first-logon script installs them (works:
-    `spikes/2026-10-02-unverified-items/winget-bootstrap-probe.cmd`), then
-    `winget configure -f <role>.dsc.yaml` or an install list.
-  - [ ] `ROLE=` in the machine/model cfg selecting `unattend/<role>.xml` and
-    `post/<role>.*`; credentials handling instead of the lab's blank password.
-  - [ ] Upload winget logs; a final `deployed` beacon after post-install.
-  - [ ] An every-boot probe: two scheduled tasks, "at startup" and on System
-    event Kernel-Boot 27 (verified: each covers what the other misses).
-  - [ ] Role software into the reference machine before `prepare-capture`
-    (the `POST=` hook exists), and the role file's hash into the image sidecar.
-
-## After that
-
-- [x] Phase 4: image capture from a reference VM → `http/images/<role>.wim`:
-  mechanics done and verified (see Done). What is left arrives with Phase 3:
-  the role's software in the reference, and its DSC hash in the sidecar.
 - [ ] Phase 5: real hardware over the network via iPXE (the goal): `pxe-lan`
   on the real LAN, machine allow-list gating destructive steps, per-model driver
   packs, Secure Boot, measured PXE→desktop time; one physical model deployed
   repeatably (PLAN.md §4). `pxe-lan` runs dnsmasq with `--log-dhcp`; physical
   debugging is `status`/`logs`, never a screen (PLAN.md §3.2).
+
+## After that
+
 - [ ] Phase 6: deployable by others as infrastructure: `INSTALL.md`,
   `bin/preflight` (PASS/FAIL/UNKNOWN rows, with deliberate failing rows),
   systemd units for `serve`/`pxe-lan`, pinned and verified inputs, and a
@@ -42,13 +26,8 @@ parked are in `DEFERRED.md`, not here.
 Each gets a dated directory under `spikes/` with its scripts, evidence and a
 README stating the result. Answered ones are in `PLAN.md` §5.
 
-- [ ] **`winget configure` (DSC)** from the first-logon script, once winget is
-  bootstrapped: does it run unattended, and what does a role file look like?
 - [ ] **LAN throughput of a 3.5 GB WIM over HTTP versus SMB** (expected: no
   difference that matters; measure once on the physical run).
-- [ ] After a forced power-off neither boot-probe task reported within 150 s
-  (one observation, `spikes/2026-10-02-unverified-items/`). Fast-startup resume
-  or something else?
 
 ## Housekeeping
 
@@ -60,17 +39,22 @@ README stating the result. Answered ones are in `PLAN.md` §5.
 - [ ] `bin/fetch-iso` has been run for 24H2 and 25H2, professional, en-us. Other
   editions and languages are untested.
 - [ ] `http/unattend/default.xml` ships a blank-password local admin (`deploy`)
-  for the lab. Per-role unattend files with real credentials handling belong
-  to Phase 3.
+  for the lab. A role can bring its own unattend file (`UNATTEND=` in
+  `role.cfg`), but nothing here handles real credentials yet.
 - [ ] `bin/vm-stop` powers off through ACPI, which Windows turns into fast
-  startup: a hibernated disk, "at startup" tasks that do not fire, hangs if the
-  hardware changes before the next boot. Give `vm-stop` a way to ask for a full
-  shutdown (the policy question is in `DEFERRED.md`).
+  startup unless the machine's role says `FASTSTARTUP=off` (the lab role
+  does). A VM deployed without such a role still hibernates on `vm-stop`.
 - [ ] Ports 8080 and 8088 are taken on this host by other software; `config.sh`
   here uses 8090.
 
 ## Done
 
+- [x] **Phase 3 (2026-10-02): post-install roles.** `ROLE=` → `http/roles/<name>/`
+  (winget apps from packages pinned and served by `fetch-tools winget`, a post
+  script, an unattend, `FASTSTARTUP=off`), checked by preflight and `lint`;
+  `deployed` verdict; the every-boot probe with two triggers (which fires when,
+  measured); a reference machine carries its role into the image and the
+  sidecar records it. Evidence: `spikes/2026-10-02-phase3-roles/`.
 - [x] **With root supplied by hand (2026-10-02):** a bridge on the real host
   with dnsmasq started under sudo (two deploys, a negative control, one bug
   fixed in `pxe-lan`), and `bin/lab-netns` under the user-namespace

@@ -38,10 +38,10 @@ rediscovers them as surprises. Each says what would make it worth picking up.
 - **`${next-server}` as the server address** in the embedded iPXE script, to
   avoid rebuilding `ipxe.efi` per network. Verified not to work behind
   proxy-DHCP (it is the router). Closed, not parked.
-- **Disabling fast startup on deployed machines** (`powercfg /h off`). It would
-  remove the lab trap of `vm-stop` leaving a hibernated system and make "at
-  startup" tasks fire on every power-on. A policy choice for Phase 3's role
-  configuration, not a toolkit default.
+- ~~**Disabling fast startup on deployed machines**~~ **Done 2026-10-02 as a role
+  setting:** `FASTSTARTUP=off` in `roles/<name>/role.cfg` runs `powercfg /h off`
+  at first logon (`http/roles/README.md` says why it is a property of the role,
+  not of the toolkit). Machines without a role keep Windows' default.
 - **`capture.ini` as a per-role exclusion list.** One list serves every capture
   today. Pick up when a role needs different exclusions.
 - **A shim instead of signing `ipxe.efi` with our own key.** Verified
