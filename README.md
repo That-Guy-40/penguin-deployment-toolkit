@@ -154,7 +154,7 @@ Raw data, if you prefer `tail -f`: `run/beacons.log` (one line per event),
 | `pxe/` | TFTP root: `ipxe.efi`, generated `dnsmasq.conf` (not tracked) |
 | `run/` | nginx config, pid, logs, `beacons.log` (not tracked) |
 | `vms/` | lab VMs: disk, NVRAM, `vm.conf` (not tracked) |
-| `docs/` | `HOW_IT_WORKS.md` (tour), `LAB_FROM_SCRATCH.md` (bridged-lab runbook), `history/` (retired v1 and old reviews) |
+| `docs/` | `HOW_IT_WORKS.md` (tour), `CONTROL_POINTS.md` (where an admin changes what a machine gets, and when it takes effect), `LAB_FROM_SCRATCH.md` (bridged-lab runbook), `history/` (retired v1 and old reviews) |
 | `spikes/` | dated experiments with their evidence |
 
 ## Design points worth knowing
@@ -302,6 +302,9 @@ Secure Boot certificate in real firmware.
 - `DEFERRED.md`: ideas deliberately parked, with the reason, so they are not
   rediscovered as gaps.
 - `docs/HOW_IT_WORKS.md`: a ground-up tour for newcomers.
+- `docs/CONTROL_POINTS.md`: every point where an admin controls what a
+  machine gets (image, scripts, users, apps), the file that carries it, and
+  when an edit takes effect.
 - `docs/LAB_FROM_SCRATCH.md`: the same lab built by hand on a host-only bridge.
 - `docs/history/v1-setup-exe/`: the retired Setup-based pipeline and its notes.
 - `spikes/`: evidence behind the plan.
