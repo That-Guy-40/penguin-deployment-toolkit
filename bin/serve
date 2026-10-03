@@ -6,11 +6,12 @@
 #   serve status    is it running, on which address
 #
 # What it serves (document root: http/):
-#   static files      boot.ipxe, winpe/, tools/, ts/, images/, drivers/, unattend/, post/, machines/
+#   static files      boot.ipxe, winpe/, tools/, ts/, images/, drivers/, updates/, unattend/, post/, roles/, machines/, models/
 #   GET  /beacon?…    progress events, one line each in run/beacons.log (PLAN.md §3.2)
 #   GET  /ts/id.cmd   generated: hands the identity iPXE saw (and the URL the
 #                     target used to reach us) to WinPE as a tiny .cmd file
-#   PUT  /uploads/…   logs and captured images; write-only, never served back
+#   PUT  /uploads/…   logs, captured images, a role's generated passwords; write-only,
+#                     never served back, stored owner-only
 #
 # It never touches other services: if the port is taken by something else it
 # stops with an error rather than killing anything.

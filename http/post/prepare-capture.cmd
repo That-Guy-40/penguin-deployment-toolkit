@@ -1,7 +1,7 @@
 @echo off
 rem prepare-capture.cmd - turn this installed system into a reference image
 rem ready to capture. Run (elevated) by firstlogon.cmd when the machine's cfg
-rem says REFERENCE=yes; Phase 3's role configuration will run before it.
+rem says REFERENCE=yes, after the role (apps, accounts, skel) has been applied.
 rem
 rem   1. a provenance stamp inside the image (%WINDIR%\pdt-image.txt).
 rem   2. sysprep /generalize /oobe: remove this machine's identity, so that a

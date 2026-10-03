@@ -195,6 +195,7 @@ finishes downloading.
 penguin-deployment-toolkit/
 ├── config.sh                 # host settings (port, IPs, paths); from config.sh.example
 ├── bin/                      # one verb per script, no numbering
+│   ├── lib.sh / _pdt.py      # shared by every script: config.sh, paths, helpers (bash / python)
 │   ├── preflight             # (Phase 6, not yet built) PASS/FAIL/UNKNOWN per prerequisite
 │   ├── fetch-iso             # optional: build a Windows ISO via UUP dump -> iso/
 │   ├── build-ipxe            # ipxe.efi with the chain URL (+identity query)
@@ -338,9 +339,12 @@ nginx build **[verified]**), with `dav_methods PUT`, `create_full_put_path on`,
 `client_max_body_size 0` **[verified]**; write-only (`limit_except PUT { deny all; }`:
 a GET of an uploaded file is refused, and `serve` self-tests exactly that on
 every start), never listed or served back.
-Phase 3 adds the installed-OS files to it (`C:\Windows\Panther\setupact.log`,
-`setuperr.log`, `Logs\DISM\dism.log`, `reagentc /info` output, winget's
-`DiagOutputDir`); Phase 4 uses it for captured WIMs.
+The installed OS uses it too (Phase 3): Setup's `Panther\setupact.log` and
+`setuperr.log`, `reagentc /info` output, winget's transcript and
+`DiagOutputDir`, the boot-probe registration output, sysprep's logs on a
+reference machine, and the generated passwords of a role's accounts
+(`users.txt`, the only copy that leaves the machine); Phase 4 uses it for
+captured WIMs **[verified]**.
 
 **Driving.** `deploy.cmd` is a ten-line loop over `steps\NN-*.cmd`; all state
 (server URL, `ID`, `RUN`, `MODE`, drive letters, the machine cfg) lives in
@@ -372,8 +376,8 @@ have no equivalent, which is why logs are pushed and not merely kept.
   computed, not typed. `logs <id>`: what was uploaded for the last run.
 - `await <id> <step> [timeout]`: block until that event lands (exit non-zero
   on `fail` or timeout). It is the primitive that makes the lab scriptable:
-  `vm-boot && await $ID firstlogon 900 && vm-shot done` is the Phase 4
-  round-trip test and the Phase 6 clean-box check, not a person watching.
+  `vm-boot && await $ID deployed 900 && vm-shot done` is the round-trip
+  test and the Phase 6 clean-box check, not a person watching.
 
 **Not done, and why.** No EMS/SAC console over serial in WinPE (would need BCD
 edits and only helps VMs, which already have `vm-shot`; physical targets have no
@@ -489,7 +493,8 @@ from what was planned:
 - *`bin/timeline`* was not built: `bin/status <id>` prints every event of a
   boot with per-step timings, which is the §2.4 table computed.
 - *`bin/lint`* knows sequences, steps, the fetched toolkit, `STOP_*`, model
-  files and cfg hygiene; its self-test injects 21 defects.
+  files and cfg hygiene; its self-test injected 21 defects then (32 after
+  Phase 3's roles, accounts and skel).
 
 **Phase 3 — post-install roles. DONE 2026-10-02** (evidence:
 `spikes/2026-10-02-phase3-roles/`):
@@ -617,7 +622,7 @@ Answered on 2026-10-02 (`spikes/2026-10-02-unverified-items/`):
 2. *winget at first logon:* **absent** on an image built from UUP dump (App
    Installer is not staged). The release's `msixbundle` with
    `DesktopAppInstaller_Dependencies.zip` installs at first logon and winget
-   then works. Phase 3 must fetch, pin and serve those packages.
+   then works. Done in Phase 3: `bin/fetch-tools winget` pins and serves them.
 3. *Secure Boot enforcing:* unsigned `ipxe.efi` is refused ("Access Denied");
    signed with our own key and the certificate enrolled in db, a VM deploys and
    Windows reports Secure Boot on. `wimboot` and Windows' boot files are

@@ -126,7 +126,7 @@ Raw data, if you prefer `tail -f`: `run/beacons.log` (one line per event),
 | Path | What it is |
 |---|---|
 | `config.sh.example` | template for `config.sh`, the only place host-specific values live |
-| `bin/lib.sh` | shared by every script: loads `config.sh`, helpers |
+| `bin/lib.sh`, `bin/_pdt.py` | shared by every script: loads `config.sh`, paths, helpers (bash and python) |
 | `bin/fetch-iso` | optional: build a Windows 11 ISO from Microsoft's update servers via UUP dump, into `iso/` with a sidecar (base build only: no cumulative updates on Linux) |
 | `bin/fetch-tools` | third-party binaries, pinned by SHA-256, into `http/winpe/` and `http/tools/`; `fetch-tools virtio` builds a virtio driver pack; `fetch-tools winget` serves winget and its dependencies from `http/post/winget/` |
 | `bin/stage-winpe` | `boot.wim`, `bootmgfw.efi`, `BCD`, `boot.sdi` from the ISO, unmodified |

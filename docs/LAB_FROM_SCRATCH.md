@@ -335,8 +335,8 @@ side is done. Everything after it is the task sequence: the repo's
 
 ## D. Two things before you extend this
 
-- **No internet on a host-only bridge.** When a later phase needs it (winget
-  at first logon), add `sysctl net.ipv4.ip_forward=1`, one
+- **No internet on a host-only bridge.** A role that installs apps (`APPS=`,
+  winget at first logon) needs it; then add `sysctl net.ipv4.ip_forward=1`, one
   `iptables -t nat -A POSTROUTING -s 10.42.0.0/24 -o <uplink> -j MASQUERADE`,
   and `dhcp-option=option:router,10.42.0.1` plus a DNS option in dnsmasq.
 - **On a real LAN** the router owns addresses, so replace step 11's
