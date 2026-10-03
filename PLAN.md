@@ -174,6 +174,11 @@ post-install.
   **[verified: 8 s to a working winget, 14 s for 7-Zip and Notepad++]**.
   `winget configure` (DSC) was not pursued: a plain id list is enough and is
   what `lint` can check.
+- Accounts are the role's too: `USERS` (`name|group|random` or `plain:<pw>`,
+  `post/users.ps1`; generated passwords uploaded to the write-only endpoint and
+  removed from the disk) and `SKEL` (files for `C:\Users\Default`, inherited by
+  every profile created afterwards) **[verified]**. Not done: domain join,
+  templating the Default profile's registry hive.
 - Progress and logs go back to the server with `curl`: beacons, DISM/Setup
   logs, `reagentc`, winget's transcript and `DiagOutputDir` via `curl -T` to
   the `PUT /uploads/` endpoint (§3.2) **[verified]**.
@@ -519,8 +524,10 @@ from what was planned:
   `provenance`. `60-unattend` recreates `C:\pdt` on every deploy, so a machine
   made from that image does not inherit the reference's role files or scripts.
 - Timings in the lab: PXE to `deployed` with two apps in 3 m 20 s.
-- Not done: credentials handling in unattend files (the lab's blank password
-  stays, §6); `winget configure` (DSC) not pursued.
+- Later the same day: `USERS` and `SKEL` role keys (accounts with generated
+  passwords, a skel for new profiles), `spikes/2026-10-02-users-skel/`. The
+  unattend still creates `deploy` with a blank password; a role re-passwords it.
+  `winget configure` (DSC) not pursued.
 
 **Phase 4 — image capture from a reference VM (role images). Mechanics DONE
 2026-10-02** (evidence: `spikes/2026-10-02-unverified-items/` §2):

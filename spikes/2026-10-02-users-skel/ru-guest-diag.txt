@@ -1,0 +1,23 @@
+=== dir C:\pdt
+beacon.cmd
+boot-probe.cmd
+boot-probe.txt
+d3.txt
+diag3.cmd
+firstlogon.cmd
+id.cmd
+reagentc.txt
+role
+role-post.txt
+users.ps1
+winget-diag.log
+winget.cmd
+winget.txt
+=== alice profile
+File Not Found
+=== Default skel
+hello.txt
+pdt-readme.txt
+=== net user alice
+Account expires              Never
+Password expires             Never

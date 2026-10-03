@@ -9,3 +9,5 @@ http/post/*.cmd         text eol=crlf
 http/roles/*/*.cmd      text eol=crlf
 http/roles/*/*.cfg      text eol=crlf
 http/roles/*/*.txt      text eol=crlf
+http/roles/*/*.ps1      text eol=crlf
+http/post/*.ps1         text eol=crlf

@@ -1,0 +1,20 @@
+=== whoami
+win-r7a0fscrroi\deploy
+=== icacls users-out
+C:\pdt\users-out.txt: Access is denied.
+Successfully processed 0 files; Failed processing 1 files
+=== curl -v -T
+curl: Can't open 'C:\pdt\users-out.txt'
+curl: try 'curl --help' for more information
+curl: (26) Failed to open/read local data from file/application
+=== New-LocalUser zed, full error
+New-LocalUser : A positional parameter cannot be found that accepts argument 'True'.
+At line:1 char:7
++ try { New-LocalUser -Name zed -Password (ConvertTo-SecureString 'Abcd ...
++       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidArgument: (:) [New-LocalUser], ParameterBindingException
+    + FullyQualifiedErrorId : PositionalParameterNotFound,Microsoft.PowerShell.Commands.NewLocalUserCommand
+System.Management.Automation.ParameterBindingException
+=== net user zed2
+System error 5 has occurred.
+Access is denied.

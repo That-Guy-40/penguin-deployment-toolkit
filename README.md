@@ -144,8 +144,8 @@ Raw data, if you prefer `tail -f`: `run/beacons.log` (one line per event),
 | `http/boot.ipxe` | the iPXE script every target runs (static, relative URLs) |
 | `http/ts/` | the WinPE task sequence: `deploy.cmd` (bootstrap + runner), `env.cmd` (all state), `step.cmd`/`beacon.cmd`/`push.cmd` (helpers), `*.seq` (which steps a MODE runs), `steps/` (one file per step), `diskpart/` |
 | `http/unattend/` | Panther unattend files (`default.xml`: local admin `deploy`, **blank password**, one autologon: lab defaults) |
-| `http/post/` | scripts run by the installed system from `C:\pdt\`: `firstlogon.cmd` (orchestrates the rest), `winget.cmd` (bootstrap + the role's apps), `boot-probe.cmd` (a `boot` beacon after every boot), `prepare-capture.cmd` (sysprep, for `REFERENCE=yes`), and your own (`POST=` in a cfg); `winget/` holds the fetched packages (not tracked) |
-| `http/roles/` | `<name>/role.cfg` + files: what a machine becomes after Windows is on it (winget apps, post script, unattend, fast-startup policy); `ROLE=<name>` in a cfg selects it (see its README) |
+| `http/post/` | scripts run by the installed system from `C:\pdt\`: `firstlogon.cmd` (orchestrates the rest), `winget.cmd` (bootstrap + the role's apps), `users.ps1` (the role's accounts; generated passwords uploaded, then removed), `boot-probe.cmd` (a `boot` beacon after every boot), `prepare-capture.cmd` (sysprep, for `REFERENCE=yes`), and your own (`POST=` in a cfg); `winget/` holds the fetched packages (not tracked) |
+| `http/roles/` | `<name>/role.cfg` + files: what a machine becomes after Windows is on it (winget apps, local accounts, a skel for new profiles, post script, unattend, fast-startup policy); `ROLE=<name>` in a cfg selects it (see its README) |
 | `http/winpe-drivers/` | drivers WinPE itself needs, injected per NIC PCI id or product (see its README; generated content not tracked) |
 | `http/machines/` | `<uuid>.cfg` per machine: MODE and overrides (not tracked; see its README) |
 | `http/models/` | `<product-slug>.cfg` per hardware model: defaults such as the driver pack (not tracked; see its README) |
@@ -172,8 +172,10 @@ Raw data, if you prefer `tail -f`: `run/beacons.log` (one line per event),
 - **HTTP only.** Stock WinPE has no `curl`, PowerShell or `bitsadmin`, so the
   official Windows `curl.exe` is injected too.
 - **What a machine becomes is a directory.** `ROLE=<name>` names
-  `http/roles/<name>/`: a winget list, a post script, an unattend, the
-  fast-startup policy. First logon works through it and ends with a `deployed`
+  `http/roles/<name>/`: a winget list, local accounts, a skel (files for
+  `C:\Users\Default`, Windows' `/etc/skel`), a post script, an unattend, the
+  fast-startup policy. Generated passwords travel one way, machine → server's
+  write-only uploads, and are deleted from the machine. First logon works through it and ends with a `deployed`
   beacon; a reference machine with a role bakes it into the image it becomes,
   and the image's sidecar records which role and which apps list.
 - **A recovery partition, always.** The disk layout ends with a 1 GB recovery
@@ -280,6 +282,15 @@ Later the same day, with root supplied from another shell:
 | Deployed from that image without a role, with a probe script | `firstlogon … image=reference … role lab-apps apps 7516a7ad…`; probe: `sevenzip=yes npp=yes stale_role=no`; no winget/apps events; `deployed role=`. The boot probe baked into the image reported the *new* machine's id on its first boot |
 | Deployed from that image with the same role again | idempotent: `winget ok` in 4 s, `apps ok installed=7zip.7zip,Notepad++.Notepad++` (winget: "already installed", 0x8A15002B, counted as installed), `deployed` in 3 m 10 s |
 | `bin/lint` | 28/28 injected defects reported, four of them about roles |
+
+**Accounts and skel, 2026-10-02** (evidence: `spikes/2026-10-02-users-skel/`):
+
+| what | result |
+|---|---|
+| Role with `SKEL=` (two files) and `USERS=` (`deploy\|Administrators\|random`, `alice\|Users\|random`) | `skel ok files=2`, `users ok created=alice set=deploy failed=`, `users-upload ok`; the role's probe logged on as both accounts with the uploaded passwords and found the skel files in alice's freshly created profile; `C:\pdt\users-out.txt` gone afterwards (guest checked) |
+| A users list with a bad name and a bad policy | `users fail created=bob … failed=bad_name(…),carol(…)`, still `deployed`; `lint` had refused the file |
+| `bin/lint` | 32/32 injected defects, four new (users line, skel manifest both ways, FILES companion) |
+| First attempt, for the record | `New-LocalUser -PasswordNeverExpires $true` is a switch, not a bool (alice was not created); an `icacls` call left the passwords file unreadable by anyone, so the upload failed and the file stayed. Both fixed; the second fault is why `users-upload fail` keeps the file and says where it is |
 
 Still not verified: anything on physical hardware, including enrolling a
 Secure Boot certificate in real firmware.

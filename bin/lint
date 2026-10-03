@@ -50,7 +50,8 @@ VIRTUAL = ("ts/id.cmd", "beacon", "health")
 VIRTUAL_PREFIX = ("uploads/",)
 # What a model file may set (models/<slug>.cfg) and what only a machine file may.
 MODEL_KEYS = ("IMAGE", "UNATTEND", "DISKPART", "DRIVERS", "UPDATES", "POST", "ROLE")
-ROLE_KEYS = ("UNATTEND", "APPS", "POST", "FASTSTARTUP")   # roles/<name>/role.cfg
+ROLE_KEYS = ("UNATTEND", "APPS", "POST", "FASTSTARTUP", "USERS", "SKEL", "FILES")   # roles/<name>/role.cfg
+USER_RE = re.compile(r"^[A-Za-z0-9._-]{1,20}$")
 ROLE_RE = re.compile(r"^[A-Za-z0-9_-]+$")
 MACHINE_ONLY_KEYS = ("MODE", "STOP_BEFORE", "STOP_AFTER", "REFERENCE")
 CFG_KEYS = MACHINE_ONLY_KEYS + MODEL_KEYS
@@ -435,13 +436,58 @@ def lint_tree(http, deep=False, programs=None):
             if val != val.strip() or "#" in val:
                 R.fail(f"{who}/role.cfg line {n}", f"{k}={val!r} has trailing spaces or an inline comment")
             vals[k.upper()] = val
-        for k in ("UNATTEND", "APPS", "POST"):
+        for k in ("UNATTEND", "APPS", "POST", "USERS", "SKEL", "FILES"):
             if k not in vals:
+                continue
+            if k == "FILES":
+                missing = [x for x in vals[k].split() if not os.path.isfile(os.path.join(http, "roles", name, x))]
+                if missing:
+                    R.fail(f"{who} FILES", f"http/roles/{name}/: {', '.join(missing)} do(es) not exist")
+                else:
+                    R.ok(f"{who} FILES={vals[k]}")
                 continue
             f = os.path.join(http, "roles", name, vals[k])
             if "/" in vals[k] or "\\" in vals[k] or not os.path.isfile(f):
                 R.fail(f"{who} {k}={vals[k]}", f"http/roles/{name}/{vals[k]} does not exist (a plain file name in the role directory)")
                 continue
+            if k == "USERS":
+                problems = []
+                for n, raw in enumerate(read(f).splitlines(), 1):
+                    line = raw.strip()
+                    if not line or line.startswith("#"):
+                        continue
+                    parts = [x.strip() for x in line.split("|")]
+                    if len(parts) != 3:
+                        problems.append(f"line {n}: not name|group|policy")
+                    elif not USER_RE.match(parts[0]):
+                        problems.append(f"line {n}: bad account name {parts[0]!r}")
+                    elif parts[1] not in ("Administrators", "Users"):
+                        problems.append(f"line {n}: group must be Administrators or Users")
+                    elif parts[2] != "random" and not parts[2].startswith("plain:"):
+                        problems.append(f"line {n}: policy must be random or plain:<password>")
+                if problems:
+                    R.fail(f"{who} {k}={vals[k]}", "; ".join(problems))
+                    continue
+                if not os.path.isfile(os.path.join(http, "post", "users.ps1")):
+                    R.fail(f"{who} {k}={vals[k]}", "post/users.ps1 is missing")
+                    continue
+            if k == "SKEL":
+                # The manifest and the directory must agree both ways: a listed file
+                # that is missing fails preflight; an unlisted file is silently not deployed.
+                listed = [l.strip() for l in read(f).splitlines() if l.strip() and not l.startswith("#")]
+                skel = os.path.join(http, "roles", name, "skel")
+                present = sorted(os.path.relpath(os.path.join(dp, fn), skel).replace(os.sep, "/")
+                                 for dp, _, fns in os.walk(skel) for fn in fns) if os.path.isdir(skel) else []
+                missing = [l for l in listed if l not in present]
+                unlisted = [x for x in present if x not in listed]
+                bad = [l for l in listed if l.startswith("/") or ".." in l.split("/")]
+                if missing or unlisted or bad or not listed:
+                    R.fail(f"{who} {k}={vals[k]}", "; ".join(filter(None, [
+                        "lists nothing" if not listed else "",
+                        f"listed but not in skel/: {', '.join(missing)}" if missing else "",
+                        f"in skel/ but not listed (would not be deployed): {', '.join(unlisted)}" if unlisted else "",
+                        f"not a relative path: {', '.join(bad)}" if bad else ""])))
+                    continue
             if k == "UNATTEND":
                 try:
                     xml.dom.minidom.parse(f)
@@ -649,6 +695,10 @@ def selftest():
             ("a role names an apps list that does not exist", lambda d: sub_text(d, "roles/lab-apps/role.cfg", "APPS=apps.txt", "APPS=nope.txt"), "APPS=nope.txt"),
             ("a role wants apps but winget was never fetched", lambda d: shutil.rmtree(os.path.join(d, "post", "winget")), "fetch-tools winget"),
             ("a role.cfg has a key firstlogon.cmd does not read", lambda d: open(os.path.join(d, "roles", "lab-apps", "role.cfg"), "a", newline="").write("APS=x\r\n"), "APS"),
+            ("a users list has a line users.ps1 would reject", lambda d: open(os.path.join(d, "roles", "lab-apps", "users.txt"), "a", newline="").write("bob|Guests|random\r\n"), "group must be"),
+            ("a skel manifest names a file that is not there", lambda d: open(os.path.join(d, "roles", "lab-apps", "skel.txt"), "a", newline="").write("Desktop/ghost.txt\r\n"), "ghost.txt"),
+            ("a skel file is not in the manifest", lambda d: open(os.path.join(d, "roles", "lab-apps", "skel", "stray.txt"), "w").write("x"), "stray.txt"),
+            ("a role's FILES companion is missing", lambda d: os.remove(os.path.join(d, "roles", "lab-apps", "probe-users.ps1")), "probe-users.ps1"),
         ]
 
         control = lint_tree(fresh(), programs=SELFTEST_PROGRAMS)

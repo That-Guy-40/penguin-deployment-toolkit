@@ -39,8 +39,10 @@ README stating the result. Answered ones are in `PLAN.md` §5.
 - [ ] `bin/fetch-iso` has been run for 24H2 and 25H2, professional, en-us. Other
   editions and languages are untested.
 - [ ] `http/unattend/default.xml` ships a blank-password local admin (`deploy`)
-  for the lab. A role can bring its own unattend file (`UNATTEND=` in
-  `role.cfg`), but nothing here handles real credentials yet.
+  for the lab; a role's `USERS` list re-passwords it at first logon (the lab
+  role does) and creates the real accounts. Still open: domain join; removing
+  `deploy` altogether; the Default profile's registry hive (`SKEL` copies
+  files only).
 - [ ] `bin/vm-stop` powers off through ACPI, which Windows turns into fast
   startup unless the machine's role says `FASTSTARTUP=off` (the lab role
   does). A VM deployed without such a role still hibernates on `vm-stop`.

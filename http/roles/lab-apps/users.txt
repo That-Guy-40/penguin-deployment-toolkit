@@ -1,0 +1,3 @@
+# name|group|random  or  name|group|plain:<password>
+deploy|Administrators|random
+alice|Users|random

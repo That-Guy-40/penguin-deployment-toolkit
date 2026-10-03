@@ -36,6 +36,8 @@ rem other such package makes sysprep fail the same way, and its log names it.
 >> "%OUT%" echo === per-user Appx packages that are not provisioned (sysprep refuses these)
 powershell -NoProfile -Command "$p = (Get-AppxProvisionedPackage -Online).DisplayName; Get-AppxPackage | Where-Object { $_.SignatureKind -ne 'System' -and -not $_.IsFramework -and $p -notcontains $_.Name } | ForEach-Object { $_.PackageFullName }" >> "%OUT%" 2>&1
 powershell -NoProfile -Command "Get-AppxPackage Microsoft.Winget.Source | Remove-AppxPackage" >> "%OUT%" 2>&1
+rem Never capture generated passwords (firstlogon removes the file; be sure).
+if exist "%~dp0users-out.txt" del /f /q "%~dp0users-out.txt"
 del "%SPDIR%\Sysprep_succeeded.tag" 2>nul
 start "" /wait "%SPDIR%\sysprep.exe" /generalize /oobe /quit /quiet
 >> "%OUT%" echo sysprep exit code %errorlevel%

@@ -46,10 +46,44 @@ rem --- the role: roles/<ROLE>/role.cfg, fetched by 60-unattend ----------------
 set APPS=
 set ROLE_POST=
 set FASTSTARTUP=
+set USERS=
+set SKEL=
 if exist "%~dp0role\role.cfg" for /f "usebackq eol=# tokens=1,* delims==" %%a in ("%~dp0role\role.cfg") do (
   if /i "%%a"=="APPS" set "APPS=%~dp0role\%%b"
   if /i "%%a"=="POST" set "ROLE_POST=%~dp0role\%%b"
   if /i "%%a"=="FASTSTARTUP" set "FASTSTARTUP=%%b"
+  if /i "%%a"=="USERS" set "USERS=%~dp0role\%%b"
+  if /i "%%a"=="SKEL" set "SKEL=%~dp0role\skel"
+)
+rem SKEL: files for every account created from now on (C:\Users\Default is
+rem Windows' /etc/skel: copied into each new profile at that user's first logon).
+if defined SKEL (
+  set SKELN=0
+  for /r "%SKEL%" %%f in (*) do set /a SKELN+=1
+  xcopy /e /i /y /q "%SKEL%" "%SystemDrive%\Users\Default\" >nul && (
+    call "%~dp0beacon.cmd" skel ok "files=!SKELN!"
+  ) || call "%~dp0beacon.cmd" skel fail "rc=!errorlevel!" "msg=xcopy into Users\Default failed"
+)
+rem USERS: local accounts; generated passwords go to the server, then off the disk.
+set USERS_OUT=%~dp0users-out.txt
+if defined USERS (
+  set USERS_RESULT=
+  for /f "delims=" %%r in ('powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0users.ps1" "%USERS%" "%USERS_OUT%"') do set "USERS_RESULT=%%r"
+  if not defined USERS_RESULT set "USERS_RESULT=failed=users.ps1 produced no result"
+  rem Three tokens: created=… set=… failed=…; the step fails iff failed= is not empty.
+  set USERS_V=ok
+  for /f "tokens=1-3 delims= " %%a in ("!USERS_RESULT!") do (
+    if not "%%c"=="failed=" set USERS_V=fail
+    call "%~dp0beacon.cmd" users !USERS_V! "%%a" "%%b" "%%c"
+  )
+  if exist "%USERS_OUT%" (
+    curl.exe -sS -T "%USERS_OUT%" "%SRV%/uploads/%ID%/%RUN%/users.txt" -o nul --max-time 60 --retry 10 --retry-delay 3 --retry-all-errors && (
+      call "%~dp0beacon.cmd" users-upload ok "msg=generated passwords are in the uploads as users.txt"
+    ) || (
+      set KEEP_USERS_OUT=1
+      call "%~dp0beacon.cmd" users-upload fail "msg=could not upload the passwords; left in C:\pdt\users-out.txt"
+    )
+  )
 )
 if defined APPS call "%~dp0winget.cmd" "%APPS%"
 rem FASTSTARTUP=off: no hibernation, so every shutdown is a real shutdown and
@@ -68,6 +102,9 @@ call "%~dp0boot-probe.cmd"
 rem --- the role's post script, then POST=<file> from the machine's cfg ---------
 if defined ROLE_POST call "%ROLE_POST%"
 if exist "%~dp0post.cmd" call "%~dp0post.cmd"
+
+rem --- the passwords file leaves the disk once the scripts above have run -----
+if exist "%USERS_OUT%" if not defined KEEP_USERS_OUT del /f /q "%USERS_OUT%"
 
 rem --- the verdict: this machine is deployed as asked --------------------------
 call "%~dp0beacon.cmd" deployed ok "role=%ROLE%" "host=%COMPUTERNAME%"

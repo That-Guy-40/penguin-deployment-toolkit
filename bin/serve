@@ -101,7 +101,7 @@ http {
             client_max_body_size 0;
             dav_methods PUT;
             create_full_put_path on;
-            dav_access user:rw group:r all:r;
+            dav_access user:rw;   # uploads may hold generated passwords (post/users.ps1): owner only
         }
 
         location ~ /\. { deny all; }

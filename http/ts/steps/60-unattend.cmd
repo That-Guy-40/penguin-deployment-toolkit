@@ -29,7 +29,17 @@ if defined ROLE (
   mkdir W:\pdt\role
   copy /y %PDT%\role.cfg W:\pdt\role\role.cfg >nul || exit /b !errorlevel!
   for /f "usebackq eol=# tokens=1,* delims==" %%a in ("%PDT%\role.cfg") do (
-    for %%k in (APPS POST) do if /i "%%a"=="%%k" (%CURL% -f -o "W:\pdt\role\%%b" "%SRV%/roles/%ROLE%/%%b" || exit /b !errorlevel!)
+    for %%k in (APPS POST USERS SKEL) do if /i "%%a"=="%%k" (%CURL% -f -o "W:\pdt\role\%%b" "%SRV%/roles/%ROLE%/%%b" || exit /b !errorlevel!)
+    rem SKEL: the files its manifest lists, into role\skel\ with their paths.
+    if /i "%%a"=="SKEL" for /f "usebackq eol=# delims=" %%l in ("W:\pdt\role\%%b") do (
+      set "SKELPATH=%%l"
+      set "SKELPATH=!SKELPATH:/=\!"
+      for %%p in ("W:\pdt\role\skel\!SKELPATH!") do if not exist "%%~dpp" mkdir "%%~dpp"
+      %CURL% -f -o "W:\pdt\role\skel\!SKELPATH!" "%SRV%/roles/%ROLE%/skel/%%l" || exit /b !errorlevel!
+    )
+    if /i "%%a"=="USERS" (%CURL% -f -o W:\pdt\users.ps1 "%SRV%/post/users.ps1" || exit /b !errorlevel!)
+    rem FILES: companions of the post script (space-separated), fetched as they are.
+    if /i "%%a"=="FILES" for %%f in (%%b) do (%CURL% -f -o "W:\pdt\role\%%f" "%SRV%/roles/%ROLE%/%%f" || exit /b !errorlevel!)
   )
   %CURL% -f -o W:\pdt\winget.cmd "%SRV%/post/winget.cmd" || exit /b !errorlevel!
 )
