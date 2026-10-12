@@ -159,7 +159,7 @@ Raw data, if you prefer `tail -f`: `run/beacons.log` (one line per event),
 | `pxe/` | TFTP root: `ipxe.efi`, generated `dnsmasq.conf` (not tracked) |
 | `run/` | nginx config, pid, logs, `beacons.log` (not tracked) |
 | `vms/` | lab VMs: disk, NVRAM, `vm.conf` (not tracked) |
-| `docs/` | `HOW_IT_WORKS.md` (tour), `CONTROL_POINTS.md` (where an admin changes what a machine gets, and when it takes effect), `REMOTE_VISIBILITY.md` (machines you cannot sit at), `LAB_FROM_SCRATCH.md` (bridged-lab runbook), `history/` (retired v1 and old reviews) |
+| `docs/` | `HOW_IT_WORKS.md` (tour), `CONTROL_POINTS.md` (where an admin changes what a machine gets, and when it takes effect), `REMOTE_VISIBILITY.md` (machines you cannot sit at), `LAB_FROM_SCRATCH.md` (bridged-lab runbook), `REVIEW-2026-10-12.md` (outside review before the first physical machine), `history/` (retired v1 and old reviews) |
 | `spikes/` | dated experiments with their evidence |
 
 ## Design points worth knowing
@@ -334,5 +334,8 @@ Secure Boot certificate in real firmware.
   at: the remote shell and screen pusher over HTTP, and what RDP, serial
   consoles and Intel AMT can and cannot do.
 - `docs/LAB_FROM_SCRATCH.md`: the same lab built by hand on a host-only bridge.
+- `docs/REVIEW-2026-10-12.md`: an outside review before the first physical
+  machine: what is sound, what bites a real fleet first, and what a lab or
+  small business needs added, in order.
 - `docs/history/v1-setup-exe/`: the retired Setup-based pipeline and its notes.
 - `spikes/`: evidence behind the plan.

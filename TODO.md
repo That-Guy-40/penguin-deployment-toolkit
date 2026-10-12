@@ -6,6 +6,29 @@ parked are in `DEFERRED.md`, not here.
 
 ## Next
 
+- [ ] **Local-boot handoff** (`docs/REVIEW-2026-10-12.md`, finding 1). A
+  machine that is PXE-first in firmware redeploys itself after every
+  `90-reboot` (`bin/vm-boot --pxe` says so); disk-first needs a person at F12
+  for every re-image. Neither is "nobody at the keyboard". Build: `boot.ipxe`
+  chains `machines/${uuid}.ipxe` before anything else and ignores a 404; a
+  snippet containing `exit` returns to the firmware, which boots the next
+  entry (Windows, placed there by `bcdboot`). `bin/enroll <id> [--role …]`
+  writes `machines/<uuid>.cfg` and removes the snippet; `bin/release <id>`
+  writes it back. `lint` checks that a `MODE=deploy` machine has no snippet
+  and a released one does. Verify on a VM booted `--pxe`: deploy, then the
+  next boot lands on the desktop, not in WinPE. Later: a watcher that
+  releases a machine on its `deployed` beacon (the first use for the
+  dispatcher parked in `DEFERRED.md`). Do this before the Latitude's first
+  deploy.
+- [ ] **Disk guard** (review, finding 2). `ts/diskpart/uefi-gpt.txt` says
+  `select disk 0` then `clean`. Build a step before `20-disk` that lists the
+  disks (`diskpart list disk` into a file), refuses to continue if the chosen
+  disk is removable or smaller than a minimum, and takes `DISK=<n>` from the
+  machine or model cfg (default: the only fixed disk; fail if there are
+  several and none is named). Write the number into the diskpart script with
+  a token (`select disk @DISK@`) at run time; `lint` learns the key and the
+  token. Negative control on a VM with two disks and no `DISK=`: the step
+  fails, nothing is wiped.
 - [ ] Phase 5: real hardware over the network via iPXE (the goal): `pxe-lan`
   on the real LAN, machine allow-list gating destructive steps, per-model driver
   packs, Secure Boot, measured PXE→desktop time; one physical model deployed
