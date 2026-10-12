@@ -46,7 +46,7 @@ set PDT_NET_UP=1
 :net_ok
 
 rem ------------------------------------------------------------------ toolkit
-for %%f in (env.cmd step.cmd beacon.cmd push.cmd pushloop.cmd slug.js) do (
+for %%f in (env.cmd step.cmd beacon.cmd push.cmd pushloop.cmd shell-loop.cmd slug.js) do (
   curl.exe -sS -f -o %PDT%\%%f "%SRV%/ts/%%f" >>%LOG% 2>&1 || (echo [pdt] cannot fetch ts/%%f from the server.& exit /b 1)
 )
 rem One run token per boot; a resumed run continues the same run.
@@ -66,6 +66,9 @@ call %PDT%\env.cmd
 echo [pdt] run %RUN%  mode %MODE%  model "%MODEL%"
 >>%LOG% echo [pdt] id %ID% run %RUN% mode %MODE% model %MODEL% from "%FROM%"
 if not defined FROM call %PDT%\beacon.cmd ts-start ok "mode=%MODE%" "product=%PRODUCT%" "model=%MODEL%" "mac=%MAC%"
+rem The remote shell (bin/shell) and screen pusher (bin/screen): one per boot,
+rem in its own window, for as long as WinPE lives.
+if not defined PDT_SHELL_UP (set PDT_SHELL_UP=1& start "pdt-shell" /min cmd /c %PDT%\shell-loop.cmd)
 
 if /i "%MODE%"=="shell" goto :mode_shell
 

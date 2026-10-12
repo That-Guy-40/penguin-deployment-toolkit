@@ -17,11 +17,10 @@ rediscovers them as surprises. Each says what would make it worth picking up.
 
 ## Parked with a reason
 
-- **Remote shell over HTTP for `MODE=shell` or failed physical machines**
-  (PLAN.md §5 question 6): a `cmd` loop polling `machines/<uuid>/cmd.txt`,
-  running it, `PUT`ting the output. Same trust boundary as editing
-  `deploy.cmd`, no new binaries. Parked until physical machines exist to need
-  it; `STOP_BEFORE` plus pushed logs cover the lab.
+- ~~**Remote shell over HTTP**~~ **Done 2026-10-12** as `bin/shell` +
+  `ts/shell-loop.cmd` (`docs/REMOTE_VISIBILITY.md`): the first physical
+  machine has a damaged screen. The 2 s poll is fine (2.2 s round trip); the
+  kill switch is `bin/shell --off`.
 - **Updating the recovery image.** The Safe OS dynamic update in every UUP set
   belongs in `images/<name>.winre.wim`; today WinRE stays at the base build
   while `35-updates` updates the OS. Would need `dism /mount-image` +

@@ -31,3 +31,4 @@ __pycache__/
 # Editor / agent settings
 .claude/
 http/post/winget/
+http/cmd/

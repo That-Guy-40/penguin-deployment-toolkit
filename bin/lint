@@ -251,8 +251,10 @@ def lint_tree(http, deep=False, programs=None):
         text = read(script)
         # "%SRV%/x/%%f" inside "for %%f in (a b c) do": check each item of the list instead.
         refs = []
+        m_start = {}   # ref -> offset of its line, for the "[optional]" marker
         for m in re.finditer(r"%SRV%/([^\s\"]+)", text):
             path = m.group(1)
+            m_start.setdefault(path, m.start())
             loop = re.search(r"%%~?(\w)", path)
             lists = re.findall(r"(?i)for %%" + loop.group(1) + r" in \(([^)]*)\)", text[:m.start()]) if loop else []
             if lists:
@@ -279,6 +281,8 @@ def lint_tree(http, deep=False, programs=None):
                 R.unknown(where, "contains a variable lint does not resolve")
             elif exists(path):
                 R.ok(where)
+            elif "[optional]" in text.splitlines()[text[:m_start[ref]].count("\n")] if ref in m_start else False:
+                R.ok(where, "optional, not present (the script copes)")
             else:
                 R.fail(where, "file does not exist under http/")
     for script in scripts:
@@ -713,7 +717,7 @@ def selftest():
                 open(os.path.join(d, "winpe-drivers", "somenic.ipxe"), "w").write("#!ipxe\ninitrd --name x.inf drv/x.inf\n")), "winpe-drivers/drv/x.inf"),
             ("a machine names a POST script that does not exist", lambda d: cfg(d, "MODE=deploy\nPOST=ghost.cmd\n"), "POST=ghost.cmd"),
             ("a machine names an update pack that does not exist", lambda d: cfg(d, "MODE=deploy\nUPDATES=ghost\n"), "UPDATES=ghost"),
-            ("deploy.cmd stops fetching a helper the steps call", lambda d: sub_text(d, "ts/deploy.cmd", "push.cmd pushloop.cmd slug.js", "push.cmd slug.js"), "pushloop.cmd"),
+            ("deploy.cmd stops fetching a helper the steps call", lambda d: sub_text(d, "ts/deploy.cmd", "push.cmd pushloop.cmd shell-loop.cmd slug.js", "push.cmd shell-loop.cmd slug.js"), "pushloop.cmd"),
             ("a machine names a role that does not exist", lambda d: cfg(d, "MODE=deploy\nROLE=ghost\n"), "ROLE=ghost"),
             ("a role names an apps list that does not exist", lambda d: sub_text(d, "roles/lab-apps/role.cfg", "APPS=apps.txt", "APPS=nope.txt"), "APPS=nope.txt"),
             ("a role wants apps but winget was never fetched", lambda d: shutil.rmtree(os.path.join(d, "post", "winget")), "fetch-tools winget"),

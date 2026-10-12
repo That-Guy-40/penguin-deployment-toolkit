@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+"""shell - run a command on a machine that is in WinPE, over HTTP.
+
+  shell <id|vm-name> <command...> [--timeout N]     run it, print its output
+  shell <id|vm-name> --off                          stop the loop on the machine
+
+For machines without a usable screen or keyboard (and for every physical
+machine: there is no QEMU monitor to type into). The machine side is
+ts/shell-loop.cmd, started by deploy.cmd on every boot: it polls
+cmd/<id>/<run>/<n>.cmd on this server every 2 s, runs what it finds with
+cmd /c, and uploads the output as cmd-<n>.out. This tool writes the next
+numbered file for the machine's current run and waits for the output.
+
+Exit status: the command's own exit code (0..), 2 on timeout (the machine
+is not in WinPE, its loop is off, or the command is still running: the
+output arrives under bin/logs when it finishes), 3 on usage errors.
+
+  bin/shell latitude 'dir W:\\'
+  bin/shell latitude 'X:\\pdt\\steps\\45-winre.cmd'
+  bin/shell latitude 'wpeutil reboot'
+"""
+import argparse
+import os
+import re
+import sys
+import time
+
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
+import _pdt
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("machine")
+    ap.add_argument("command", nargs="*")
+    ap.add_argument("--timeout", type=int, default=60)
+    ap.add_argument("--off", action="store_true", help="switch the machine's loop off")
+    a = ap.parse_args()
+    if not a.off and not a.command:
+        ap.error("a command, or --off")
+    p = _pdt.paths()
+    events = _pdt.all_events()
+    mid = _pdt.resolve_id(a.machine, events)
+    runs = [e["run"] for e in events if e["id"] == mid and e.get("run")]
+    if not runs:
+        _pdt.die(f"{mid}: no run known (it has never reported ts-start)", 3)
+    run = runs[-1]
+    last = [e for e in events if e["id"] == mid][-1]
+    if last["step"] in ("ts-done", "90-reboot", "specialize", "firstlogon", "deployed") or last["step"] == "boot":
+        print(f"note: last event is {last['step']} {last['ev']} ({_pdt.age(time.time() - last['t'])} ago): the machine may no longer be in WinPE", file=sys.stderr)
+
+    cmd_dir = os.path.join(p["HTTP_DIR"], "cmd", mid, run)
+    os.makedirs(cmd_dir, exist_ok=True)
+    n = 1
+    while os.path.exists(os.path.join(cmd_dir, f"{n}.cmd")):
+        n += 1
+    text = "exit /b 42" if a.off else " ".join(a.command)
+    tmp = os.path.join(cmd_dir, f"{n}.cmd.part")
+    with open(tmp, "w", newline="") as f:
+        f.write("@echo off\r\n" + text + "\r\n")
+    os.chmod(tmp, 0o644)
+    os.rename(tmp, os.path.join(cmd_dir, f"{n}.cmd"))   # appears complete or not at all
+
+    out = os.path.join(p["HTTP_DIR"], "uploads", mid, run, f"cmd-{n}.out")
+    deadline = time.time() + a.timeout
+    while not os.path.exists(out):
+        if time.time() > deadline:
+            print(f"timeout after {a.timeout} s: no output for cmd {n} (run {run}); if it is still running, "
+                  f"bin/logs {a.machine} --cat cmd-{n}.out later", file=sys.stderr)
+            return 2
+        time.sleep(0.5)
+    time.sleep(0.2)   # the PUT is atomic on nginx's side; a moment for the rename
+    body = open(out, errors="replace").read()
+    m = re.search(r"^\[pdt\] exit code (-?\d+)\s*$", body, re.M)
+    sys.stdout.write(body[:m.start()] if m else body)
+    if a.off:
+        print(f"loop on {a.machine} switched off (run {run})")
+        return 0
+    rc = int(m.group(1)) if m else 0
+    return 0 if rc == 0 else (rc if 0 < rc < 256 else 1)
+
+
+sys.exit(main())

@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+"""screen - the latest screen a machine pushed (ts/shell-loop.cmd + pdt-screen.exe).
+
+  screen <id|vm-name> [--watch]
+
+Converts uploads/<id>/<run>/screen.bmp to run/shots/<machine>-live.png and
+prints its path and age. --watch re-reads it every 2 s and prints when it
+changes (an image viewer that reloads on change, e.g. feh --reload 2, makes
+it a live view). Exit 1 if the machine has pushed no screen in its current run.
+"""
+import argparse
+import os
+import sys
+import time
+
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
+import _pdt
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("machine")
+    ap.add_argument("--watch", action="store_true")
+    a = ap.parse_args()
+    try:
+        from PIL import Image
+    except ImportError:
+        _pdt.die("python3-pil is needed to convert the screen (apt install python3-pil)")
+    p = _pdt.paths()
+    events = _pdt.all_events()
+    mid = _pdt.resolve_id(a.machine, events)
+    runs = [e["run"] for e in events if e["id"] == mid and e.get("run")]
+    if not runs:
+        _pdt.die(f"{mid}: no run known", 1)
+    bmp = os.path.join(p["HTTP_DIR"], "uploads", mid, runs[-1], "screen.bmp")
+    name = _pdt.vm_names().get(mid, mid[:8])
+    out_dir = os.path.join(p["STATE_DIR"], "shots")
+    os.makedirs(out_dir, exist_ok=True)
+    png = os.path.join(out_dir, f"{name}-live.png")
+    last = None
+    while True:
+        if not os.path.exists(bmp):
+            if not a.watch:
+                _pdt.die(f"{name}: no screen pushed in run {runs[-1]} (is the machine in WinPE with tools/pdt-screen.exe built?)", 1)
+        else:
+            st = os.stat(bmp)
+            if st.st_mtime != last:
+                try:
+                    Image.open(bmp).save(png)
+                except Exception as e:   # noqa: BLE001 - a half-written file: try again next tick
+                    if not a.watch:
+                        _pdt.die(f"{bmp}: {e}", 1)
+                else:
+                    last = st.st_mtime
+                    print(f"{png}  ({_pdt.age(time.time() - st.st_mtime)} old)")
+        if not a.watch:
+            return 0
+        time.sleep(2)
+
+
+sys.exit(main())

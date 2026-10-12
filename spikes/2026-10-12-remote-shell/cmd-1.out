@@ -1,0 +1,24 @@
+ Volume in drive X is Boot
+ Volume Serial Number is D60A-0DC2
+
+ Directory of X:\pdt
+
+10/12/2026  04:38 AM    <DIR>          .
+10/12/2026  04:38 AM    <DIR>          ..
+10/12/2026  04:38 AM    <DIR>          steps
+10/12/2026  04:39 AM               219 ts.log
+10/12/2026  04:38 AM             2,195 env.cmd
+10/12/2026  04:38 AM             1,831 step.cmd
+10/12/2026  04:38 AM               874 beacon.cmd
+10/12/2026  04:38 AM               312 push.cmd
+10/12/2026  04:38 AM               401 pushloop.cmd
+10/12/2026  04:38 AM             2,195 shell-loop.cmd
+10/12/2026  04:38 AM               632 slug.js
+10/12/2026  04:38 AM                20 run.cmd
+10/12/2026  04:38 AM                20 model.cmd
+10/12/2026  04:38 AM                87 machine.cfg
+10/12/2026  04:39 AM                23 cmd-1.cmd
+10/12/2026  04:39 AM                90 cmd-1.out
+              13 File(s)          8,899 bytes
+               3 Dir(s)     533,344,256 bytes free
+[pdt] exit code 0

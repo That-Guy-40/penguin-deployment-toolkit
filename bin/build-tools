@@ -1,0 +1,69 @@
+#!/bin/bash
+# build-tools - build the toolkit's own Windows programs from tools-src/ with
+# mingw-w64, into http/tools/, and record what was built.
+#
+#   build-tools            build everything (today: pdt-screen.exe)
+#   build-tools check      verify http/tools/ against the record (no compiler)
+#
+# Needs: gcc-mingw-w64-x86-64 (apt). The record http/tools/built.json carries
+# the SHA-256 of each source and of each result, so "check" tells a stale
+# binary from a current one; bin/lint reads it too.
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+need sha256sum python3
+
+CC=x86_64-w64-mingw32-gcc
+SRC="$PDT_ROOT/tools-src"
+OUT="$HTTP_DIR/tools"
+RECORD="$OUT/built.json"
+
+record() {  # record <name> <source> <binary>: add/replace an entry
+    python3 - "$RECORD" "$@" <<'PY'
+import hashlib, json, os, sys, time
+rec, name, src, bin = sys.argv[1:5]
+h = lambda p: hashlib.sha256(open(p, "rb").read()).hexdigest()
+d = json.load(open(rec)) if os.path.exists(rec) else {}
+d[name] = {"source": os.path.basename(src), "source_sha256": h(src), "sha256": h(bin),
+           "size": os.path.getsize(bin), "built": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
+json.dump(d, open(rec, "w"), indent=2)
+PY
+}
+
+check() {
+    [[ -f "$RECORD" ]] || die "no $RECORD: nothing was built yet (run bin/build-tools)"
+    python3 - "$RECORD" "$OUT" "$SRC" <<'PY'
+import hashlib, json, os, sys
+rec, out, src = sys.argv[1:4]
+h = lambda p: hashlib.sha256(open(p, "rb").read()).hexdigest()
+bad = 0
+for name, e in json.load(open(rec)).items():
+    b = os.path.join(out, name)
+    s = os.path.join(src, e["source"])
+    if not os.path.isfile(b):
+        print(f"MISSING  {name}"); bad += 1
+    elif h(b) != e["sha256"]:
+        print(f"CHANGED  {name}: not the binary that was recorded"); bad += 1
+    elif not os.path.isfile(s) or h(s) != e["source_sha256"]:
+        print(f"STALE    {name}: {e['source']} changed since it was built"); bad += 1
+    else:
+        print(f"ok       {name}  {e['size']} bytes, built {e['built']}")
+sys.exit(1 if bad else 0)
+PY
+}
+
+build() {
+    command -v "$CC" >/dev/null || die "$CC not found: sudo apt install gcc-mingw-w64-x86-64"
+    mkdir -p "$OUT"
+    local src="$SRC/pdt-screen.c" bin="$OUT/pdt-screen.exe"
+    info "building pdt-screen.exe..."
+    "$CC" -O2 -s -static -Wall -Wextra -o "$bin" "$src" -lgdi32 || die "compile failed"
+    chmod 0644 "$bin"
+    record pdt-screen.exe "$src" "$bin"
+    info "http/tools/pdt-screen.exe: $(stat -c%s "$bin") bytes, sha256 $(sha256sum "$bin" | cut -c1-16)…  (recorded in tools/built.json)"
+}
+
+case "${1:-build}" in
+    build) build ;;
+    check) check ;;
+    -h|--help) sed -n '2,10p' "$0" ;;
+    *) die "unknown argument: $1" ;;
+esac

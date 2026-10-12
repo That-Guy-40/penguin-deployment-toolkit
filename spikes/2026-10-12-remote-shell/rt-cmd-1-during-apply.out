@@ -1,0 +1,17 @@
+ Volume in drive W is Windows
+ Volume Serial Number is CC40-BEC9
+
+ Directory of W:\
+
+10/12/2026  04:50 AM     3,563,286,653 image.wim
+03/31/2024  11:26 PM    <DIR>          PerfLogs
+04/01/2024  12:03 AM    <DIR>          Program Files
+04/01/2024  12:03 AM    <DIR>          Program Files (x86)
+10/12/2026  04:50 AM    <DIR>          Scratch
+03/31/2024  11:34 PM    <DIR>          Users
+04/01/2024  12:04 AM    <DIR>          Windows
+               1 File(s)  3,563,286,653 bytes
+               6 Dir(s)  63,688,105,984 bytes free
+'tasklist' is not recognized as an internal or external command,
+operable program or batch file.
+[pdt] exit code 255

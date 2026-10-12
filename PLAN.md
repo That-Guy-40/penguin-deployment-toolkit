@@ -643,11 +643,9 @@ Still open:
 
 4. Physical-LAN throughput of a 3.5 GB WIM over HTTP versus SMB (expected: no
    difference that matters; measure once).
-6. Remote shell for physical machines in `MODE=shell` or after a failure: a
-   `cmd` loop that polls `http/machines/<uuid>/cmd.txt` with `curl`, runs it,
-   and `PUT`s the output back. Same trust boundary as editing `deploy.cmd`
-   (whoever writes to `http/` already runs code as SYSTEM in WinPE), no new
-   binaries. Is a 2 s poll usable, and does it need a kill switch? **[unknown]**
+6. ~~Remote shell for physical machines~~ **Built 2026-10-12** (`bin/shell`,
+   `ts/shell-loop.cmd`): a 2 s poll gives a 2.2 s round trip; the kill switch
+   is a command that makes the loop exit. `docs/REMOTE_VISIBILITY.md`.
 9. The Safe OS dynamic update is not applied to the recovery image, so WinRE
    stays at the base build while the OS is updated by `35-updates`.
 

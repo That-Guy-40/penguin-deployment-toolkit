@@ -117,6 +117,7 @@ lab on a real host bridge, with root, is `docs/LAB_FROM_SCRATCH.md`.
 | `bin/logs <id\|vm> [--cat ts.log]` | what the machine uploaded: `ts.log`, `dism.log`, `reagentc.txt`, Setup's Panther logs. Pushed every 20 s while a step runs, so `--tail 5 ts.log` follows a long step live |
 | `bin/lint [-v]` | static check of `http/` and the host set-up; self-tests by injecting known defects |
 | `bin/vm-shot`, `bin/vm-type` | screenshot / type into a lab VM through the QEMU monitor (last resort; VMs only) |
+| `bin/shell <id\|vm> '<command>'` | the same for any machine in WinPE, over HTTP: output in ~2 s, exit code passed through; `--off` stops the loop (`docs/REMOTE_VISIBILITY.md`) |
 
 Raw data, if you prefer `tail -f`: `run/beacons.log` (one line per event),
 `run/access.log` (every file request, with transfer time), `http/uploads/<id>/<run>/`.
@@ -141,9 +142,12 @@ Raw data, if you prefer `tail -f`: `run/beacons.log` (one line per event),
 | `bin/lab-netns` | a rootless host-only bridge in a private network namespace, for running the bridged lab without sudo |
 | `bin/vm-create`, `vm-boot`, `vm-stop`, `vm-shot`, `vm-type` | the lab VM |
 | `bin/status`, `await`, `logs`, `lint` | read-only tools over the logs and `http/` |
+| `bin/shell` | run a command on a machine in WinPE over HTTP (`ts/shell-loop.cmd` polls for it); for machines with no screen, i.e. every physical one |
+| `bin/screen`, `bin/build-tools` | the latest screen a machine pushed (needs `tools/pdt-screen.exe`, built from `tools-src/` with mingw-w64) |
 | `bin/teardown` | stop services; optionally delete lab state |
 | `http/boot.ipxe` | the iPXE script every target runs (static, relative URLs) |
-| `http/ts/` | the WinPE task sequence: `deploy.cmd` (bootstrap + runner), `env.cmd` (all state), `step.cmd`/`beacon.cmd`/`push.cmd` (helpers), `*.seq` (which steps a MODE runs), `steps/` (one file per step), `diskpart/` |
+| `http/ts/` | the WinPE task sequence: `deploy.cmd` (bootstrap + runner), `env.cmd` (all state), `step.cmd`/`beacon.cmd`/`push.cmd` (helpers), `shell-loop.cmd` (the remote shell and screen pusher), `*.seq` (which steps a MODE runs), `steps/` (one file per step), `diskpart/` |
+| `tools-src/` | source of the toolkit's own Windows programs (`pdt-screen.c`), built by `bin/build-tools` |
 | `http/unattend/` | Panther unattend files (`default.xml`: local admin `deploy`, **blank password**, one autologon: lab defaults) |
 | `http/post/` | scripts run by the installed system from `C:\pdt\`: `firstlogon.cmd` (orchestrates the rest), `winget.cmd` (bootstrap + the role's apps), `users.ps1` (the role's accounts; generated passwords uploaded, then removed), `boot-probe.cmd` (a `boot` beacon after every boot), `prepare-capture.cmd` (sysprep, for `REFERENCE=yes`), and your own (`POST=` in a cfg); `winget/` holds the fetched packages (not tracked) |
 | `http/roles/` | `<name>/role.cfg` + files: what a machine becomes after Windows is on it (winget apps, local accounts, a skel for new profiles, post script, unattend, fast-startup policy); `ROLE=<name>` in a cfg selects it (see its README) |
@@ -155,7 +159,7 @@ Raw data, if you prefer `tail -f`: `run/beacons.log` (one line per event),
 | `pxe/` | TFTP root: `ipxe.efi`, generated `dnsmasq.conf` (not tracked) |
 | `run/` | nginx config, pid, logs, `beacons.log` (not tracked) |
 | `vms/` | lab VMs: disk, NVRAM, `vm.conf` (not tracked) |
-| `docs/` | `HOW_IT_WORKS.md` (tour), `CONTROL_POINTS.md` (where an admin changes what a machine gets, and when it takes effect), `LAB_FROM_SCRATCH.md` (bridged-lab runbook), `history/` (retired v1 and old reviews) |
+| `docs/` | `HOW_IT_WORKS.md` (tour), `CONTROL_POINTS.md` (where an admin changes what a machine gets, and when it takes effect), `REMOTE_VISIBILITY.md` (machines you cannot sit at), `LAB_FROM_SCRATCH.md` (bridged-lab runbook), `history/` (retired v1 and old reviews) |
 | `spikes/` | dated experiments with their evidence |
 
 ## Design points worth knowing
@@ -304,6 +308,15 @@ Later the same day, with root supplied from another shell:
 | `bin/lint` | 35/35 injected defects, three new (`DEPLOY=remove` without another administrator, a `.reg` key outside `HKEY_CURRENT_USER`, `post/remove-deploy.cmd` missing) |
 | Latitude E5570 prep | `bin/fetch-drivers` fetched Dell's Win10 A18 pack (912 MB, 403 without a browser User-Agent), 116 `.inf` → `drivers/latitude-e5570.wim`; `models/latitude-e5570.cfg`; lint all PASS. Nothing verified on the machine yet (`spikes/2026-10-11-latitude-e5570-prep/`) |
 
+**Remote shell and screen pusher, 2026-10-12** (evidence: `spikes/2026-10-12-remote-shell/`, design: `docs/REMOTE_VISIBILITY.md`):
+
+| what | result |
+|---|---|
+| `bin/shell <vm> '<command>'` on a VM at the WinPE prompt | output in 2.2 s; a failing command comes back as exit 1; the WinPE environment is loaded; `--off` ends the loop and the next `bin/shell` times out (exit 2) |
+| `bin/screen <vm>` vs `bin/vm-shot` a second apart | 1280×800, 100.00 % identical pixels; a 3 MB BMP every ~6 s; after `--off` the age grows instead |
+| both during `30-apply` on a deploying VM | `dir W:\` of the half-applied volume, a screen of DISM's progress; the deploy finishes (`deployed`) |
+| `bin/build-tools` | `tools/pdt-screen.exe` 43 KB from 62 lines of C, hashes of source and binary recorded; `check` flags a stale or changed binary |
+
 Still not verified: anything on physical hardware, including enrolling a
 Secure Boot certificate in real firmware.
 
@@ -317,6 +330,9 @@ Secure Boot certificate in real firmware.
 - `docs/CONTROL_POINTS.md`: every point where an admin controls what a
   machine gets (image, scripts, users, apps), the file that carries it, and
   when an edit takes effect.
+- `docs/REMOTE_VISIBILITY.md`: seeing and driving a machine you cannot sit
+  at: the remote shell and screen pusher over HTTP, and what RDP, serial
+  consoles and Intel AMT can and cannot do.
 - `docs/LAB_FROM_SCRATCH.md`: the same lab built by hand on a host-only bridge.
 - `docs/history/v1-setup-exe/`: the retired Setup-based pipeline and its notes.
 - `spikes/`: evidence behind the plan.
