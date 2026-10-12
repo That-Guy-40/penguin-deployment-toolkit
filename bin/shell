@@ -2,6 +2,7 @@
 """shell - run a command on a machine that is in WinPE, over HTTP.
 
   shell <id|vm-name> <command...> [--timeout N]     run it, print its output
+                                                    (WinPE: cmd; the collector: sh)
   shell <id|vm-name> --off                          stop the loop on the machine
 
 For machines without a usable screen or keyboard (and for every physical
@@ -54,10 +55,18 @@ def main():
     n = 1
     while os.path.exists(os.path.join(cmd_dir, f"{n}.cmd")):
         n += 1
-    text = "exit /b 42" if a.off else " ".join(a.command)
+    # The collector (Linux) runs the file with sh, WinPE with cmd: the machine's
+    # last "collect" or "ts-start" event says which it is in.
+    linux = any(e["step"] == "collect" for e in events if e["id"] == mid and e["run"] == run)
+    if linux:
+        text = "exit 42" if a.off else " ".join(a.command)
+        body = "#!/bin/sh\n" + text + "\n"
+    else:
+        text = "exit /b 42" if a.off else " ".join(a.command)
+        body = "@echo off\r\n" + text + "\r\n"
     tmp = os.path.join(cmd_dir, f"{n}.cmd.part")
     with open(tmp, "w", newline="") as f:
-        f.write("@echo off\r\n" + text + "\r\n")
+        f.write(body)
     os.chmod(tmp, 0o644)
     os.rename(tmp, os.path.join(cmd_dir, f"{n}.cmd"))   # appears complete or not at all
 

@@ -1,0 +1,15 @@
+#!/bin/sh
+# pdt-pxe-next [--reboot] - make the next boot a network boot: find the
+# firmware's UEFI network boot entry and set BootNext to it. With --reboot,
+# reboot right away (into iPXE -> this server -> WinPE or whatever the server
+# says). Prints what it chose; exits 1 if there is no such entry (then the
+# network stack is off in the firmware: see the firmware attributes).
+set -e
+entry="$(efibootmgr | grep -iE '^Boot[0-9A-F]{4}\*? .*(PXE|IP4|IPv4|Network|NIC|Ethernet)' | head -1)"
+[ -n "$entry" ] || { echo "no UEFI network boot entry (efibootmgr lists none with PXE/IPv4/Network in its name)"; efibootmgr; exit 1; }
+id="$(printf '%s' "$entry" | sed -E 's/^Boot([0-9A-F]{4}).*/\1/')"
+efibootmgr -n "$id" >/dev/null
+echo "BootNext=$id: $entry"
+# The reboot is delayed a moment so the shell loop can upload this output first.
+[ "${1:-}" = "--reboot" ] && { sync; (sleep 3; reboot) >/dev/null 2>&1 & echo "rebooting in 3 s"; }
+exit 0

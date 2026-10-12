@@ -1,0 +1,18 @@
+#!/bin/sh
+# pdt-shell-loop - the same remote shell WinPE has (ts/shell-loop.cmd), for
+# the collector: every 2 s GET cmd/<id>/<run>/<n>.cmd, run it with sh, upload
+# the output as cmd-<n>.out with "[pdt] exit code N" appended. bin/shell
+# writes the files. A script that exits 42 ends the loop.
+. /run/pdt/id
+n=1
+while :; do
+    f="/run/pdt/cmd-$n.cmd"
+    if curl -sS -f -o "$f" "$SRV/cmd/$ID/$RUN/$n.cmd" 2>/dev/null; then
+        sh "$f" > "/run/pdt/cmd-$n.out" 2>&1; rc=$?
+        printf '[pdt] exit code %s\n' "$rc" >> "/run/pdt/cmd-$n.out"
+        curl -sS -T "/run/pdt/cmd-$n.out" "$SRV/uploads/$ID/$RUN/cmd-$n.out" -o /dev/null --max-time 60
+        [ "$rc" = 42 ] && exit 0
+        n=$((n + 1))
+    fi
+    sleep 2
+done

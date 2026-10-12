@@ -1,0 +1,66 @@
+#!/bin/sh
+# pdt-collect - what the collector image does once the network is up:
+# identify this machine, inventory it, upload the inventory, beacon, then
+# hand over to the command loop. Server and identity come from the kernel
+# command line (boot.ipxe puts them there: pdt.server=... pdt.id=<uuid>).
+set -u
+for w in $(cat /proc/cmdline); do case "$w" in pdt.server=*) SRV="${w#pdt.server=}" ;; pdt.id=*) ID="${w#pdt.id=}" ;; esac; done
+SRV="${SRV%/}"
+: "${ID:=$(cat /sys/class/dmi/id/product_uuid 2>/dev/null | tr 'A-Z' 'a-z')}"
+RUN="$(tr -dc 0-9 < /dev/urandom | head -c 9)"
+mkdir -p /run/pdt
+printf 'SRV=%s\nID=%s\nRUN=%s\n' "$SRV" "$ID" "$RUN" > /run/pdt/id
+beacon() { # beacon <step> <ev> [k=v ...]
+    step="$1"; ev="$2"; shift 2
+    set -- --data-urlencode "id=$ID" --data-urlencode "run=$RUN" --data-urlencode "step=$step" --data-urlencode "ev=$ev" "$@"
+    args=""; for kv in "$@"; do args="$args --data-urlencode '$kv'"; done
+    eval curl -sS -G "$SRV/beacon" $args -o /dev/null --max-time 15 --retry 10 --retry-delay 3 --retry-all-errors
+}
+beacon collect start os=linux
+
+# --- identity and hardware -----------------------------------------------------
+dmi() { dmidecode -s "$1" 2>/dev/null | head -1; }
+PRODUCT="$(dmi system-product-name)"; MFR="$(dmi system-manufacturer)"; SERIAL="$(dmi system-serial-number)"
+NICS=""; for d in /sys/class/net/*; do n="${d##*/}"; [ "$n" = lo ] && continue; NICS="$NICS $n=$(cat "$d/address")"; done
+# --- firmware attributes (Dell: dell-wmi-sysman; others: thinklmi, hp-bioscfg) ---
+FWATTR=/sys/class/firmware-attributes
+FW_DRIVER=""; [ -d "$FWATTR" ] && FW_DRIVER="$(ls "$FWATTR" 2>/dev/null | head -1)"
+# --- AMT ------------------------------------------------------------------------
+# mei-amt-check prints "AMT present: true|false" and, if true, "AMT
+# provisioning state: provisioned|unprovisioned|being provisioned|unknown".
+AMT="absent"
+if [ -e /dev/mei0 ]; then
+    AMT_OUT="$(mei-amt-check 2>&1 || true)"
+    case "$AMT_OUT" in
+        *"AMT present: true"*)  AMT="present-$(printf '%s' "$AMT_OUT" | sed -n 's/^AMT provisioning state: //p' | tr ' ' '-')"; AMT="${AMT%-}" ;;
+        *"AMT present: false"*) AMT="absent" ;;
+        *) AMT="mei-unreadable" ;;
+    esac
+fi
+# --- boot entries ---------------------------------------------------------------
+PXE_ENTRY="$(efibootmgr 2>/dev/null | grep -iE 'Boot[0-9A-F]{4}\*? .*(PXE|IP4|IPv4|Network|NIC|Ethernet)' | head -1 | sed -E 's/^Boot([0-9A-F]{4}).*/\1/')"
+
+# --- the inventory, as JSON --------------------------------------------------------
+j() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'; }
+{
+printf '{\n  "id": "%s", "run": "%s", "os": "linux", "collected": "%s",\n' "$ID" "$RUN" "$(date -Is)"
+printf '  "product": "%s", "manufacturer": "%s", "serial": "%s",\n' "$(j "$PRODUCT")" "$(j "$MFR")" "$(j "$SERIAL")"
+printf '  "nics": {'; first=1; for kv in $NICS; do [ $first = 1 ] || printf ', '; first=0; printf '"%s": "%s"' "${kv%%=*}" "${kv#*=}"; done; printf '},\n'
+printf '  "amt": "%s",\n' "$AMT"
+printf '  "firmware_attributes_driver": "%s",\n' "$FW_DRIVER"
+printf '  "firmware_attributes": {'
+if [ -n "$FW_DRIVER" ]; then first=1; for a in "$FWATTR/$FW_DRIVER"/attributes/*/; do n="${a%/}"; n="${n##*/}"; v="$(cat "$a/current_value" 2>/dev/null)"; [ $first = 1 ] || printf ', '; first=0; printf '"%s": "%s"' "$(j "$n")" "$(j "$v")"; done; fi
+printf '},\n'
+printf '  "pxe_boot_entry": "%s",\n' "$PXE_ENTRY"
+printf '  "secure_boot": "%s",\n' "$(mokutil --sb-state 2>/dev/null | head -1 || echo unknown)"
+printf '  "memory_mb": %s, "cpu": "%s",\n' "$(awk '/MemTotal/ {printf "%d", $2/1024}' /proc/meminfo)" "$(j "$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | sed 's/^ //')")"
+printf '  "disks": ['; first=1; lsblk -dn -o NAME,SIZE,MODEL,TRAN 2>/dev/null | while read -r n s m t; do [ $first = 1 ] || printf ', '; first=0; printf '{"name": "%s", "size": "%s", "model": "%s", "transport": "%s"}' "$n" "$s" "$(j "$m")" "$t"; done; printf ']\n'
+printf '}\n'
+} > /run/pdt/inventory.json
+{ echo "=== efibootmgr -v"; efibootmgr -v 2>&1; echo "=== lspci"; lspci 2>&1; echo "=== lsblk"; lsblk 2>&1; echo "=== ip addr"; ip -br addr 2>&1
+  echo "=== mei-amt-check"; mei-amt-check 2>&1 || true; echo "=== firmware attributes"; [ -n "$FW_DRIVER" ] && for a in "$FWATTR/$FW_DRIVER"/attributes/*/; do printf '%s=%s (%s)\n' "${a%/}" "$(cat "$a/current_value" 2>/dev/null)" "$(cat "$a/possible_values" 2>/dev/null | tr '\n' ' ')"; done
+  echo "=== dmidecode"; dmidecode -t system -t baseboard -t bios 2>&1; } > /run/pdt/inventory.txt 2>&1
+curl -sS -T /run/pdt/inventory.json "$SRV/uploads/$ID/$RUN/inventory.json" -o /dev/null --max-time 60 --retry 10 --retry-delay 3 --retry-all-errors
+curl -sS -T /run/pdt/inventory.txt  "$SRV/uploads/$ID/$RUN/inventory.txt"  -o /dev/null --max-time 60
+beacon collect ok os=linux "product=$PRODUCT" "serial=$SERIAL" "amt=$AMT" "firmware=${FW_DRIVER:-none}" "pxe_entry=${PXE_ENTRY:-none}" "ssh=$(ss -ltn 2>/dev/null | grep -q ':22 ' && echo up || echo down)"
+exec /usr/local/bin/pdt-shell-loop

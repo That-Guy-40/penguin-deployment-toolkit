@@ -1,0 +1,13 @@
+[Unit]
+Description=PDT collector: inventory this machine, report, take commands
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/pdt-collect
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

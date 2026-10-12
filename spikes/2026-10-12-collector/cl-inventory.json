@@ -1,0 +1,12 @@
+{
+  "id": "da7f3458-485e-4b81-bc14-91a46648d735", "run": "147028934", "os": "linux", "collected": "2026-10-12T05:36:06+00:00",
+  "product": "lab-vm", "manufacturer": "PDT", "serial": "cl",
+  "nics": {"enp0s2": "52:54:00:c7:3c:f2"},
+  "amt": "absent",
+  "firmware_attributes_driver": "",
+  "firmware_attributes": {},
+  "pxe_boot_entry": "0003",
+  "secure_boot": "SecureBoot disabled",
+  "memory_mb": 3854, "cpu": "AMD Ryzen 9 9950X3D 16-Core Processor",
+  "disks": [{"name": "sda", "size": "64G", "model": "QEMU", "transport": "HARDDISK sata"}]
+}

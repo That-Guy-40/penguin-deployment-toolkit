@@ -32,3 +32,5 @@ __pycache__/
 .claude/
 http/post/winget/
 http/cmd/
+http/boot/
+http/collector/

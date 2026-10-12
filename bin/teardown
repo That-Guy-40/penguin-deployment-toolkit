@@ -34,8 +34,9 @@ delete_vm() {
     "$PDT_ROOT/bin/vm-stop" "$name" --force
     uuid="$VM_UUID"
     rm -rf "${VMS_DIR:?}/$name"
-    rm -f "$HTTP_DIR/machines/$uuid.cfg"
-    info "deleted VM $name (and machines/$uuid.cfg)"
+    rm -f "$HTTP_DIR/machines/$uuid.cfg" "$HTTP_DIR/boot/$uuid.ipxe"
+    rm -rf "$HTTP_DIR/cmd/$uuid"
+    info "deleted VM $name (and machines/$uuid.cfg, its boot override and command files)"
 }
 
 if [[ -n "$PURGE_VM" ]]; then

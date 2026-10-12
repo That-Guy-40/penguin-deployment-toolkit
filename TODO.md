@@ -14,10 +14,12 @@ parked are in `DEFERRED.md`, not here.
   **First machine: a Dell Latitude E5570**, expected the week of 2026-10-13;
   its driver pack and model file are prepared
   (`spikes/2026-10-11-latitude-e5570-prep/`, with the first-boot checklist).
-  The remote shell (`bin/shell`) and the screen pusher (`bin/screen`) are
-  in and verified. The laptop runs Kali today: harvest its UUID
-  and MAC over SSH and write `machines/<uuid>.cfg` before its first PXE boot;
-  check for AMT (`mei-amt-check`). See `docs/REMOTE_VISIBILITY.md`.
+  The remote shell (`bin/shell`), the screen pusher (`bin/screen`) and the
+  collector (`docs/COLLECTOR.md`: Linux in RAM, inventory, SSH,
+  `pdt-pxe-next`) are in and verified in the lab. The laptop runs Kali today:
+  over SSH, read its UUID/MAC, check AMT (`mei-amt-check`), and try to turn
+  UEFI PXE on from Linux (`/sys/class/firmware-attributes/`, or Dell's
+  `cctk`); after that the collector takes over. See `docs/REMOTE_VISIBILITY.md`.
 - [ ] A Samba AD domain controller as a lab service (a Linux VM under
   `bin/lab-netns`, brought up with `serve`/`pxe-lan`), so that domain join
   can be a verified role feature instead of an untested one.

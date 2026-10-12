@@ -144,6 +144,7 @@ Raw data, if you prefer `tail -f`: `run/beacons.log` (one line per event),
 | `bin/status`, `await`, `logs`, `lint` | read-only tools over the logs and `http/` |
 | `bin/shell` | run a command on a machine in WinPE over HTTP (`ts/shell-loop.cmd` polls for it); for machines with no screen, i.e. every physical one |
 | `bin/screen`, `bin/build-tools` | the latest screen a machine pushed (needs `tools/pdt-screen.exe`, built from `tools-src/` with mingw-w64) |
+| `bin/build-collector`, `bin/netboot`, `bin/enroll` | the collector: a small Debian that PXE-boots into RAM, inventories a machine, takes commands and SSH, and reboots it into Windows PE; which machines boot it; `machines/<uuid>.cfg` from its inventory (`docs/COLLECTOR.md`) |
 | `bin/teardown` | stop services; optionally delete lab state |
 | `http/boot.ipxe` | the iPXE script every target runs (static, relative URLs) |
 | `http/ts/` | the WinPE task sequence: `deploy.cmd` (bootstrap + runner), `env.cmd` (all state), `step.cmd`/`beacon.cmd`/`push.cmd` (helpers), `shell-loop.cmd` (the remote shell and screen pusher), `*.seq` (which steps a MODE runs), `steps/` (one file per step), `diskpart/` |
@@ -152,6 +153,7 @@ Raw data, if you prefer `tail -f`: `run/beacons.log` (one line per event),
 | `http/post/` | scripts run by the installed system from `C:\pdt\`: `firstlogon.cmd` (orchestrates the rest), `winget.cmd` (bootstrap + the role's apps), `users.ps1` (the role's accounts; generated passwords uploaded, then removed), `boot-probe.cmd` (a `boot` beacon after every boot), `prepare-capture.cmd` (sysprep, for `REFERENCE=yes`), and your own (`POST=` in a cfg); `winget/` holds the fetched packages (not tracked) |
 | `http/roles/` | `<name>/role.cfg` + files: what a machine becomes after Windows is on it (winget apps, local accounts, a skel for new profiles, post script, unattend, fast-startup policy); `ROLE=<name>` in a cfg selects it (see its README) |
 | `http/winpe-drivers/` | drivers WinPE itself needs, injected per NIC PCI id or product (see its README; generated content not tracked) |
+| `http/boot/`, `http/collector/` | per-machine boot overrides written by `bin/netboot`; the collector image built by `bin/build-collector` (both not tracked) |
 | `http/machines/` | `<uuid>.cfg` per machine: MODE and overrides (not tracked; see its README) |
 | `http/models/` | `<product-slug>.cfg` per hardware model: defaults such as the driver pack (not tracked; see its README) |
 | `http/winpe/ tools/ images/ drivers/ updates/ uploads/` | fetched, extracted, packed or uploaded content (not tracked) |
@@ -159,7 +161,7 @@ Raw data, if you prefer `tail -f`: `run/beacons.log` (one line per event),
 | `pxe/` | TFTP root: `ipxe.efi`, generated `dnsmasq.conf` (not tracked) |
 | `run/` | nginx config, pid, logs, `beacons.log` (not tracked) |
 | `vms/` | lab VMs: disk, NVRAM, `vm.conf` (not tracked) |
-| `docs/` | `HOW_IT_WORKS.md` (tour), `CONTROL_POINTS.md` (where an admin changes what a machine gets, and when it takes effect), `REMOTE_VISIBILITY.md` (machines you cannot sit at), `LAB_FROM_SCRATCH.md` (bridged-lab runbook), `history/` (retired v1 and old reviews) |
+| `docs/` | `HOW_IT_WORKS.md` (tour), `CONTROL_POINTS.md` (where an admin changes what a machine gets, and when it takes effect), `REMOTE_VISIBILITY.md` (machines you cannot sit at), `COLLECTOR.md` (the Linux inventory image), `LAYERS.md` (each layer and how to extend it), `MANUAL_TESTING.md` (the hand-run procedure), `LAB_FROM_SCRATCH.md` (bridged-lab runbook), `history/` (retired v1 and old reviews) |
 | `spikes/` | dated experiments with their evidence |
 
 ## Design points worth knowing
@@ -317,6 +319,15 @@ Later the same day, with root supplied from another shell:
 | both during `30-apply` on a deploying VM | `dir W:\` of the half-applied volume, a screen of DISM's progress; the deploy finishes (`deployed`) |
 | `bin/build-tools` | `tools/pdt-screen.exe` 43 KB from 62 lines of C, hashes of source and binary recorded; `check` flags a stale or changed binary |
 
+**The collector, 2026-10-12** (evidence: `spikes/2026-10-12-collector/`, design: `docs/COLLECTOR.md`):
+
+| what | result |
+|---|---|
+| `bin/build-collector` (rootless mmdebstrap, Debian trixie) | kernel 11 MiB + initramfs 134 MiB, 179 packages, 19 s with a warm cache; two cpio-writer bugs found by the kernel's own "no cpio magic" / "malformed archive" (a non-ASCII CA certificate name) |
+| An unlisted VM with `bin/netboot <vm> collector` | `collect ok product=lab-vm serial=… amt=absent firmware=none pxe_entry=0003 ssh=up` 4.5 s after the iPXE request; `inventory.json` uploaded; `bin/shell` works against Linux (1.2 s); sshd key-only with fresh host keys (the first good boot said `ssh=down`, honestly: the keys were missing) |
+| `bin/enroll <vm> --role lab-apps`, `bin/netboot <vm> winpe`, `bin/shell <vm> 'pdt-pxe-next --reboot'` | `machines/<uuid>.cfg` from the inventory; the VM rebooted into Windows PE and ran the full role deploy to `deployed` in 245 s |
+| BootNext, on the disk that now boots Windows | set from the collector, disk-first boot → the collector again (`BootCurrent: 0003`); control without it → Windows (`boot ok`), no `collect` |
+
 Still not verified: anything on physical hardware, including enrolling a
 Secure Boot certificate in real firmware.
 
@@ -333,6 +344,12 @@ Secure Boot certificate in real firmware.
 - `docs/REMOTE_VISIBILITY.md`: seeing and driving a machine you cannot sit
   at: the remote shell and screen pusher over HTTP, and what RDP, serial
   consoles and Intel AMT can and cannot do.
+- `docs/COLLECTOR.md`: the Linux that PXE-boots into RAM to inventory a
+  machine, take commands and SSH, and send it on into Windows PE.
+- `docs/LAYERS.md`: every layer on its own, with the recipes for adding or
+  changing things in it and how each change is proved.
+- `docs/MANUAL_TESTING.md`: the whole toolkit by hand, step by step, with
+  the expected result and the control for each.
 - `docs/LAB_FROM_SCRATCH.md`: the same lab built by hand on a host-only bridge.
 - `docs/history/v1-setup-exe/`: the retired Setup-based pipeline and its notes.
 - `spikes/`: evidence behind the plan.
