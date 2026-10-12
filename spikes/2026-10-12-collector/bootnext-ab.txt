@@ -1,0 +1,27 @@
+[exited with code 0]
+cl: collector on the next PXE boot (http/boot/da7f3458-485e-4b81-bc14-91a46648d735.ipxe)
+=== 1. Windows off (ACPI; role has fast startup off), PXE-first boot into the collector
+VM cl stopped
+id for bin/status and bin/await: da7f3458-485e-4b81-bc14-91a46648d735
+collect rc=0
+=== 2. set BootNext, no reboot
+BootNext=0003: Boot0003* UEFI PXEv4 (MAC:525400C73CF2)	PciRoot(0x0)/Pci(0x2,0x0)/MAC(525400c73cf2,1)/IPv4(0.0.0.00.0.0.0,0,0){auto_created_boot_option}
+BootNext: 0003
+BootCurrent: 0003
+BootOrder: 0003,0004,0005,0006,0002,0000,0001
+=== 3. clean shutdown, boot DISK FIRST
+VM cl stopped
+id for bin/status and bin/await: da7f3458-485e-4b81-bc14-91a46648d735
+collect rc=0 (0 = BootNext honoured over the boot order)
+BootCurrent: 0003
+BootOrder: 0002,0003,0004,0005,0006,0000,0001
+=== 4. control: shutdown, boot disk first again, no BootNext set
+VM cl stopped
+id for bin/status and bin/await: da7f3458-485e-4b81-bc14-91a46648d735
+await: TIMEOUT after 150s waiting for collect ok; last event: boot ok at 2026-10-12T02:01:58-04:00
+collect rc=2 (2 = timeout = Windows booted instead)
+  2026-10-12T02:01:47-04:00  +    4.7s  (+   4.7s)  collect     start os=linux
+  2026-10-12T02:01:47-04:00  +    4.7s  (+   0.1s)  collect     ok    product=lab-vm os=linux serial=cl amt=ab
+  2026-10-12T02:01:58-04:00  +   15.9s  (+  11.2s)  boot        ok    host=WIN-VQIC9LRRP2L trigger=onstart
+
+[exited with code 0]

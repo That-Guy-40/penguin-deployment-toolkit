@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+"""enroll - write machines/<uuid>.cfg from what the collector reported.
+
+  enroll <id|vm-name> [--role <name>] [--image <name>] [--mode deploy|shell] [--force]
+
+Takes the machine's latest inventory.json (uploaded by the collector image)
+and writes http/machines/<uuid>.cfg with a comment that says what the
+machine is (product, serial, MACs, AMT), MODE=deploy unless told otherwise,
+and the role/image given. Refuses to overwrite an existing cfg without
+--force. After this, bin/netboot <m> winpe and bin/shell <m> 'pdt-pxe-next
+--reboot' send it into Windows PE.
+"""
+import argparse
+import glob
+import json
+import os
+import sys
+import time
+
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
+import _pdt
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("machine")
+    ap.add_argument("--role")
+    ap.add_argument("--image", default="base")
+    ap.add_argument("--mode", default="deploy", choices=["deploy", "shell"])
+    ap.add_argument("--force", action="store_true")
+    a = ap.parse_args()
+    p = _pdt.paths()
+    mid = _pdt.resolve_id(a.machine)
+    found = sorted(glob.glob(os.path.join(p["HTTP_DIR"], "uploads", mid, "*", "inventory.json")), key=os.path.getmtime)
+    if not found:
+        _pdt.die(f"{a.machine}: no inventory.json uploaded (boot it into the collector first: bin/netboot {a.machine} collector)")
+    inv = json.load(open(found[-1]))
+    if a.role and not os.path.isfile(os.path.join(p["HTTP_DIR"], "roles", a.role, "role.cfg")):
+        _pdt.die(f"no such role: http/roles/{a.role}/role.cfg")
+    if not os.path.isfile(os.path.join(p["HTTP_DIR"], "images", a.image + ".wim")):
+        _pdt.die(f"no such image: http/images/{a.image}.wim")
+    cfg = os.path.join(p["HTTP_DIR"], "machines", f"{mid}.cfg")
+    if os.path.exists(cfg) and not a.force:
+        _pdt.die(f"{os.path.relpath(cfg)} exists; --force to replace it")
+    nics = " ".join(f"{k}={v}" for k, v in inv.get("nics", {}).items())
+    lines = [
+        f"# {inv.get('manufacturer', '?')} {inv.get('product', '?')}, serial {inv.get('serial', '?')}",
+        f"# NICs: {nics or '?'}; AMT: {inv.get('amt', '?')}; firmware attributes: {inv.get('firmware_attributes_driver') or 'none'}",
+        f"# enrolled {time.strftime('%Y-%m-%d %H:%M')} by bin/enroll from the collector's inventory ({os.path.relpath(found[-1])})",
+        f"MODE={a.mode}",
+        f"IMAGE={a.image}.wim",
+        "UNATTEND=default.xml",
+    ]
+    if a.role:
+        lines.append(f"ROLE={a.role}")
+    os.makedirs(os.path.dirname(cfg), exist_ok=True)
+    with open(cfg + ".part", "w") as f:
+        f.write("\n".join(lines) + "\n")
+    os.rename(cfg + ".part", cfg)
+    print(f"wrote {os.path.relpath(cfg)}:")
+    print("\n".join("  " + l for l in lines))
+    print(f"next: bin/netboot {a.machine} winpe && bin/shell {a.machine} 'pdt-pxe-next --reboot'")
+    return 0
+
+
+sys.exit(main())

@@ -1,0 +1,87 @@
+#!/bin/bash
+# build-collector - build the collector: a small Debian that PXE-boots into
+# RAM, inventories the machine (SMBIOS, NICs, firmware settings, AMT, disks,
+# boot entries), uploads it, takes commands (bin/shell) and SSH, and can
+# point the next boot at PXE (pdt-pxe-next). For machines you cannot sit at.
+#
+#   build-collector [--suite trixie] [--ssh-key <pubkey-file>]
+#
+# Output: http/collector/vmlinuz + initrd.img (the whole root filesystem as a
+# zstd cpio; nothing is written to the machine's disks) + collector.json
+# (sizes, hashes, packages). boot.ipxe boots it for a machine whose
+# boot/<uuid>.ipxe says so (bin/netboot), or for every unlisted machine when
+# boot/default.ipxe says so.
+#
+# Built rootless with mmdebstrap (user namespaces; apt install mmdebstrap
+# zstd cpio). The recipe is LAB_CREATE_V2's chroot -> export-initrd one
+# (debootstrap, /init = systemd, cpio of the tree), without its sudo.
+# The SSH key defaults to the first ~/.ssh/*.pub; there is no password.
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+need mmdebstrap zstd gcc tar sha256sum python3
+
+SUITE="${COLLECTOR_SUITE:-trixie}" MIRROR="${COLLECTOR_MIRROR:-http://deb.debian.org/debian}" KEY=""
+while (( $# )); do
+    case "$1" in
+        --suite)   SUITE="${2:?}"; shift 2 ;;
+        --ssh-key) KEY="${2:?}"; shift 2 ;;
+        -h|--help) sed -n '2,17p' "$0"; exit 0 ;;
+        *) die "unknown argument: $1" ;;
+    esac
+done
+if [[ -z "$KEY" ]]; then
+    for k in ~/.ssh/id_ed25519.pub ~/.ssh/id_ecdsa.pub ~/.ssh/id_rsa.pub; do [[ -f "$k" ]] && { KEY="$k"; break; }; done
+fi
+[[ -n "$KEY" && -f "$KEY" ]] || die "no SSH public key: pass --ssh-key <file> (the image allows root login by key only)"
+unshare -Ur true 2>/dev/null || die "unprivileged user namespaces are not available (mmdebstrap --mode=unshare needs them; see bin/lab-netns profile)"
+
+SRC="$PDT_ROOT/tools-src/collector"
+OUT="$HTTP_DIR/collector"
+WORK="$BUILD_DIR/collector"
+rm -rf "$WORK"; mkdir -p "$WORK" "$OUT"
+
+# mei-amt-check (Intel/mjg59, GPL-2) is not in Debian: a static build on the
+# host, so the libc of the image does not matter.
+MEI_SRC="$SRC/mei-amt-check.c"
+[[ -f "$MEI_SRC" ]] || die "missing $MEI_SRC"
+gcc -O2 -static -o "$WORK/mei-amt-check" "$MEI_SRC" || die "could not build mei-amt-check"
+
+PACKAGES="linux-image-amd64,systemd,systemd-sysv,systemd-resolved,udev,kmod,openssh-server,iproute2,ethtool,pciutils,usbutils,dmidecode,efibootmgr,mokutil,amtterm,curl,ca-certificates,jq,nvme-cli,firmware-realtek,firmware-misc-nonfree,less,procps,iputils-ping"
+cp "$KEY" "$WORK/authorized_keys"
+
+info "mmdebstrap $SUITE (minbase + $(tr ',' ' ' <<<"$PACKAGES" | wc -w) packages), rootless; a few minutes..."
+# Hooks are shell strings, not files: this host's AppArmor profile for
+# mmdebstrap denies executing or even reading hook files, inline works.
+mmdebstrap --mode=unshare --variant=minbase --architectures=amd64 \
+    --components="main non-free-firmware" \
+    --include="$PACKAGES" \
+    --customize-hook="copy-in $SRC/usr /" \
+    --customize-hook="copy-in $SRC/etc /" \
+    --customize-hook="upload $WORK/mei-amt-check /usr/local/bin/mei-amt-check" \
+    --customize-hook="upload $WORK/authorized_keys /root/.ssh_authorized_keys" \
+    --chrooted-customize-hook="$(cat "$SRC/customize-inside.sh")" \
+    "$SUITE" "$WORK/collector.tar" "$MIRROR" > "$WORK/mmdebstrap.log" 2>&1 \
+    || die "mmdebstrap failed; see ${WORK#$PDT_ROOT/}/mmdebstrap.log"
+
+# The tar -> vmlinuz + initrd.img, without extracting anything onto the host.
+info "packing the initramfs (zstd)..."
+python3 "$SRC/tar2initrd.py" "$WORK/collector.tar" "$OUT" || die "tar2initrd failed"
+tar -xOf "$WORK/collector.tar" ./etc/pdt-packages.txt > "$WORK/packages.txt"
+tar -xOf "$WORK/collector.tar" ./etc/pdt-amtterm-bins.txt > "$WORK/amtterm-bins.txt" 2>/dev/null || true
+rm -f "$WORK/collector.tar"
+
+[[ -s "$OUT/vmlinuz" && -s "$OUT/initrd.img" ]] || die "no vmlinuz/initrd.img produced"
+python3 - "$OUT" "$SUITE" "$WORK/packages.txt" "$KEY" <<'PY'
+import hashlib, json, os, sys, time
+out, suite, pkgs, key = sys.argv[1:5]
+h = lambda p: hashlib.sha256(open(p, "rb").read()).hexdigest()
+json.dump({
+    "kind": "collector", "suite": suite,
+    "vmlinuz": {"size": os.path.getsize(f"{out}/vmlinuz"), "sha256": h(f"{out}/vmlinuz")},
+    "initrd": {"size": os.path.getsize(f"{out}/initrd.img"), "sha256": h(f"{out}/initrd.img")},
+    "packages": [l.strip() for l in open(pkgs) if l.strip()],
+    "ssh_key": open(key).read().split()[-1] if len(open(key).read().split()) > 2 else os.path.basename(key),
+    "created": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+}, open(f"{out}/collector.json", "w"), indent=2)
+PY
+info "http/collector/: vmlinuz $(( $(stat -c%s "$OUT/vmlinuz") / 1048576 )) MiB, initrd.img $(( $(stat -c%s "$OUT/initrd.img") / 1048576 )) MiB (zstd cpio), collector.json"
+info "next: bin/netboot <machine> collector   (or: bin/netboot default collector, for every unlisted machine)"

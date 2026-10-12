@@ -11,6 +11,17 @@
 
 echo PDT: ${manufacturer} ${product}  uuid ${uuid}  mac ${netX/mac}
 
+# What to boot: boot/<uuid>.ipxe for this machine, else boot/default.ipxe,
+# else Windows PE. Both snippets are optional and one line: "set pdt_boot
+# collector" (bin/netboot writes them). The collector is a small Linux that
+# runs from RAM, inventories the machine, takes commands and SSH, and can
+# point the next boot back here (bin/build-collector, docs/COLLECTOR.md).
+set pdt_boot winpe
+chain --autofree boot/${uuid}.ipxe ||
+iseq ${pdt_boot} winpe && chain --autofree boot/default.ipxe ||
+iseq ${pdt_boot} collector && goto collector ||
+
+:winpe
 kernel winpe/wimboot                                              || goto failed
 initrd --name bootmgfw.efi    winpe/bootmgfw.efi                  || goto failed
 initrd --name BCD             winpe/BCD                           || goto failed
@@ -33,6 +44,13 @@ initrd --name libcurl-x64.dll tools/libcurl-x64.dll               || goto failed
 chain --autofree winpe-drivers/${netX/busid}.ipxe ||
 chain --autofree winpe-drivers/model-${product:uristring}.ipxe ||
 
+boot || goto failed
+
+:collector
+# pdt.server: this script's own base URL (so the collector reports to the
+# server it was booted from); pdt.id: the identity iPXE saw.
+kernel collector/vmlinuz initrd=initrd.img pdt.server=${cwduri} pdt.id=${uuid} console=tty0 console=ttyS0,115200 quiet || goto failed
+initrd collector/initrd.img || goto failed
 boot || goto failed
 
 :failed

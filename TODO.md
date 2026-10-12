@@ -9,17 +9,23 @@ parked are in `DEFERRED.md`, not here.
 - [ ] **Local-boot handoff** (`docs/REVIEW-2026-10-12.md`, finding 1). A
   machine that is PXE-first in firmware redeploys itself after every
   `90-reboot` (`bin/vm-boot --pxe` says so); disk-first needs a person at F12
-  for every re-image. Neither is "nobody at the keyboard". Build: `boot.ipxe`
-  chains `machines/${uuid}.ipxe` before anything else and ignores a 404; a
-  snippet containing `exit` returns to the firmware, which boots the next
-  entry (Windows, placed there by `bcdboot`). `bin/enroll <id> [--role …]`
-  writes `machines/<uuid>.cfg` and removes the snippet; `bin/release <id>`
-  writes it back. `lint` checks that a `MODE=deploy` machine has no snippet
-  and a released one does. Verify on a VM booted `--pxe`: deploy, then the
-  next boot lands on the desktop, not in WinPE. Later: a watcher that
-  releases a machine on its `deployed` beacon (the first use for the
-  dispatcher parked in `DEFERRED.md`). Do this before the Latitude's first
-  deploy.
+  for every re-image. Neither is "nobody at the keyboard". The collector
+  commit gave `boot.ipxe` per-machine overrides (`boot/<uuid>.ipxe` and
+  `boot/default.ipxe`, one-liners written by `bin/netboot`), `bin/enroll`,
+  and `pdt-pxe-next` (BootNext from Linux), so what is left is small: a
+  third `pdt_boot` value, `local`, one line in `boot.ipxe`
+  (`iseq ${pdt_boot} local && exit ||`: iPXE returns to the firmware, which
+  boots the next entry, Windows after `bcdboot`), `bin/netboot <m> local`,
+  and `lint` accepting the third one-liner. With that, PXE-first firmware
+  is safe: `netboot <m> local` after a deploy, `netboot <m> winpe` to
+  re-image, no keyboard. Verify on a VM booted `--pxe`: deploy, `netboot
+  local`, the next boot lands on the desktop (`boot ok`, no `ts-start`);
+  `netboot winpe` and it is back in WinPE. Still open after that: a
+  disk-first installed Windows has no agent to set BootNext, so re-imaging
+  one needs `bcdedit /set {fwbootmgr} bootsequence` over RDP or a hand at
+  F12; and a watcher that runs `netboot local` on a machine's `deployed`
+  beacon (the first use for the dispatcher parked in `DEFERRED.md`). Do the
+  `local` override before the Latitude's first deploy.
 - [ ] **Disk guard** (review, finding 2). `ts/diskpart/uefi-gpt.txt` says
   `select disk 0` then `clean`. Build a step before `20-disk` that lists the
   disks (`diskpart list disk` into a file), refuses to continue if the chosen
@@ -37,10 +43,12 @@ parked are in `DEFERRED.md`, not here.
   **First machine: a Dell Latitude E5570**, expected the week of 2026-10-13;
   its driver pack and model file are prepared
   (`spikes/2026-10-11-latitude-e5570-prep/`, with the first-boot checklist).
-  The remote shell (`bin/shell`) and the screen pusher (`bin/screen`) are
-  in and verified. The laptop runs Kali today: harvest its UUID
-  and MAC over SSH and write `machines/<uuid>.cfg` before its first PXE boot;
-  check for AMT (`mei-amt-check`). See `docs/REMOTE_VISIBILITY.md`.
+  The remote shell (`bin/shell`), the screen pusher (`bin/screen`) and the
+  collector (`docs/COLLECTOR.md`: Linux in RAM, inventory, SSH,
+  `pdt-pxe-next`) are in and verified in the lab. The laptop runs Kali today:
+  over SSH, read its UUID/MAC, check AMT (`mei-amt-check`), and try to turn
+  UEFI PXE on from Linux (`/sys/class/firmware-attributes/`, or Dell's
+  `cctk`); after that the collector takes over. See `docs/REMOTE_VISIBILITY.md`.
 - [ ] A Samba AD domain controller as a lab service (a Linux VM under
   `bin/lab-netns`, brought up with `serve`/`pxe-lan`), so that domain join
   can be a verified role feature instead of an untested one.

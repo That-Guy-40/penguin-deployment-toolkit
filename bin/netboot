@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+"""netboot - what a machine boots next time it PXE-boots: Windows PE (the
+default) or the collector (a Linux that inventories it and takes commands).
+
+  netboot <id|vm-name|default> collector|winpe
+  netboot                                  show the overrides in place
+
+Writes (or removes) boot/<uuid>.ipxe, one line, which boot.ipxe chains before
+deciding. "default" is what unlisted and un-overridden machines get
+(boot/default.ipxe). Nothing here touches a disk: the collector never writes
+to one, and Windows PE only does what machines/<uuid>.cfg says.
+"""
+import argparse
+import glob
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
+import _pdt
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("machine", nargs="?")
+    ap.add_argument("what", nargs="?", choices=["collector", "winpe"])
+    a = ap.parse_args()
+    boot = os.path.join(_pdt.paths()["HTTP_DIR"], "boot")
+    names = _pdt.vm_names()
+    if not a.machine:
+        for f in sorted(glob.glob(os.path.join(boot, "*.ipxe"))):
+            mid = os.path.basename(f)[:-5]
+            print(f"{mid}  {names.get(mid, '')}\t{open(f).read().strip()}")
+        return 0
+    if not a.what:
+        ap.error("say what: collector or winpe")
+    mid = "default" if a.machine == "default" else _pdt.resolve_id(a.machine)
+    path = os.path.join(boot, f"{mid}.ipxe")
+    if a.what == "winpe":
+        if os.path.exists(path):
+            os.remove(path)
+        print(f"{a.machine}: Windows PE (no override)")
+        return 0
+    os.makedirs(boot, exist_ok=True)
+    with open(path + ".part", "w", newline="\n") as f:
+        f.write("#!ipxe\nset pdt_boot collector\n")
+    os.rename(path + ".part", path)
+    print(f"{a.machine}: collector on the next PXE boot ({os.path.relpath(path)})")
+    return 0
+
+
+sys.exit(main())
