@@ -1,0 +1,68 @@
+#!/bin/bash
+# fetch-drivers - download a vendor driver pack (Dell/Lenovo/HP style .CAB or
+# .zip of .inf drivers), verify it, unpack it and make a driver pack of it:
+# http/drivers/<name>.wim (+ sidecar), via bin/pack-drivers.
+#
+#   fetch-drivers <url> <name> [--sha256 <hex>]
+#
+# --sha256 pins the download; without it the hash of what was fetched is
+# printed and recorded, so the second run can pin it (vendors rarely publish
+# hashes; Dell does not). The archive is kept in build/dl/.
+#
+# Dell's packs are listed per model at
+# https://www.dell.com/support/kbdoc/en-us/000109893 and live on dl.dell.com,
+# which answers 403 to a bare curl: a browser-like User-Agent is sent.
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+need curl sha256sum
+
+URL="" NAME="" SHA=""
+while (( $# )); do
+    case "$1" in
+        --sha256) SHA="${2:?}"; shift 2 ;;
+        -h|--help) sed -n '2,14p' "$0"; exit 0 ;;
+        -*) die "unknown option: $1" ;;
+        *) if [[ -z "$URL" ]]; then URL="$1"; elif [[ -z "$NAME" ]]; then NAME="$1"; else die "too many arguments"; fi; shift ;;
+    esac
+done
+[[ -n "$URL" && -n "$NAME" ]] || die "usage: fetch-drivers <url> <name> [--sha256 <hex>]"
+[[ "$NAME" =~ ^[a-z0-9][a-z0-9-]*$ ]] || die "name: lowercase letters, digits and dashes (it becomes drivers/<name>.wim and a model slug)"
+
+DL="$BUILD_DIR/dl"; mkdir -p "$DL"
+FILE="$DL/$(basename "${URL%%\?*}")"
+if [[ ! -f "$FILE" ]]; then
+    info "downloading $(basename "$FILE")..."
+    curl -fL --retry 3 --progress-bar -A 'Mozilla/5.0 (X11; Linux x86_64) Firefox/128.0' -o "$FILE.part" "$URL" || die "download failed"
+    mv "$FILE.part" "$FILE"
+fi
+GOT="$(sha256sum "$FILE" | cut -d' ' -f1)"
+if [[ -n "$SHA" ]]; then
+    [[ "$GOT" == "$SHA" ]] || die "SHA-256 mismatch for $(basename "$FILE"): got $GOT, expected $SHA (the vendor re-published the file, or the download is corrupt; rm it from build/dl/ to re-fetch)"
+    info "SHA-256 verified"
+else
+    info "SHA-256 of the download (pin it with --sha256 next time): $GOT"
+fi
+
+WORK="$BUILD_DIR/drivers/$NAME"
+rm -rf "$WORK"; mkdir -p "$WORK"
+case "${FILE,,}" in
+    *.cab) need cabextract; info "extracting (cabextract)..."; cabextract -q -d "$WORK" "$FILE" || die "cabextract failed" ;;
+    *.zip) need unzip;      info "extracting (unzip)...";      unzip -q -d "$WORK" "$FILE" || die "unzip failed" ;;
+    *.exe) need 7z;         info "extracting (7z)...";         7z x -y -o"$WORK" "$FILE" >/dev/null || die "7z could not extract the .exe" ;;
+    *) die "do not know how to unpack $(basename "$FILE") (cab, zip or a 7z-extractable exe)" ;;
+esac
+# Only what DISM needs; the packs also carry setup .exes and docs.
+find "$WORK" -type f ! \( -iname '*.inf' -o -iname '*.sys' -o -iname '*.cat' -o -iname '*.dll' -o -iname '*.bin' -o -iname '*.exe' -o -iname '*.dat' -o -iname '*.ini' -o -iname '*.xml' -o -iname '*.mui' -o -iname '*.cab' -o -iname '*.txt' -o -iname '*.json' -o -iname '*.pdb' \) -delete 2>/dev/null || true
+find "$WORK" -iname '*.pdb' -delete
+INFS=$(find "$WORK" -iname '*.inf' | wc -l)
+(( INFS )) || die "no .inf files in the archive"
+info "$INFS .inf files; packing as drivers/$NAME.wim..."
+"$PDT_ROOT/bin/pack-drivers" "$WORK" "$NAME"
+# Record where the pack came from, next to pack-drivers' own sidecar.
+python3 - "$HTTP_DIR/drivers/$NAME.json" "$URL" "$GOT" "$(basename "$FILE")" <<'PY'
+import json, sys
+p, url, sha, fn = sys.argv[1:5]
+d = json.load(open(p))
+d["source"] = {"url": url, "file": fn, "sha256": sha, "via": "bin/fetch-drivers"}
+json.dump(d, open(p, "w"), indent=2)
+PY
+info "done: http/drivers/$NAME.wim  (models/<slug>.cfg: DRIVERS=$NAME)"

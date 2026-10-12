@@ -14,7 +14,8 @@ rem A role is a directory roles/<ROLE>/ with a role.cfg naming its files.
 if defined ROLE (
   %CURL% -f -o %PDT%\role.cfg "%SRV%/roles/%ROLE%/role.cfg" || set "MISSING=!MISSING! roles/%ROLE%/role.cfg"
   if exist %PDT%\role.cfg for /f "usebackq eol=# tokens=1,* delims==" %%a in ("%PDT%\role.cfg") do (
-    for %%k in (UNATTEND APPS POST USERS SKEL) do if /i "%%a"=="%%k" (%CURL% -f -I -o nul "%SRV%/roles/%ROLE%/%%b" || set "MISSING=!MISSING! roles/%ROLE%/%%b")
+    for %%k in (UNATTEND APPS POST USERS SKEL SKELREG) do if /i "%%a"=="%%k" (%CURL% -f -I -o nul "%SRV%/roles/%ROLE%/%%b" || set "MISSING=!MISSING! roles/%ROLE%/%%b")
+    if /i "%%a"=="DEPLOY" (%CURL% -f -I -o nul "%SRV%/post/remove-deploy.cmd" || set "MISSING=!MISSING! post/remove-deploy.cmd")
     rem SKEL names a manifest; every file it lists must be there too.
     if /i "%%a"=="SKEL" (
       %CURL% -f -o %PDT%\skel.txt "%SRV%/roles/%ROLE%/%%b" && for /f "usebackq eol=# delims=" %%l in ("%PDT%\skel.txt") do (

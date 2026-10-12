@@ -1,16 +1,36 @@
 #!/bin/bash
-# vm-stop - stop a lab VM.   vm-stop <name> [--force]
+# vm-stop - stop a lab VM.   vm-stop <name> [--full | --force]
 # Asks the guest to power down (ACPI) and waits up to 60 s; --force (or a guest
 # that ignores ACPI, such as WinPE or the iPXE shell) ends QEMU by its PID.
+#
+# --full: a REAL shutdown of an installed Windows. The ACPI button is, on a
+# Windows with fast startup (the default; a role's FASTSTARTUP=off turns it
+# off), a hibernation: the next power-on resumes, "at startup" tasks do not
+# run, and a hardware change in between (vm-boot --nic ...) hangs it. --full
+# types "shutdown /s /t 0 /f" into the logged-on desktop through the Run
+# dialog (blind, like vm-type) and waits for QEMU to exit; it fails loudly
+# if the guest does not go down within 90 s, and never falls back to ACPI.
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 need socat
 
-NAME="" FORCE=0
-for a in "$@"; do case "$a" in --force) FORCE=1 ;; -h|--help) sed -n '2,4p' "$0"; exit 0 ;; *) NAME="$a" ;; esac; done
-[[ -n "$NAME" ]] || die "usage: vm-stop <name> [--force]"
+NAME="" FORCE=0 FULL=0
+for a in "$@"; do case "$a" in --force) FORCE=1 ;; --full) FULL=1 ;; -h|--help) sed -n '2,12p' "$0"; exit 0 ;; *) NAME="$a" ;; esac; done
+[[ -n "$NAME" ]] || die "usage: vm-stop <name> [--full | --force]"
+(( ! (FORCE && FULL) )) || die "--full and --force exclude each other"
 vm_load "$NAME"
 
 pid="$(vm_pid "$NAME")" || { info "VM $NAME is not running"; exit 0; }
+if (( FULL )); then
+    # Esc first: Win+R sent while the Start menu is open lands in its search box.
+    vm_monitor "$NAME" "sendkey esc" >/dev/null; sleep 1
+    vm_monitor "$NAME" "sendkey meta_l-r" >/dev/null; sleep 2
+    "$PDT_ROOT/bin/vm-type" "$NAME" 'shutdown /s /t 0 /f'
+    for _ in $(seq 1 90); do kill -0 "$pid" 2>/dev/null || break; sleep 1; done
+    kill -0 "$pid" 2>/dev/null && die "guest did not shut down in 90 s: no logged-on desktop to type into? (bin/vm-shot $NAME shows it). Use vm-stop $NAME (ACPI) or --force."
+    rm -f "$VM_DIR/qemu.pid"
+    info "VM $NAME shut down (full shutdown, not fast startup)"
+    exit 0
+fi
 if (( ! FORCE )); then
     vm_monitor "$NAME" system_powerdown >/dev/null || true
     for _ in $(seq 1 60); do kill -0 "$pid" 2>/dev/null || break; sleep 1; done

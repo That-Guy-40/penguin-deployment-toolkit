@@ -13,7 +13,8 @@ if exist "%ProgramFiles%\7-Zip\7z.exe" set SEVENZIP=yes
 set ALICE_LOGON=untested
 set ALICE_SKEL=untested
 set DEPLOY_LOGON=untested
+set ALICE_SKELREG=untested
 if exist "%~dp0..\users-out.txt" (
   for /f "delims=" %%r in ('powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0probe-users.ps1" "%~dp0..\users-out.txt"') do set "%%r"
 )
-call "%~dp0..\beacon.cmd" role-post ok "sevenzip=%SEVENZIP%" "alice_logon=%ALICE_LOGON%" "alice_skel=%ALICE_SKEL%" "deploy_logon=%DEPLOY_LOGON%"
+call "%~dp0..\beacon.cmd" role-post ok "sevenzip=%SEVENZIP%" "alice_logon=%ALICE_LOGON%" "alice_skel=%ALICE_SKEL%" "deploy_logon=%DEPLOY_LOGON%" "alice_skelreg=%ALICE_SKELREG%"

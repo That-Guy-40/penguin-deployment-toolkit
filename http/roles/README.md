@@ -11,6 +11,8 @@ files; `role.cfg` names the rest:
 | `UNATTEND` | an unattend.xml | replaces the cfg's `UNATTEND=` from `http/unattend/` for this role |
 | `USERS` | `name\|group\|policy` per line | local accounts, created (or, if they exist, re-passworded) at first logon by `post/users.ps1`. Group `Administrators` or `Users`; policy `random` (a 32-character password from the OS generator) or `plain:<password>`. See "Accounts and passwords" |
 | `SKEL` | a manifest: one relative path per line | the files, kept under `skel/` in the role directory, are copied into `C:\Users\Default`: Windows' `/etc/skel`, copied into every profile created from then on. `lint` insists the manifest and the directory agree |
+| `SKELREG` | a `.reg` file (`reg export` format) of `HKEY_CURRENT_USER` keys | merged into the Default profile's hive (`C:\Users\Default\NTUSER.DAT`), so every profile created afterwards starts with those values: Explorer, locale and taskbar defaults are the usual use. `lint` refuses any other root |
+| `DEPLOY` | `remove` (or absent) | delete the toolkit's own `deploy` account. `post/remove-deploy.cmd` deletes the account at the end of first logon (Windows allows deleting the logged-on account; the session lives until the restart that follows), registers a one-shot SYSTEM task for the next boot that removes the profile directory, and restarts (`deploy-remove ok account=deleted`, then `deploy-removed ok` from the next boot). `lint` requires `USERS` to create another `Administrators` account first. Skipped on a reference machine (sysprep needs `deploy`; the captured image's unattend makes it again) |
 | `FILES` | file names, space-separated | companions of the post script, fetched next to it |
 | `FASTSTARTUP` | `off` (or absent) | `off`: `powercfg /h off` at first logon, so every shutdown is a real shutdown and every power-on a real boot. Absent: Windows' default (fast startup on). See below |
 
@@ -20,10 +22,11 @@ the disk; `60-unattend` puts `role.cfg` and the files it names in `C:\pdt\role\`
 and `firstlogon.cmd` works through them in this order:
 
 ```
-firstlogon ok  →  winre ok  →  skel ok files=N  →  users ok created=… set=… failed=
+firstlogon ok  →  winre ok  →  skel ok files=N  →  skelreg ok  →  users ok created=… set=… failed=
   →  users-upload ok  →  winget ok version=…  →  apps ok installed=… failed=
   →  faststartup ok state=off  →  boot-tasks ok  →  role-post …  →  (POST script)
   →  deployed ok role=<name>   →  (REFERENCE=yes: prepare-capture)
+  →  (DEPLOY=remove: deploy-remove ok account=deleted, restart, then deploy-removed ok from the next boot)
 ```
 
 `deployed` is the verdict a fleet waits for: `bin/await <machine> deployed`.
@@ -65,10 +68,10 @@ password is ever captured into an image. If the upload fails, the file is
 kept and `users-upload fail` says so; the passwords are then nowhere else.
 
 `plain:` is for accounts whose password is not a secret (a kiosk); the role
-directory is served to every machine that asks. Not done: domain join,
-removing `deploy` altogether (it has to exist until first logon ends), and
-templating the Default profile's registry hive (`NTUSER.DAT`): `SKEL` copies
-files only.
+directory is served to every machine that asks. `DEPLOY=remove` gets rid of
+the toolkit's account once the role's own administrator exists; `SKELREG`
+templates the registry side of a new profile. Not done: domain join (no
+directory to test against yet).
 
 ## Why fast startup is a role setting
 
@@ -87,7 +90,9 @@ sends `boot ok trigger=onstart|event` after each boot: the `event` task
 ## Example
 
 `lab-apps/` is the role the lab tests with: 7-Zip and Notepad++, fast startup
-off, a skel with two files, `deploy` re-passworded and an `alice` account, and
-a post script that probes all of it (logs on as each account with the
-generated password, checks alice's new profile has the skel files) and
-beacons `role-post ok sevenzip=yes alice_logon=yes alice_skel=yes deploy_logon=yes`.
+off, a skel with two files and a `skel.reg`, accounts `admin` and `alice`
+(and `deploy` re-passworded, then removed at the next boot), and a post
+script that probes all of it (logs on as each account with the generated
+password, checks alice's new profile has the skel files and the registry
+value) and beacons `role-post ok sevenzip=yes alice_logon=yes alice_skel=yes
+deploy_logon=yes alice_skelreg=lab-apps`.

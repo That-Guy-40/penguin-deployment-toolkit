@@ -1,0 +1,1872 @@
+remove-deploy Mon 10/12/2026  4:05:11.41
+The command completed successfully.
+
+=== LogonUI before
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI
+    ShowTabletKeyboard    REG_DWORD    0x0
+    IdleTime    REG_DWORD    0x0
+    SelectedUserSID    REG_SZ    S-1-5-21-602702127-3753353592-2596472383-1000
+    LastLoggedOnSAMUser    REG_SZ    .\deploy
+    LastLoggedOnUser    REG_SZ    .\deploy
+    LastLoggedOnDisplayName    REG_SZ    deploy
+    LastLoggedOnUserSID    REG_SZ    S-1-5-21-602702127-3753353592-2596472383-1000
+    LastLoggedOnProvider    REG_SZ    {60B78E88-EAD8-445C-9CFD-0B87F74EA6CD}
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\AccessPage
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\AccessPage\StatusProviders
+    batterystatus    REG_SZ    {328489c8-f25e-44b5-93d4-8f811b4dc326}
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Background
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Background\User
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\BootAnimation
+    DisableStartupSound    REG_DWORD    0x1
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\ClearAutologon
+    Enabled    REG_DWORD    0x0
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Creative
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\FaceLogon
+    UserSwitchEnabled    REG_DWORD    0x0
+    CredProvUncompletedInstances    REG_DWORD    0x1
+    DeviceNotCapableFirstSeenDate    REG_BINARY    E8C110B4FE59DD01
+    DeviceNotCapableSeenCount    REG_DWORD    0x0
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\FaceLogon\S-1-1-0
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\FaceLogonEnrolledUsers
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\FingerprintLogon
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\FingerprintLogon\S-1-1-0
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\NgcPin
+    EnablePinReset    REG_DWORD    0xf
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1255970798-2717750985-493741290-1721212560-3530798636-1829112236-3118580706
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1255970798-2717750985-493741290-1721212560-3530798636-1829112236-3118580706\App.AppX2dpzn89f97jxafp1y36xe6wxhgmg4f2w.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.Apprep.ChxApp_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1255970798-2717750985-493741290-1721212560-3530798636-1829112236-3118580706\App.AppXpr0cqn9hyh17cda0cgksrex1dxvzkb2p.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.Apprep.ChxApp_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1310292540-1029022339-4008023048-2190398717-53961996-4257829345-603366646
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1310292540-1029022339-4008023048-2190398717-53961996-4257829345-603366646\DPI.PerMonitorAware.AppXx61dd75z8d6k9psy6v8fvjyhx5rdj4sa.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Win32WebViewHost_cw5n1h2txyewy!DPI.PerMonitorAware
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1310292540-1029022339-4008023048-2190398717-53961996-4257829345-603366646\DPI.PerMonitorAware.AppXzcbtbn40cg9w591ak7v7s31jmnrb2dtb.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Win32WebViewHost_cw5n1h2txyewy!DPI.PerMonitorAware
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1310292540-1029022339-4008023048-2190398717-53961996-4257829345-603366646\DPI.SystemAware.AppX64ebpmrryzntbexxxw7yf7wg0ktmstk9.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Win32WebViewHost_cw5n1h2txyewy!DPI.SystemAware
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1310292540-1029022339-4008023048-2190398717-53961996-4257829345-603366646\DPI.SystemAware.AppXbkxyyah4yxs5bbvr8mm9jakm6th16xgt.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Win32WebViewHost_cw5n1h2txyewy!DPI.SystemAware
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1310292540-1029022339-4008023048-2190398717-53961996-4257829345-603366646\DPI.Unaware.AppXjfk1mgekja4enqszpv8bcvpeea6c4fee.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Win32WebViewHost_cw5n1h2txyewy!DPI.Unaware
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1310292540-1029022339-4008023048-2190398717-53961996-4257829345-603366646\DPI.Unaware.AppXnx8qefgavf26bggx97rh01nz1wf27jbr.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Win32WebViewHost_cw5n1h2txyewy!DPI.Unaware
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1360228337-3609766572-1372892391-3031100628-3683702297-2015117089-141686205
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1360228337-3609766572-1372892391-3031100628-3683702297-2015117089-141686205\PackageMetadata.AppXv3hcpsakc7m7569wvstvae0q71y9nv78.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.AIX_cw5n1h2txyewy!PackageMetadata
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1360228337-3609766572-1372892391-3031100628-3683702297-2015117089-141686205\PackageMetadata.AppXwsj7kjg8e9avtqjke6k9tdsncasp4vfw.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.AIX_cw5n1h2txyewy!PackageMetadata
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-138780814-3997110584-2874353029-2041838810-3659441231-3169655024-3643974355
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-138780814-3997110584-2874353029-2041838810-3659441231-3169655024-3643974355\App.AppX5etbqw91j08snachsz8b8qw3h740sx6t.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    NcsiUwpApp_8wekyb3d8bbwe!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-138780814-3997110584-2874353029-2041838810-3659441231-3169655024-3643974355\App.AppXjmzeb84qew8cqvrtd68fh32hdqxycf7a.mca
+    Capabilities    REG_DWORD    0x40004
+    AppUserModelId    REG_SZ    NcsiUwpApp_8wekyb3d8bbwe!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-138780814-3997110584-2874353029-2041838810-3659441231-3169655024-3643974355\App.AppXqrs5nj32f8rqzvfjkch3vd45v4p8syw2.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    NcsiUwpApp_8wekyb3d8bbwe!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-138780814-3997110584-2874353029-2041838810-3659441231-3169655024-3643974355\App.AppXw175g9nmx2zykh9fyt6xjc0xf8vmj1w6.mca
+    Capabilities    REG_DWORD    0x4000c
+    AppUserModelId    REG_SZ    NcsiUwpApp_8wekyb3d8bbwe!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1443768658-4142614663-2184295616-261691820-2296379425-3814639016-258098527
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1443768658-4142614663-2184295616-261691820-2296379425-3814639016-258098527\App.AppX00mtp953crf7493tv7fsdmgswkfbwxa0.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    F46D4000-FD22-4DB4-AC8E-4E1DDDE828FE_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1443768658-4142614663-2184295616-261691820-2296379425-3814639016-258098527\App.AppXm49et8kcqgs940g99tfmc3pq0mvkx6yb.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    F46D4000-FD22-4DB4-AC8E-4E1DDDE828FE_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1484987186-1222498055-1895867193-3865138943-3428356477-682207028-3900627692
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1484987186-1222498055-1895867193-3865138943-3428356477-682207028-3900627692\Microsoft.Windows.CBSPreview.AppXd56ebff74hb8k26acaz7bnawb3canxt5.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Windows.CBSPreview_cw5n1h2txyewy!Microsoft.Windows.CBSPreview
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1484987186-1222498055-1895867193-3865138943-3428356477-682207028-3900627692\Microsoft.Windows.CBSPreview.AppXphj0kxfenxrfh0jbmz9fpemzwe6k8gn3.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Windows.CBSPreview_cw5n1h2txyewy!Microsoft.Windows.CBSPreview
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-155514346-2573954481-755741238-1654018636-1233331829-3075935687-2861478708
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-155514346-2573954481-755741238-1654018636-1233331829-3075935687-2861478708\App.AppX0kpnt2cmwhnj6p1s9h9fc5cmcm9tydy2.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.ShellExperienceHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-155514346-2573954481-755741238-1654018636-1233331829-3075935687-2861478708\App.AppXgxgm8gs8b9vsjsd9gvhmnf95vcbc9q6e.mca
+    Capabilities    REG_DWORD    0xc
+    AppUserModelId    REG_SZ    Microsoft.Windows.ShellExperienceHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-155514346-2573954481-755741238-1654018636-1233331829-3075935687-2861478708\App.AppXqjpwwnvk2vq1mkj9z67cgpg823dk9wpe.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.ShellExperienceHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-155514346-2573954481-755741238-1654018636-1233331829-3075935687-2861478708\App.AppXv10hny8ma6f03y0jtdfdejxzfevy2pkd.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ShellExperienceHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.AppListBackup.AppXejq0h3nhhxrh0k5w2w9gjx8nd0hz59d1.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.AppListBackup
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.AppListBackup.AppXxt5hz8cvj42tt0c2pdbt39aratzrmpat.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.AppListBackup
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.BackupBanner.AppX8ccxvn6fbfecfkha90svqf15kybpnwcz.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.BackupBanner
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.BackupBanner.AppXha0m3gc4xtvg90he89y1jrwjqqv3rapr.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.BackupBanner
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.CopilotNudges.AppX8r50b607fbnpjxj7kzrxwaatg8f7sd88.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.CopilotNudges
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.CopilotNudges.AppXwkyx5xyp8mkrmyt89qwgcbr633vp283p.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.CopilotNudges
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.FamilyValueProp.AppXdb3s90jwjgkk1f1yvb5bg2a6df5gd74s.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.FamilyValueProp
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.FamilyValueProp.AppXyyjxcd83tmf7bbr17tr4ampwedcc3nm8.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.FamilyValueProp
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.LiveCaptionsDesktop.AppXcq30tkdb9kh48kbb9ye57kq7fq42q7mp.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.LiveCaptionsDesktop
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.LiveCaptionsDesktop.AppXkf16h02t6668mb5kgp0mqftcy46wbs2p.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.LiveCaptionsDesktop
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.MicrosoftGraphRecentItemsManager.AppX7hbd6wm08srrmwanraggyhx559zeczr0.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.MicrosoftGraphRecentItemsManager
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.MicrosoftGraphRecentItemsManager.AppXe12bewhy75sscqt3fqfzztj1zqvgbexr.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.MicrosoftGraphRecentItemsManager
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.SnapLayout.AppX58dwf1xwjzeer05zcpfeag883w4vc9y0.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.SnapLayout
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.SnapLayout.AppXtq41qr67x4809h0sw08q4z6dq40nerjx.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.SnapLayout
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.SpeechSynthesizerExtension.AppXbx8hy9tkawmzj1dvtz5862zc0jd242em.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.SpeechSynthesizerExtension
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.SpeechSynthesizerExtension.AppXfhas8dmrn95cffqjgcrfastwbb47z8xs.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.SpeechSynthesizerExtension
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.StartMenu.AppX3r42cmv48gqt5rtq01s6f2vvqcbjkckw.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.StartMenu
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.StartMenu.AppXqftg9pfvg7yqqngbtyhhkps3htynbwvf.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.StartMenu
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.SystemTray.AppX83jh3x095c7s3qvnwd1xsmv6kyc9b0f4.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.SystemTray
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.SystemTray.AppXtz7kvfszcftzp835yhhfmtr3epwstk8w.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.SystemTray
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.Taskbar.AppX5fvg2dbq5wt9dqchqe7m77pgncfpt11a.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.Taskbar
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.Taskbar.AppXqjwbhc3ng3q05wg13jp9bnv1r3ea2y9q.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.Taskbar
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.ValueBanner.AppX7w6dy2hwm5sdnstk0t8xb43ggs8ab70j.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.ValueBanner
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.ValueBanner.AppXz55ykej1dj0seg5ypddh2z54agacs084.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.ValueBanner
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.VoiceAccessHost.AppXcvwy9x23hpds0kp76mwdxrgrhz0n50vf.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.VoiceAccessHost
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.VoiceAccessHost.AppXn96g7ftckqyt34g31ypddp39gzg1e3pp.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.VoiceAccessHost
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.VoiceAccessPlugin.AppX3gxxp7ccc3089y796hgr1edbzn96f739.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.VoiceAccessPlugin
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.VoiceAccessPlugin.AppXygexhnq1yk11dy8zj3mfvt9qgnmecwx4.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.VoiceAccessPlugin
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\LogonWebHost.AppX1218z9518q40h5rf4ndjsdrv1qhbak8q.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!LogonWebHost
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\LogonWebHost.AppXjs034v16xjqxqgm0nv2x46z51xe4xc3a.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!LogonWebHost
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\PackageMetadata.AppXrv6vvtbcpn9qz0e20cte912pmpn3y5aq.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!PackageMetadata
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\PackageMetadata.AppXwgh57474ae9z0haxrz9e3vqmwp5bvc7j.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!PackageMetadata
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\ScreenClipping.AppX5smyz511w65fg08c75sct9k7fyzvn5m6.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!ScreenClipping
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\ScreenClipping.AppX5yfjzydqpnj3z7cdr9ad15vmp6mq0hek.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!ScreenClipping
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1910091885-1573563583-1104941280-2418270861-3411158377-2822700936-2990310272
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1910091885-1573563583-1104941280-2418270861-3411158377-2822700936-2990310272\App.AppX4ncqz34bbtt07eqzhagpn4c10ehepw0a.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.AAD.BrokerPlugin_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1910091885-1573563583-1104941280-2418270861-3411158377-2822700936-2990310272\App.AppXk4mkt6sb5zpexjgjxt2wtr7fczahhtxh.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.AAD.BrokerPlugin_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1912509539-3368118754-2471371924-3037708167-1407372224-1099830378-371392376
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1912509539-3368118754-2471371924-3037708167-1407372224-1099830378-371392376\Microsoft.Windows.AppResolverUX.AppXns49mzrk3h735db2qmrebqa2x6zddsxm.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    E2A4F912-2574-4A75-9BB0-0D023378592B_cw5n1h2txyewy!Microsoft.Windows.AppResolverUX
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1912509539-3368118754-2471371924-3037708167-1407372224-1099830378-371392376\Microsoft.Windows.AppResolverUX.AppXv006bebexv4ndcc70sn6z1yykwfsx9kj.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    E2A4F912-2574-4A75-9BB0-0D023378592B_cw5n1h2txyewy!Microsoft.Windows.AppResolverUX
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-19479607-1015771884-3827151630-3301822711-2267158487-4079414233-1230461222
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-19479607-1015771884-3827151630-3301822711-2267158487-4079414233-1230461222\App.AppXa2a0fe7wbv0nk2855y3jj4t0nd7m2a8t.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.BioEnrollment_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-19479607-1015771884-3827151630-3301822711-2267158487-4079414233-1230461222\App.AppXxjsg0xv0s4ngp3th9n2c7a5aawjvhv4t.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.BioEnrollment_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-216940756-3926213634-2086602690-3208050060-4189571744-4076504916-545222953
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-216940756-3926213634-2086602690-3208050060-4189571744-4076504916-545222953\App.AppX7ada8gpmsmk9w0fxae51re4zxv2c4x9r.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.PrintQueueActionCenter_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-216940756-3926213634-2086602690-3208050060-4189571744-4076504916-545222953\App.AppXqvhp6g3ysqm6vdxwj4bt00pbcga24fkn.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.PrintQueueActionCenter_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2376884767-3641813526-1736181949-1293975252-228260496-2789807194-3363476418
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2376884767-3641813526-1736181949-1293975252-228260496-2789807194-3363476418\microsoft.windows.immersivecontrolpanel.AppX21vkvh811r5jcd4wena93d7ssr5fh769.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    windows.immersivecontrolpanel_cw5n1h2txyewy!microsoft.windows.immersivecontrolpanel
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2376884767-3641813526-1736181949-1293975252-228260496-2789807194-3363476418\microsoft.windows.immersivecontrolpanel.AppXkvcc5604paztw62ak4eesbbqcbsh1c4v.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    windows.immersivecontrolpanel_cw5n1h2txyewy!microsoft.windows.immersivecontrolpanel
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2432820154-214690117-2638483218-3299957948-3041975438-3418652010-4243016273
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2432820154-214690117-2638483218-3299957948-3041975438-3418652010-4243016273\Global.FileExplorerExtensions.AppXpt86p7mc8kh4g1fb88ss1kgqdakfkfy3.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.FileExp_cw5n1h2txyewy!Global.FileExplorerExtensions
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2432820154-214690117-2638483218-3299957948-3041975438-3418652010-4243016273\Global.FileExplorerExtensions.AppXymn4m815v97tmjrbx8vyj119x7vcsenz.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.FileExp_cw5n1h2txyewy!Global.FileExplorerExtensions
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2432820154-214690117-2638483218-3299957948-3041975438-3418652010-4243016273\PackageMetadata.AppXdn2meg86r0mw8s7jecsaj8zaf5vwfphw.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.FileExp_cw5n1h2txyewy!PackageMetadata
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2432820154-214690117-2638483218-3299957948-3041975438-3418652010-4243016273\PackageMetadata.AppXme3875rq19x0w3exyx257y1c1xs6kh3v.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.FileExp_cw5n1h2txyewy!PackageMetadata
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2434737943-167758768-3180539153-984336765-1107280622-3591121930-2677285773
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2434737943-167758768-3180539153-984336765-1107280622-3591121930-2677285773\App.AppXntnmv70n83rg2dwd1f3b1jfjg1szddck.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.CloudExperienceHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2434737943-167758768-3180539153-984336765-1107280622-3591121930-2677285773\App.AppXw912w7a1bx0h9jc59hc3wbmx68td2n2v.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.CloudExperienceHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2652307757-2298579837-578647688-3387406430-2756081349-614783772-2601174805
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2652307757-2298579837-578647688-3387406430-2756081349-614783772-2601174805\App.AppX4tatq20fa0sebpjex1bks2crcsaw2j12.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.PinningConfirmationDialog_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2652307757-2298579837-578647688-3387406430-2756081349-614783772-2601174805\App.AppXx1kd012aaxraxkw1drzz6h3rcwfsqb5m.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.PinningConfirmationDialog_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2705751783-1496458293-2835996032-3143071717-1071345625-677459937-2760321769
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2705751783-1496458293-2835996032-3143071717-1071345625-677459937-2760321769\App.AppXkv6gpr5wnhe0ccmvxfqm9rwwkpnckm2z.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.AssignedAccessLockApp_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2705751783-1496458293-2835996032-3143071717-1071345625-677459937-2760321769\App.AppXs0kxhbr2mxxp8mqszmbhnhkjbawyapdr.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.AssignedAccessLockApp_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2758101530-1321080646-1475665648-4066602542-2880396197-3643791541-2654759312
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2758101530-1321080646-1475665648-4066602542-2880396197-3643791541-2654759312\WindowsDefaultLockScreen.AppXs5nhtq2qewbpnhvekb05kqpmg96qtf7s.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.LockApp_cw5n1h2txyewy!WindowsDefaultLockScreen
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2758101530-1321080646-1475665648-4066602542-2880396197-3643791541-2654759312\WindowsDefaultLockScreen.AppXw289frmm5h7en9xhcas005wk93ssm403.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.LockApp_cw5n1h2txyewy!WindowsDefaultLockScreen
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\CortanaUI.AppX0hhkyb1tr90sfqx4y7xps60nbvcyss18.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!CortanaUI
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\CortanaUI.AppX5efbrnr8swnwvw2zmh0rv4g6n0adb35m.mca
+    Capabilities    REG_DWORD    0xc
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!CortanaUI
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\CortanaUI.AppXzrjf4d4sgrysxc8t5r04pvd9bhn1pvc7.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!CortanaUI
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\FESearchUI.AppX56j7s4gkns6d4m35ex456f0jyvbbk169.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!FESearchUI
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\FESearchUI.AppXw1rs3mtb5mndgaqdfv37z1jw8xz4pnpk.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!FESearchUI
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.Accounts.AppX0ywy34c7xbnarswkyr314y99fpt1prxy.mca
+    Capabilities    REG_DWORD    0x10
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.Accounts
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.Accounts.AppX4ajyzdn2ccgn80t5fgeadgpcqh2ytc0k.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.Accounts
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.Accounts.AppX8yrfnvrjgqksgeea7rrq1yev91j1g7b8.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.Accounts
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.Accounts.AppXczw5m0gs1v24mkf1zqkkpebvayhcn73d.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.Accounts
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.Accounts.AppXfx5s4f90jev9dx89895vea2qy3v3pa72.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.Accounts
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.Accounts.AppXg3nzv8e3eb5x2a48jma01w7xkayzc5xs.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.Accounts
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.Accounts.AppXvmq9ykwpceheaas0efrqnv2aqyv1xdha.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.Accounts
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.Accounts.AppXy0wge83xx81kxffa7wsta16hgypf8rfk.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.Accounts
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.DesktopSpotlight.AppX1ay99xhphzbwzv134qx0tx5qnb6t98qf.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.DesktopSpotlight
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.DesktopSpotlight.AppX602w9n4the1sgxhbzxgsxdf7dv3483g7.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.DesktopSpotlight
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.DesktopSpotlight.AppXeyy7amn54nsymgzbtnz2jtp50wjqctbx.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.DesktopSpotlight
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.DesktopSpotlight.AppXmakp9w4re9tj70pp8mcdrt273xajen0x.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.DesktopSpotlight
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.DesktopSpotlight.AppXsbcwqry9q2amq0yycaave244ba1n1r0w.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.DesktopSpotlight
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.DesktopSpotlight.AppXvp5m44xepzrmffmk4h0y1vz4zz33b4f9.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.DesktopSpotlight
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.DesktopStickerEditor.AppXagnm1txmstjdbw7wn7nqeva8ktbpwv9p.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.DesktopStickerEditor
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.DesktopStickerEditor.AppXzwnmd02htet7g3sjd7ts9j8kj9c5v33w.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.DesktopStickerEditor
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.IrisService.AppX0rx4escc2mj6hvn679j52gzahqw4y7qg.mca
+    Capabilities    REG_DWORD    0x10
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.IrisService
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.IrisService.AppX2n4vda78xdy3qfxkpc4tayac0y131445.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.IrisService
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.IrisService.AppX4v6gb1ky7wec6aebg8dxpset8xwhzm0h.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.IrisService
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.IrisService.AppX9vt1fs6dqgjpa4d1gsrdvr2kg9rrqk5d.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.IrisService
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.IrisService.AppXkjrqty4skpnq48e37dvjmd2bfx178sas.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.IrisService
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.IrisService.AppXkn0yefjgn47bn9db55sr47fvnbzapdgx.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.IrisService
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.IrisService.AppXnpw2wspmxg49yvh26y9jrqkskbz88tjf.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.IrisService
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.IrisService.AppXv0xdshg3s0nk3nk1n97hsjsprrgcgvjs.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.IrisService
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.IrisService.AppXwwah2tbqj7j749pkqvs0hna8en4npvp8.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.IrisService
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.PersonalInfoManager.AppXdfa41134nncnc32j7b6jvs5sjgyempm8.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.PersonalInfoManager
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.PersonalInfoManager.AppXfdne4ad0zf62cs9y791cqhp1nv14rw9m.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.PersonalInfoManager
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.RulesEngine.AppX124knjaf32t9974xtbqwpy7wrwwnztv3.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.RulesEngine
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.RulesEngine.AppX46kesf3dvb3t88m0dvk9y7a6fh9wavr1.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.RulesEngine
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.RulesEngine.AppX5z5kfs8055rf6ttb3wq8ztd1bbgncvdy.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.RulesEngine
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.RulesEngine.AppXfg8m4g1sed4hejywgfgeha3dmkg0j4ck.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.RulesEngine
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.RulesEngine.AppXg6p1s9373bk1gyjynwzsms4dqcb1sqz1.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.RulesEngine
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.TextInputExtensions.AppX222qfxmvkexj6w5k262hww24c6sepshf.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.TextInputExtensions
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.TextInputExtensions.AppX5czsm2dpvr9wzmr3x6vecx5grr2fh4h7.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.TextInputExtensions
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\InputApp.AppXp6r5xn9xb2s79k1za7epccvmqt3y5vbf.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!InputApp
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\InputApp.AppXxnb1h1awpvrdby2f36y2edfvfbtjxh4v.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!InputApp
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\MiniSearchUI.AppX7rft1n4hy6nw7s3c2c0h5xgjv6gn701m.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!MiniSearchUI
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\MiniSearchUI.AppXw637zyhdvr9vddddbx0p97k8r5fh6xgq.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!MiniSearchUI
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\PackageMetadata.AppX9sfmnfjzbg8e1hgxcm5b9233zzz08j61.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!PackageMetadata
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\PackageMetadata.AppXpr7jb2xtzjkv5mcc6kzwmmf4wkjfmmv7.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!PackageMetadata
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\WebExperienceHost.AppXcnj2pa08e2rq4xwc31zebdka3h9vaxh3.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!WebExperienceHost
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\WebExperienceHost.AppXgf3a3bx4hha3pae9y5k9bdsqss3sm4rk.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!WebExperienceHost
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\WebExperienceHost.AppXhge2rjn4wp909rq9g6hdstakq48y0k3e.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!WebExperienceHost
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\WebExperienceHost.AppXtxeqzv5qynpmss219yp8y0zwb6g7a52b.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!WebExperienceHost
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\WindowsBackup.AppX5p0dt3fn160mgq761y9tk0cxrfc7dnd6.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!WindowsBackup
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\WindowsBackup.AppXwkwys2tnb5skgfnmha1a46rd50fyrdp8.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!WindowsBackup
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-284907560-3695622717-2124867970-90980536-1928201052-1028515541-1033863524
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-284907560-3695622717-2124867970-90980536-1928201052-1028515541-1033863524\App.AppX8nx5ctc7a2rymhhqecncj22ggcppjjv9.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.AsyncTextService_8wekyb3d8bbwe!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-284907560-3695622717-2124867970-90980536-1928201052-1028515541-1033863524\App.AppXp4wpase8zw5nnymbgr8d5yakzewpv9jj.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.AsyncTextService_8wekyb3d8bbwe!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3072599432-1607568789-957273504-856596282-71567818-1546726304-1084662928
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3072599432-1607568789-957273504-856596282-71567818-1546726304-1084662928\App.AppXae7ns4wrcwqfrezfq8vbxt6js06chync.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.ParentalControls_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3072599432-1607568789-957273504-856596282-71567818-1546726304-1084662928\App.AppXvmpg6dcwprmasbfvsg72464kc4dn6q18.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.ParentalControls_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3110756066-2507771734-389907848-353554127-1230786711-3973453966-120447785
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3110756066-2507771734-389907848-353554127-1230786711-3973453966-120447785\Microsoft.Windows.FilePicker.AppXgjtm720dsgjynxxnpt2sapy700ec5y9t.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    1527c705-839a-4832-9118-54d4Bd6a0c89_cw5n1h2txyewy!Microsoft.Windows.FilePicker
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3110756066-2507771734-389907848-353554127-1230786711-3973453966-120447785\Microsoft.Windows.FilePicker.AppXpxjkswhvgr4kesbr9ja5cwvq9p7snv17.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    1527c705-839a-4832-9118-54d4Bd6a0c89_cw5n1h2txyewy!Microsoft.Windows.FilePicker
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3119458392-1009845475-4083330090-3659807469-4003170139-1239840055-303833190
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3119458392-1009845475-4083330090-3659807469-4003170139-1239840055-303833190\App.AppXa2hm0xhd6608a8x0hsrtnfknxd9w462b.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.OOBENetworkCaptivePortal_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3119458392-1009845475-4083330090-3659807469-4003170139-1239840055-303833190\App.AppXm1h5fnqe5s7vr84qvt82w4nj04jz56qj.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.OOBENetworkCaptivePortal_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3127391486-654165588-1135944943-943820645-244210695-3344878592-833444881
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3127391486-654165588-1135944943-943820645-244210695-3344878592-833444881\Microsoft.Windows.XGpuEjectDialog.AppX5nqr6m04dhsrz9223hm7xzwdqqxcmxqv.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.XGpuEjectDialog_cw5n1h2txyewy!Microsoft.Windows.XGpuEjectDialog
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3127391486-654165588-1135944943-943820645-244210695-3344878592-833444881\Microsoft.Windows.XGpuEjectDialog.AppXp7aa4b9certnda7tg336nyjffpy2xn28.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.XGpuEjectDialog_cw5n1h2txyewy!Microsoft.Windows.XGpuEjectDialog
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3147918054-4251542582-2404553452-1793583264-1546801782-1235146273-4024180735
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3147918054-4251542582-2404553452-1793583264-1546801782-1235146273-4024180735\App.AppX3g7kd1zg4a65n0t2ds4j7hffbf62pp9n.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.CapturePicker_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3147918054-4251542582-2404553452-1793583264-1546801782-1235146273-4024180735\App.AppX9298rzzjqee0e6z69a168a2kkea3272g.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.CapturePicker_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3155986392-3975291318-3290200901-3688105942-3149078057-1179077593-1847296678
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3155986392-3975291318-3290200901-3688105942-3149078057-1179077593-1847296678\Microsoft.Windows.PrintDialog.AppXskcrzs22qh136w607wsfv5z9v35zx4r5.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Windows.PrintDialog_cw5n1h2txyewy!Microsoft.Windows.PrintDialog
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3155986392-3975291318-3290200901-3688105942-3149078057-1179077593-1847296678\Microsoft.Windows.PrintDialog.AppXv42rtrb1mc702dzsntwk7td5q0r8d235.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Windows.PrintDialog_cw5n1h2txyewy!Microsoft.Windows.PrintDialog
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppX2dz2dz7bvszf1srfbwq1tqyrpq3nvxf6.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppX447jn8wbjb1qsw3jxkndb19cwgsrtrkk.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppX4h7afn0qpsyh64hybzh15tyefm7d0qdq.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppX4jgsjrmghnx5xnjbxq6f4rt8d7x6fz56.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppX51ysthdartafshx0m8z8re49sw398b43.mca
+    Capabilities    REG_DWORD    0x10
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppX76q4xtxwbj16z0zkyp0pnwtt6m850rvk.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppX7rzacqv9fsema8p3fjbs30qgtgv0xzyg.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppX8f33pzjqtv84a2ha2f38qat9mf90c7mf.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppX9s1cz53zc86xn39kwrb02jyft9ecn62r.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppXa372cjaa29frn3f9zb3m28rmfsm402nx.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppXdca9rykvbm0qn1fw9m2dbx828p2w3h8p.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppXea6epmb5w19sjwy9ckw8md46dm93nhkq.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppXfnethrsp7zb4s2ekfph2b5f7cgbkbswt.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppXrr05phpxx3rq1kpwp0y4avzvdfcsr75s.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppXryc2qd338f5728r9gzzazav8206ba77s.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppXw3qcpc7p849541dp39vvqd01bn7z9ybh.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppXwdz8g2fxr36xz0tdtagygnvemf85s7gg.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppXx4zfy1ffv3wctgdz2vypnybzjkh27jhw.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppXxyrxfkapamrp843pd5arq545p9wtj2nq.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppXyvyv4mghdjas8j88defq0w1hc410kvzt.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppXyww6zxjd3hpc08q55n9j7nztzza8mz1m.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3637181099-3165582941-2384801395-3283118383-1187078190-3493346776-3423618717
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3637181099-3165582941-2384801395-3283118383-1187078190-3493346776-3423618717\Global.ExperienceExtensions.AppX70c4pvw3a4g2a9w5xxefncxpp8yd75c7.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Photon_cw5n1h2txyewy!Global.ExperienceExtensions
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3637181099-3165582941-2384801395-3283118383-1187078190-3493346776-3423618717\Global.ExperienceExtensions.AppXmwbbeewzzb99p3sa3835nz63bkkkp2wd.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Photon_cw5n1h2txyewy!Global.ExperienceExtensions
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3637181099-3165582941-2384801395-3283118383-1187078190-3493346776-3423618717\Global.WsxPackManager.AppXw0h7dsx9310xav2fgz1qd15frqwgwszz.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Photon_cw5n1h2txyewy!Global.WsxPackManager
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3637181099-3165582941-2384801395-3283118383-1187078190-3493346776-3423618717\Global.WsxPackManager.AppXyqa5td2pdxtrrhsh67rjkm51jdb6xy6g.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Photon_cw5n1h2txyewy!Global.WsxPackManager
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3637181099-3165582941-2384801395-3283118383-1187078190-3493346776-3423618717\PackageMetadata.AppX84fyc12xzm77xr9aaw2xdq17y69rkw6b.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Photon_cw5n1h2txyewy!PackageMetadata
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3637181099-3165582941-2384801395-3283118383-1187078190-3493346776-3423618717\PackageMetadata.AppXx9hwchrzt6vnq3jnn31hqwnrqp53d64f.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Photon_cw5n1h2txyewy!PackageMetadata
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3733603082-4179795269-1217541644-381468798-1681740699-3059609168-2054985149
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3733603082-4179795269-1217541644-381468798-1681740699-3059609168-2054985149\App.AppXrtkg3ebdrtg67k8v75mvnm3zfpjceykd.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.SecureAssessmentBrowser_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3733603082-4179795269-1217541644-381468798-1681740699-3059609168-2054985149\App.AppXz50byegdp9v0stee495y21kv0xbyqgzm.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.SecureAssessmentBrowser_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3784866113-3187381476-3433752343-3391928953-3760210436-1684329488-1912184601
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3784866113-3187381476-3433752343-3391928953-3760210436-1684329488-1912184601\App.AppXdqxdgc0xdfggkz6d2z69jy8ey85eejq7.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.OOBENetworkConnectionFlow_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3784866113-3187381476-3433752343-3391928953-3760210436-1684329488-1912184601\App.AppXxfb02mawce7c6efa0xn7xxbtrnvdjgcj.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.OOBENetworkConnectionFlow_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3911328773-608413955-1309177842-678056087-3306350038-3682494511-2300153425
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3911328773-608413955-1309177842-678056087-3306350038-3682494511-2300153425\App.AppXemdecxs7zy6dn89skd64q94137qvpzfs.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.PeopleExperienceHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3911328773-608413955-1309177842-678056087-3306350038-3682494511-2300153425\App.AppXv3y9x55a7eq2mt4f5qfd56ewff2nbzm8.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.PeopleExperienceHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3912597219-1073764063-4221279274-2430493127-3107599948-1184173955-951593363
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3912597219-1073764063-4221279274-2430493127-3107599948-1184173955-951593363\App.AppXax817xdz5sbxr49yd24terbbc7kzrnbq.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.ECApp_8wekyb3d8bbwe!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3912597219-1073764063-4221279274-2430493127-3107599948-1184173955-951593363\App.AppXzx3y7df1exwenz6j3n59f2kky5z0n5rc.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.ECApp_8wekyb3d8bbwe!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3950126717-3641943460-3038804466-693777006-783539386-1288712031-1294249617
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3950126717-3641943460-3038804466-693777006-783539386-1288712031-1294249617\OobeHost.AppX4tw5ggy9fr3rr39vgt7h5wx8m94jb504.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.OOBE_cw5n1h2txyewy!OobeHost
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3950126717-3641943460-3038804466-693777006-783539386-1288712031-1294249617\OobeHost.AppX57bnpdhb2y2keeh7gnjg18wys2747njp.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.OOBE_cw5n1h2txyewy!OobeHost
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3950126717-3641943460-3038804466-693777006-783539386-1288712031-1294249617\OobeHost.AppX6bj56gpfgc90p49thdxsnj5be6r7f6yq.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.OOBE_cw5n1h2txyewy!OobeHost
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3950126717-3641943460-3038804466-693777006-783539386-1288712031-1294249617\OobeHost.AppXjhem0jrx9ktv9247tpn0ffganfwrmp09.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.OOBE_cw5n1h2txyewy!OobeHost
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3950126717-3641943460-3038804466-693777006-783539386-1288712031-1294249617\PackageMetadata.AppXgxrs9btz46qf2trywek8d0mtzmp4w9jk.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.OOBE_cw5n1h2txyewy!PackageMetadata
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3950126717-3641943460-3038804466-693777006-783539386-1288712031-1294249617\PackageMetadata.AppXzjqgb8q7k6pvpr113q96rjew95ghgp4y.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.OOBE_cw5n1h2txyewy!PackageMetadata
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-4264928162-86341590-2006646042-3756743162-890444002-3415177634-881149292
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-4264928162-86341590-2006646042-3756743162-890444002-3415177634-881149292\App.AppX9k1r07j2j1r760b134v3zpg7kyf754bx.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    c5e2524a-ea46-4f67-841f-6a9465d9d515_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-4264928162-86341590-2006646042-3756743162-890444002-3415177634-881149292\App.AppXx83m4by3p4r0rr7jqaqfc35t2x3npbzn.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    c5e2524a-ea46-4f67-841f-6a9465d9d515_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-515815643-2845804217-1874292103-218650560-777617685-4287762684-137415000
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-515815643-2845804217-1874292103-218650560-777617685-4287762684-137415000\App.AppX61hpp0btbpr7ww8e8y4q7ga99y3mb921.mca
+    Capabilities    REG_DWORD    0xc
+    AppUserModelId    REG_SZ    Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-515815643-2845804217-1874292103-218650560-777617685-4287762684-137415000\App.AppX8mekmt3tnzpj2rqvv32phe9zztvazy1x.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-515815643-2845804217-1874292103-218650560-777617685-4287762684-137415000\App.AppXce0rcsqhwpztn79s8y3ad2aht6sj1bwj.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-932905279-1352884144-690731472-1935380077-77221151-3040906485-3167188873
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-932905279-1352884144-690731472-1935380077-77221151-3040906485-3167188873\App.AppXhwyds4rk7x1n5d19trv30fn7fbe01fjx.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.CredDialogHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-932905279-1352884144-690731472-1935380077-77221151-3040906485-3167188873\App.AppXr6j54agfmsnf11n440jb928bzsqqdekm.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.CredDialogHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-957941444-2271171641-4049211970-804197638-2225746618-2474488012-4131196493
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-957941444-2271171641-4049211970-804197638-2225746618-2474488012-4131196493\Microsoft.XboxGameCallableUI.AppX1cmwnn74xnybt9sthpeww9n07vye06vx.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.XboxGameCallableUI_cw5n1h2txyewy!Microsoft.XboxGameCallableUI
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-957941444-2271171641-4049211970-804197638-2225746618-2474488012-4131196493\Microsoft.XboxGameCallableUI.AppX8s458wyr2sn7smnarg3rs49chrqg84qg.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.XboxGameCallableUI_cw5n1h2txyewy!Microsoft.XboxGameCallableUI
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-969871995-3242822759-583047763-1618006129-3578262429-3647035748-2471858633
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-969871995-3242822759-583047763-1618006129-3578262429-3647035748-2471858633\App.AppXbe6cegqrk9q6d482qh2x7dkmydv38qp5.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.AccountsControl_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-969871995-3242822759-583047763-1618006129-3578262429-3647035748-2471858633\App.AppXh7n19g4ar4fcxzvgc9xhqhz2gsyfkcbf.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.AccountsControl_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\OverrideColor
+    BackgroundColorInbbggrr    REG_DWORD    0xff000000
+    ForegroundColorInbbggrr    REG_DWORD    0xffffffff
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\PicturePassword
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\SessionData
+    BootLogon    REG_DWORD    0x0
+    SCCPFirstBootLogon    REG_DWORD    0x0
+    AllowLockScreen    REG_DWORD    0x1
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\SessionData\1
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\TestHooks
+    XamlCredUIAvailable    REG_DWORD    0x1
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Unattend
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\UserSwitch
+    Enabled    REG_DWORD    0x0
+    UserSID    REG_SZ    
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\UserTile
+    S-1-5-21-602702127-3753353592-2596472383-1000    REG_SZ    {60B78E88-EAD8-445C-9CFD-0B87F74EA6CD}
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\ValidateUsername
+    Enabled    REG_DWORD    0x0
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\LogonSoundPlayed
+    SoundPlayed    REG_DWORD    0x1
+    LogonUIChecked    REG_DWORD    0x1
+
+=== LogonUI after
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI
+    ShowTabletKeyboard    REG_DWORD    0x0
+    IdleTime    REG_DWORD    0x0
+    SelectedUserSID    REG_SZ    S-1-5-21-602702127-3753353592-2596472383-1000
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\AccessPage
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\AccessPage\StatusProviders
+    batterystatus    REG_SZ    {328489c8-f25e-44b5-93d4-8f811b4dc326}
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Background
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Background\User
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\BootAnimation
+    DisableStartupSound    REG_DWORD    0x1
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\ClearAutologon
+    Enabled    REG_DWORD    0x0
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Creative
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\FaceLogon
+    UserSwitchEnabled    REG_DWORD    0x0
+    CredProvUncompletedInstances    REG_DWORD    0x1
+    DeviceNotCapableFirstSeenDate    REG_BINARY    E8C110B4FE59DD01
+    DeviceNotCapableSeenCount    REG_DWORD    0x0
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\FaceLogon\S-1-1-0
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\FaceLogonEnrolledUsers
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\FingerprintLogon
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\FingerprintLogon\S-1-1-0
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\NgcPin
+    EnablePinReset    REG_DWORD    0xf
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1255970798-2717750985-493741290-1721212560-3530798636-1829112236-3118580706
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1255970798-2717750985-493741290-1721212560-3530798636-1829112236-3118580706\App.AppX2dpzn89f97jxafp1y36xe6wxhgmg4f2w.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.Apprep.ChxApp_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1255970798-2717750985-493741290-1721212560-3530798636-1829112236-3118580706\App.AppXpr0cqn9hyh17cda0cgksrex1dxvzkb2p.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.Apprep.ChxApp_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1310292540-1029022339-4008023048-2190398717-53961996-4257829345-603366646
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1310292540-1029022339-4008023048-2190398717-53961996-4257829345-603366646\DPI.PerMonitorAware.AppXx61dd75z8d6k9psy6v8fvjyhx5rdj4sa.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Win32WebViewHost_cw5n1h2txyewy!DPI.PerMonitorAware
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1310292540-1029022339-4008023048-2190398717-53961996-4257829345-603366646\DPI.PerMonitorAware.AppXzcbtbn40cg9w591ak7v7s31jmnrb2dtb.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Win32WebViewHost_cw5n1h2txyewy!DPI.PerMonitorAware
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1310292540-1029022339-4008023048-2190398717-53961996-4257829345-603366646\DPI.SystemAware.AppX64ebpmrryzntbexxxw7yf7wg0ktmstk9.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Win32WebViewHost_cw5n1h2txyewy!DPI.SystemAware
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1310292540-1029022339-4008023048-2190398717-53961996-4257829345-603366646\DPI.SystemAware.AppXbkxyyah4yxs5bbvr8mm9jakm6th16xgt.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Win32WebViewHost_cw5n1h2txyewy!DPI.SystemAware
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1310292540-1029022339-4008023048-2190398717-53961996-4257829345-603366646\DPI.Unaware.AppXjfk1mgekja4enqszpv8bcvpeea6c4fee.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Win32WebViewHost_cw5n1h2txyewy!DPI.Unaware
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1310292540-1029022339-4008023048-2190398717-53961996-4257829345-603366646\DPI.Unaware.AppXnx8qefgavf26bggx97rh01nz1wf27jbr.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Win32WebViewHost_cw5n1h2txyewy!DPI.Unaware
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1360228337-3609766572-1372892391-3031100628-3683702297-2015117089-141686205
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1360228337-3609766572-1372892391-3031100628-3683702297-2015117089-141686205\PackageMetadata.AppXv3hcpsakc7m7569wvstvae0q71y9nv78.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.AIX_cw5n1h2txyewy!PackageMetadata
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1360228337-3609766572-1372892391-3031100628-3683702297-2015117089-141686205\PackageMetadata.AppXwsj7kjg8e9avtqjke6k9tdsncasp4vfw.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.AIX_cw5n1h2txyewy!PackageMetadata
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-138780814-3997110584-2874353029-2041838810-3659441231-3169655024-3643974355
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-138780814-3997110584-2874353029-2041838810-3659441231-3169655024-3643974355\App.AppX5etbqw91j08snachsz8b8qw3h740sx6t.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    NcsiUwpApp_8wekyb3d8bbwe!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-138780814-3997110584-2874353029-2041838810-3659441231-3169655024-3643974355\App.AppXjmzeb84qew8cqvrtd68fh32hdqxycf7a.mca
+    Capabilities    REG_DWORD    0x40004
+    AppUserModelId    REG_SZ    NcsiUwpApp_8wekyb3d8bbwe!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-138780814-3997110584-2874353029-2041838810-3659441231-3169655024-3643974355\App.AppXqrs5nj32f8rqzvfjkch3vd45v4p8syw2.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    NcsiUwpApp_8wekyb3d8bbwe!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-138780814-3997110584-2874353029-2041838810-3659441231-3169655024-3643974355\App.AppXw175g9nmx2zykh9fyt6xjc0xf8vmj1w6.mca
+    Capabilities    REG_DWORD    0x4000c
+    AppUserModelId    REG_SZ    NcsiUwpApp_8wekyb3d8bbwe!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1443768658-4142614663-2184295616-261691820-2296379425-3814639016-258098527
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1443768658-4142614663-2184295616-261691820-2296379425-3814639016-258098527\App.AppX00mtp953crf7493tv7fsdmgswkfbwxa0.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    F46D4000-FD22-4DB4-AC8E-4E1DDDE828FE_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1443768658-4142614663-2184295616-261691820-2296379425-3814639016-258098527\App.AppXm49et8kcqgs940g99tfmc3pq0mvkx6yb.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    F46D4000-FD22-4DB4-AC8E-4E1DDDE828FE_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1484987186-1222498055-1895867193-3865138943-3428356477-682207028-3900627692
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1484987186-1222498055-1895867193-3865138943-3428356477-682207028-3900627692\Microsoft.Windows.CBSPreview.AppXd56ebff74hb8k26acaz7bnawb3canxt5.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Windows.CBSPreview_cw5n1h2txyewy!Microsoft.Windows.CBSPreview
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1484987186-1222498055-1895867193-3865138943-3428356477-682207028-3900627692\Microsoft.Windows.CBSPreview.AppXphj0kxfenxrfh0jbmz9fpemzwe6k8gn3.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Windows.CBSPreview_cw5n1h2txyewy!Microsoft.Windows.CBSPreview
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-155514346-2573954481-755741238-1654018636-1233331829-3075935687-2861478708
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-155514346-2573954481-755741238-1654018636-1233331829-3075935687-2861478708\App.AppX0kpnt2cmwhnj6p1s9h9fc5cmcm9tydy2.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.ShellExperienceHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-155514346-2573954481-755741238-1654018636-1233331829-3075935687-2861478708\App.AppXgxgm8gs8b9vsjsd9gvhmnf95vcbc9q6e.mca
+    Capabilities    REG_DWORD    0xc
+    AppUserModelId    REG_SZ    Microsoft.Windows.ShellExperienceHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-155514346-2573954481-755741238-1654018636-1233331829-3075935687-2861478708\App.AppXqjpwwnvk2vq1mkj9z67cgpg823dk9wpe.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.ShellExperienceHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-155514346-2573954481-755741238-1654018636-1233331829-3075935687-2861478708\App.AppXv10hny8ma6f03y0jtdfdejxzfevy2pkd.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ShellExperienceHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.AppListBackup.AppXejq0h3nhhxrh0k5w2w9gjx8nd0hz59d1.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.AppListBackup
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.AppListBackup.AppXxt5hz8cvj42tt0c2pdbt39aratzrmpat.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.AppListBackup
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.BackupBanner.AppX8ccxvn6fbfecfkha90svqf15kybpnwcz.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.BackupBanner
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.BackupBanner.AppXha0m3gc4xtvg90he89y1jrwjqqv3rapr.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.BackupBanner
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.CopilotNudges.AppX8r50b607fbnpjxj7kzrxwaatg8f7sd88.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.CopilotNudges
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.CopilotNudges.AppXwkyx5xyp8mkrmyt89qwgcbr633vp283p.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.CopilotNudges
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.FamilyValueProp.AppXdb3s90jwjgkk1f1yvb5bg2a6df5gd74s.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.FamilyValueProp
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.FamilyValueProp.AppXyyjxcd83tmf7bbr17tr4ampwedcc3nm8.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.FamilyValueProp
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.LiveCaptionsDesktop.AppXcq30tkdb9kh48kbb9ye57kq7fq42q7mp.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.LiveCaptionsDesktop
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.LiveCaptionsDesktop.AppXkf16h02t6668mb5kgp0mqftcy46wbs2p.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.LiveCaptionsDesktop
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.MicrosoftGraphRecentItemsManager.AppX7hbd6wm08srrmwanraggyhx559zeczr0.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.MicrosoftGraphRecentItemsManager
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.MicrosoftGraphRecentItemsManager.AppXe12bewhy75sscqt3fqfzztj1zqvgbexr.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.MicrosoftGraphRecentItemsManager
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.SnapLayout.AppX58dwf1xwjzeer05zcpfeag883w4vc9y0.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.SnapLayout
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.SnapLayout.AppXtq41qr67x4809h0sw08q4z6dq40nerjx.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.SnapLayout
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.SpeechSynthesizerExtension.AppXbx8hy9tkawmzj1dvtz5862zc0jd242em.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.SpeechSynthesizerExtension
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.SpeechSynthesizerExtension.AppXfhas8dmrn95cffqjgcrfastwbb47z8xs.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.SpeechSynthesizerExtension
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.StartMenu.AppX3r42cmv48gqt5rtq01s6f2vvqcbjkckw.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.StartMenu
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.StartMenu.AppXqftg9pfvg7yqqngbtyhhkps3htynbwvf.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.StartMenu
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.SystemTray.AppX83jh3x095c7s3qvnwd1xsmv6kyc9b0f4.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.SystemTray
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.SystemTray.AppXtz7kvfszcftzp835yhhfmtr3epwstk8w.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.SystemTray
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.Taskbar.AppX5fvg2dbq5wt9dqchqe7m77pgncfpt11a.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.Taskbar
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.Taskbar.AppXqjwbhc3ng3q05wg13jp9bnv1r3ea2y9q.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.Taskbar
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.ValueBanner.AppX7w6dy2hwm5sdnstk0t8xb43ggs8ab70j.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.ValueBanner
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.ValueBanner.AppXz55ykej1dj0seg5ypddh2z54agacs084.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.ValueBanner
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.VoiceAccessHost.AppXcvwy9x23hpds0kp76mwdxrgrhz0n50vf.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.VoiceAccessHost
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.VoiceAccessHost.AppXn96g7ftckqyt34g31ypddp39gzg1e3pp.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.VoiceAccessHost
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.VoiceAccessPlugin.AppX3gxxp7ccc3089y796hgr1edbzn96f739.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.VoiceAccessPlugin
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\Global.VoiceAccessPlugin.AppXygexhnq1yk11dy8zj3mfvt9qgnmecwx4.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!Global.VoiceAccessPlugin
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\LogonWebHost.AppX1218z9518q40h5rf4ndjsdrv1qhbak8q.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!LogonWebHost
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\LogonWebHost.AppXjs034v16xjqxqgm0nv2x46z51xe4xc3a.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!LogonWebHost
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\PackageMetadata.AppXrv6vvtbcpn9qz0e20cte912pmpn3y5aq.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!PackageMetadata
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\PackageMetadata.AppXwgh57474ae9z0haxrz9e3vqmwp5bvc7j.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!PackageMetadata
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\ScreenClipping.AppX5smyz511w65fg08c75sct9k7fyzvn5m6.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!ScreenClipping
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1865096472-3228082684-3088735348-2044108251-975292724-3239066845-4226050315\ScreenClipping.AppX5yfjzydqpnj3z7cdr9ad15vmp6mq0hek.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Core_cw5n1h2txyewy!ScreenClipping
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1910091885-1573563583-1104941280-2418270861-3411158377-2822700936-2990310272
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1910091885-1573563583-1104941280-2418270861-3411158377-2822700936-2990310272\App.AppX4ncqz34bbtt07eqzhagpn4c10ehepw0a.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.AAD.BrokerPlugin_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1910091885-1573563583-1104941280-2418270861-3411158377-2822700936-2990310272\App.AppXk4mkt6sb5zpexjgjxt2wtr7fczahhtxh.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.AAD.BrokerPlugin_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1912509539-3368118754-2471371924-3037708167-1407372224-1099830378-371392376
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1912509539-3368118754-2471371924-3037708167-1407372224-1099830378-371392376\Microsoft.Windows.AppResolverUX.AppXns49mzrk3h735db2qmrebqa2x6zddsxm.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    E2A4F912-2574-4A75-9BB0-0D023378592B_cw5n1h2txyewy!Microsoft.Windows.AppResolverUX
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-1912509539-3368118754-2471371924-3037708167-1407372224-1099830378-371392376\Microsoft.Windows.AppResolverUX.AppXv006bebexv4ndcc70sn6z1yykwfsx9kj.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    E2A4F912-2574-4A75-9BB0-0D023378592B_cw5n1h2txyewy!Microsoft.Windows.AppResolverUX
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-19479607-1015771884-3827151630-3301822711-2267158487-4079414233-1230461222
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-19479607-1015771884-3827151630-3301822711-2267158487-4079414233-1230461222\App.AppXa2a0fe7wbv0nk2855y3jj4t0nd7m2a8t.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.BioEnrollment_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-19479607-1015771884-3827151630-3301822711-2267158487-4079414233-1230461222\App.AppXxjsg0xv0s4ngp3th9n2c7a5aawjvhv4t.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.BioEnrollment_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-216940756-3926213634-2086602690-3208050060-4189571744-4076504916-545222953
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-216940756-3926213634-2086602690-3208050060-4189571744-4076504916-545222953\App.AppX7ada8gpmsmk9w0fxae51re4zxv2c4x9r.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.PrintQueueActionCenter_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-216940756-3926213634-2086602690-3208050060-4189571744-4076504916-545222953\App.AppXqvhp6g3ysqm6vdxwj4bt00pbcga24fkn.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.PrintQueueActionCenter_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2376884767-3641813526-1736181949-1293975252-228260496-2789807194-3363476418
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2376884767-3641813526-1736181949-1293975252-228260496-2789807194-3363476418\microsoft.windows.immersivecontrolpanel.AppX21vkvh811r5jcd4wena93d7ssr5fh769.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    windows.immersivecontrolpanel_cw5n1h2txyewy!microsoft.windows.immersivecontrolpanel
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2376884767-3641813526-1736181949-1293975252-228260496-2789807194-3363476418\microsoft.windows.immersivecontrolpanel.AppXkvcc5604paztw62ak4eesbbqcbsh1c4v.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    windows.immersivecontrolpanel_cw5n1h2txyewy!microsoft.windows.immersivecontrolpanel
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2432820154-214690117-2638483218-3299957948-3041975438-3418652010-4243016273
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2432820154-214690117-2638483218-3299957948-3041975438-3418652010-4243016273\Global.FileExplorerExtensions.AppXpt86p7mc8kh4g1fb88ss1kgqdakfkfy3.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.FileExp_cw5n1h2txyewy!Global.FileExplorerExtensions
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2432820154-214690117-2638483218-3299957948-3041975438-3418652010-4243016273\Global.FileExplorerExtensions.AppXymn4m815v97tmjrbx8vyj119x7vcsenz.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.FileExp_cw5n1h2txyewy!Global.FileExplorerExtensions
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2432820154-214690117-2638483218-3299957948-3041975438-3418652010-4243016273\PackageMetadata.AppXdn2meg86r0mw8s7jecsaj8zaf5vwfphw.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.FileExp_cw5n1h2txyewy!PackageMetadata
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2432820154-214690117-2638483218-3299957948-3041975438-3418652010-4243016273\PackageMetadata.AppXme3875rq19x0w3exyx257y1c1xs6kh3v.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.FileExp_cw5n1h2txyewy!PackageMetadata
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2434737943-167758768-3180539153-984336765-1107280622-3591121930-2677285773
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2434737943-167758768-3180539153-984336765-1107280622-3591121930-2677285773\App.AppXntnmv70n83rg2dwd1f3b1jfjg1szddck.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.CloudExperienceHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2434737943-167758768-3180539153-984336765-1107280622-3591121930-2677285773\App.AppXw912w7a1bx0h9jc59hc3wbmx68td2n2v.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.CloudExperienceHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2652307757-2298579837-578647688-3387406430-2756081349-614783772-2601174805
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2652307757-2298579837-578647688-3387406430-2756081349-614783772-2601174805\App.AppX4tatq20fa0sebpjex1bks2crcsaw2j12.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.PinningConfirmationDialog_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2652307757-2298579837-578647688-3387406430-2756081349-614783772-2601174805\App.AppXx1kd012aaxraxkw1drzz6h3rcwfsqb5m.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.PinningConfirmationDialog_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2705751783-1496458293-2835996032-3143071717-1071345625-677459937-2760321769
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2705751783-1496458293-2835996032-3143071717-1071345625-677459937-2760321769\App.AppXkv6gpr5wnhe0ccmvxfqm9rwwkpnckm2z.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.AssignedAccessLockApp_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2705751783-1496458293-2835996032-3143071717-1071345625-677459937-2760321769\App.AppXs0kxhbr2mxxp8mqszmbhnhkjbawyapdr.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.AssignedAccessLockApp_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2758101530-1321080646-1475665648-4066602542-2880396197-3643791541-2654759312
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2758101530-1321080646-1475665648-4066602542-2880396197-3643791541-2654759312\WindowsDefaultLockScreen.AppXs5nhtq2qewbpnhvekb05kqpmg96qtf7s.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.LockApp_cw5n1h2txyewy!WindowsDefaultLockScreen
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-2758101530-1321080646-1475665648-4066602542-2880396197-3643791541-2654759312\WindowsDefaultLockScreen.AppXw289frmm5h7en9xhcas005wk93ssm403.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.LockApp_cw5n1h2txyewy!WindowsDefaultLockScreen
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\CortanaUI.AppX0hhkyb1tr90sfqx4y7xps60nbvcyss18.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!CortanaUI
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\CortanaUI.AppX5efbrnr8swnwvw2zmh0rv4g6n0adb35m.mca
+    Capabilities    REG_DWORD    0xc
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!CortanaUI
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\CortanaUI.AppXzrjf4d4sgrysxc8t5r04pvd9bhn1pvc7.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!CortanaUI
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\FESearchUI.AppX56j7s4gkns6d4m35ex456f0jyvbbk169.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!FESearchUI
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\FESearchUI.AppXw1rs3mtb5mndgaqdfv37z1jw8xz4pnpk.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!FESearchUI
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.Accounts.AppX0ywy34c7xbnarswkyr314y99fpt1prxy.mca
+    Capabilities    REG_DWORD    0x10
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.Accounts
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.Accounts.AppX4ajyzdn2ccgn80t5fgeadgpcqh2ytc0k.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.Accounts
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.Accounts.AppX8yrfnvrjgqksgeea7rrq1yev91j1g7b8.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.Accounts
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.Accounts.AppXczw5m0gs1v24mkf1zqkkpebvayhcn73d.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.Accounts
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.Accounts.AppXfx5s4f90jev9dx89895vea2qy3v3pa72.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.Accounts
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.Accounts.AppXg3nzv8e3eb5x2a48jma01w7xkayzc5xs.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.Accounts
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.Accounts.AppXvmq9ykwpceheaas0efrqnv2aqyv1xdha.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.Accounts
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.Accounts.AppXy0wge83xx81kxffa7wsta16hgypf8rfk.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.Accounts
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.DesktopSpotlight.AppX1ay99xhphzbwzv134qx0tx5qnb6t98qf.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.DesktopSpotlight
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.DesktopSpotlight.AppX602w9n4the1sgxhbzxgsxdf7dv3483g7.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.DesktopSpotlight
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.DesktopSpotlight.AppXeyy7amn54nsymgzbtnz2jtp50wjqctbx.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.DesktopSpotlight
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.DesktopSpotlight.AppXmakp9w4re9tj70pp8mcdrt273xajen0x.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.DesktopSpotlight
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.DesktopSpotlight.AppXsbcwqry9q2amq0yycaave244ba1n1r0w.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.DesktopSpotlight
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.DesktopSpotlight.AppXvp5m44xepzrmffmk4h0y1vz4zz33b4f9.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.DesktopSpotlight
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.DesktopStickerEditor.AppXagnm1txmstjdbw7wn7nqeva8ktbpwv9p.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.DesktopStickerEditor
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.DesktopStickerEditor.AppXzwnmd02htet7g3sjd7ts9j8kj9c5v33w.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.DesktopStickerEditor
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.IrisService.AppX0rx4escc2mj6hvn679j52gzahqw4y7qg.mca
+    Capabilities    REG_DWORD    0x10
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.IrisService
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.IrisService.AppX2n4vda78xdy3qfxkpc4tayac0y131445.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.IrisService
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.IrisService.AppX4v6gb1ky7wec6aebg8dxpset8xwhzm0h.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.IrisService
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.IrisService.AppX9vt1fs6dqgjpa4d1gsrdvr2kg9rrqk5d.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.IrisService
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.IrisService.AppXkjrqty4skpnq48e37dvjmd2bfx178sas.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.IrisService
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.IrisService.AppXkn0yefjgn47bn9db55sr47fvnbzapdgx.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.IrisService
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.IrisService.AppXnpw2wspmxg49yvh26y9jrqkskbz88tjf.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.IrisService
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.IrisService.AppXv0xdshg3s0nk3nk1n97hsjsprrgcgvjs.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.IrisService
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.IrisService.AppXwwah2tbqj7j749pkqvs0hna8en4npvp8.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.IrisService
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.PersonalInfoManager.AppXdfa41134nncnc32j7b6jvs5sjgyempm8.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.PersonalInfoManager
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.PersonalInfoManager.AppXfdne4ad0zf62cs9y791cqhp1nv14rw9m.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.PersonalInfoManager
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.RulesEngine.AppX124knjaf32t9974xtbqwpy7wrwwnztv3.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.RulesEngine
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.RulesEngine.AppX46kesf3dvb3t88m0dvk9y7a6fh9wavr1.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.RulesEngine
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.RulesEngine.AppX5z5kfs8055rf6ttb3wq8ztd1bbgncvdy.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.RulesEngine
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.RulesEngine.AppXfg8m4g1sed4hejywgfgeha3dmkg0j4ck.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.RulesEngine
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.RulesEngine.AppXg6p1s9373bk1gyjynwzsms4dqcb1sqz1.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.RulesEngine
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.TextInputExtensions.AppX222qfxmvkexj6w5k262hww24c6sepshf.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.TextInputExtensions
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\Global.TextInputExtensions.AppX5czsm2dpvr9wzmr3x6vecx5grr2fh4h7.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!Global.TextInputExtensions
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\InputApp.AppXp6r5xn9xb2s79k1za7epccvmqt3y5vbf.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!InputApp
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\InputApp.AppXxnb1h1awpvrdby2f36y2edfvfbtjxh4v.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!InputApp
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\MiniSearchUI.AppX7rft1n4hy6nw7s3c2c0h5xgjv6gn701m.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!MiniSearchUI
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\MiniSearchUI.AppXw637zyhdvr9vddddbx0p97k8r5fh6xgq.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!MiniSearchUI
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\PackageMetadata.AppX9sfmnfjzbg8e1hgxcm5b9233zzz08j61.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!PackageMetadata
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\PackageMetadata.AppXpr7jb2xtzjkv5mcc6kzwmmf4wkjfmmv7.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!PackageMetadata
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\WebExperienceHost.AppXcnj2pa08e2rq4xwc31zebdka3h9vaxh3.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!WebExperienceHost
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\WebExperienceHost.AppXgf3a3bx4hha3pae9y5k9bdsqss3sm4rk.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!WebExperienceHost
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\WebExperienceHost.AppXhge2rjn4wp909rq9g6hdstakq48y0k3e.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!WebExperienceHost
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\WebExperienceHost.AppXtxeqzv5qynpmss219yp8y0zwb6g7a52b.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!WebExperienceHost
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\WindowsBackup.AppX5p0dt3fn160mgq761y9tk0cxrfc7dnd6.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!WindowsBackup
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-283421221-3183566570-1718213290-751554359-3541592344-2312209569-3374928651\WindowsBackup.AppXwkwys2tnb5skgfnmha1a46rd50fyrdp8.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.CBS_cw5n1h2txyewy!WindowsBackup
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-284907560-3695622717-2124867970-90980536-1928201052-1028515541-1033863524
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-284907560-3695622717-2124867970-90980536-1928201052-1028515541-1033863524\App.AppX8nx5ctc7a2rymhhqecncj22ggcppjjv9.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.AsyncTextService_8wekyb3d8bbwe!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-284907560-3695622717-2124867970-90980536-1928201052-1028515541-1033863524\App.AppXp4wpase8zw5nnymbgr8d5yakzewpv9jj.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.AsyncTextService_8wekyb3d8bbwe!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3072599432-1607568789-957273504-856596282-71567818-1546726304-1084662928
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3072599432-1607568789-957273504-856596282-71567818-1546726304-1084662928\App.AppXae7ns4wrcwqfrezfq8vbxt6js06chync.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.ParentalControls_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3072599432-1607568789-957273504-856596282-71567818-1546726304-1084662928\App.AppXvmpg6dcwprmasbfvsg72464kc4dn6q18.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.ParentalControls_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3110756066-2507771734-389907848-353554127-1230786711-3973453966-120447785
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3110756066-2507771734-389907848-353554127-1230786711-3973453966-120447785\Microsoft.Windows.FilePicker.AppXgjtm720dsgjynxxnpt2sapy700ec5y9t.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    1527c705-839a-4832-9118-54d4Bd6a0c89_cw5n1h2txyewy!Microsoft.Windows.FilePicker
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3110756066-2507771734-389907848-353554127-1230786711-3973453966-120447785\Microsoft.Windows.FilePicker.AppXpxjkswhvgr4kesbr9ja5cwvq9p7snv17.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    1527c705-839a-4832-9118-54d4Bd6a0c89_cw5n1h2txyewy!Microsoft.Windows.FilePicker
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3119458392-1009845475-4083330090-3659807469-4003170139-1239840055-303833190
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3119458392-1009845475-4083330090-3659807469-4003170139-1239840055-303833190\App.AppXa2hm0xhd6608a8x0hsrtnfknxd9w462b.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.OOBENetworkCaptivePortal_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3119458392-1009845475-4083330090-3659807469-4003170139-1239840055-303833190\App.AppXm1h5fnqe5s7vr84qvt82w4nj04jz56qj.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.OOBENetworkCaptivePortal_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3127391486-654165588-1135944943-943820645-244210695-3344878592-833444881
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3127391486-654165588-1135944943-943820645-244210695-3344878592-833444881\Microsoft.Windows.XGpuEjectDialog.AppX5nqr6m04dhsrz9223hm7xzwdqqxcmxqv.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.XGpuEjectDialog_cw5n1h2txyewy!Microsoft.Windows.XGpuEjectDialog
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3127391486-654165588-1135944943-943820645-244210695-3344878592-833444881\Microsoft.Windows.XGpuEjectDialog.AppXp7aa4b9certnda7tg336nyjffpy2xn28.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.XGpuEjectDialog_cw5n1h2txyewy!Microsoft.Windows.XGpuEjectDialog
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3147918054-4251542582-2404553452-1793583264-1546801782-1235146273-4024180735
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3147918054-4251542582-2404553452-1793583264-1546801782-1235146273-4024180735\App.AppX3g7kd1zg4a65n0t2ds4j7hffbf62pp9n.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.CapturePicker_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3147918054-4251542582-2404553452-1793583264-1546801782-1235146273-4024180735\App.AppX9298rzzjqee0e6z69a168a2kkea3272g.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.CapturePicker_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3155986392-3975291318-3290200901-3688105942-3149078057-1179077593-1847296678
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3155986392-3975291318-3290200901-3688105942-3149078057-1179077593-1847296678\Microsoft.Windows.PrintDialog.AppXskcrzs22qh136w607wsfv5z9v35zx4r5.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Windows.PrintDialog_cw5n1h2txyewy!Microsoft.Windows.PrintDialog
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3155986392-3975291318-3290200901-3688105942-3149078057-1179077593-1847296678\Microsoft.Windows.PrintDialog.AppXv42rtrb1mc702dzsntwk7td5q0r8d235.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Windows.PrintDialog_cw5n1h2txyewy!Microsoft.Windows.PrintDialog
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppX2dz2dz7bvszf1srfbwq1tqyrpq3nvxf6.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppX447jn8wbjb1qsw3jxkndb19cwgsrtrkk.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppX4h7afn0qpsyh64hybzh15tyefm7d0qdq.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppX4jgsjrmghnx5xnjbxq6f4rt8d7x6fz56.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppX51ysthdartafshx0m8z8re49sw398b43.mca
+    Capabilities    REG_DWORD    0x10
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppX76q4xtxwbj16z0zkyp0pnwtt6m850rvk.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppX7rzacqv9fsema8p3fjbs30qgtgv0xzyg.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppX8f33pzjqtv84a2ha2f38qat9mf90c7mf.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppX9s1cz53zc86xn39kwrb02jyft9ecn62r.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppXa372cjaa29frn3f9zb3m28rmfsm402nx.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppXdca9rykvbm0qn1fw9m2dbx828p2w3h8p.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppXea6epmb5w19sjwy9ckw8md46dm93nhkq.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppXfnethrsp7zb4s2ekfph2b5f7cgbkbswt.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppXrr05phpxx3rq1kpwp0y4avzvdfcsr75s.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppXryc2qd338f5728r9gzzazav8206ba77s.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppXw3qcpc7p849541dp39vvqd01bn7z9ybh.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppXwdz8g2fxr36xz0tdtagygnvemf85s7gg.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppXx4zfy1ffv3wctgdz2vypnybzjkh27jhw.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppXxyrxfkapamrp843pd5arq545p9wtj2nq.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppXyvyv4mghdjas8j88defq0w1hc410kvzt.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-350187224-1905355452-1037786396-3028148496-2624191407-3283318427-1255436723\App.AppXyww6zxjd3hpc08q55n9j7nztzza8mz1m.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3637181099-3165582941-2384801395-3283118383-1187078190-3493346776-3423618717
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3637181099-3165582941-2384801395-3283118383-1187078190-3493346776-3423618717\Global.ExperienceExtensions.AppX70c4pvw3a4g2a9w5xxefncxpp8yd75c7.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Photon_cw5n1h2txyewy!Global.ExperienceExtensions
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3637181099-3165582941-2384801395-3283118383-1187078190-3493346776-3423618717\Global.ExperienceExtensions.AppXmwbbeewzzb99p3sa3835nz63bkkkp2wd.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Photon_cw5n1h2txyewy!Global.ExperienceExtensions
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3637181099-3165582941-2384801395-3283118383-1187078190-3493346776-3423618717\Global.WsxPackManager.AppXw0h7dsx9310xav2fgz1qd15frqwgwszz.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Photon_cw5n1h2txyewy!Global.WsxPackManager
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3637181099-3165582941-2384801395-3283118383-1187078190-3493346776-3423618717\Global.WsxPackManager.AppXyqa5td2pdxtrrhsh67rjkm51jdb6xy6g.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Photon_cw5n1h2txyewy!Global.WsxPackManager
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3637181099-3165582941-2384801395-3283118383-1187078190-3493346776-3423618717\PackageMetadata.AppX84fyc12xzm77xr9aaw2xdq17y69rkw6b.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Photon_cw5n1h2txyewy!PackageMetadata
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3637181099-3165582941-2384801395-3283118383-1187078190-3493346776-3423618717\PackageMetadata.AppXx9hwchrzt6vnq3jnn31hqwnrqp53d64f.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.Photon_cw5n1h2txyewy!PackageMetadata
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3733603082-4179795269-1217541644-381468798-1681740699-3059609168-2054985149
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3733603082-4179795269-1217541644-381468798-1681740699-3059609168-2054985149\App.AppXrtkg3ebdrtg67k8v75mvnm3zfpjceykd.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.SecureAssessmentBrowser_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3733603082-4179795269-1217541644-381468798-1681740699-3059609168-2054985149\App.AppXz50byegdp9v0stee495y21kv0xbyqgzm.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.SecureAssessmentBrowser_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3784866113-3187381476-3433752343-3391928953-3760210436-1684329488-1912184601
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3784866113-3187381476-3433752343-3391928953-3760210436-1684329488-1912184601\App.AppXdqxdgc0xdfggkz6d2z69jy8ey85eejq7.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.OOBENetworkConnectionFlow_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3784866113-3187381476-3433752343-3391928953-3760210436-1684329488-1912184601\App.AppXxfb02mawce7c6efa0xn7xxbtrnvdjgcj.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.OOBENetworkConnectionFlow_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3911328773-608413955-1309177842-678056087-3306350038-3682494511-2300153425
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3911328773-608413955-1309177842-678056087-3306350038-3682494511-2300153425\App.AppXemdecxs7zy6dn89skd64q94137qvpzfs.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.PeopleExperienceHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3911328773-608413955-1309177842-678056087-3306350038-3682494511-2300153425\App.AppXv3y9x55a7eq2mt4f5qfd56ewff2nbzm8.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.PeopleExperienceHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3912597219-1073764063-4221279274-2430493127-3107599948-1184173955-951593363
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3912597219-1073764063-4221279274-2430493127-3107599948-1184173955-951593363\App.AppXax817xdz5sbxr49yd24terbbc7kzrnbq.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.ECApp_8wekyb3d8bbwe!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3912597219-1073764063-4221279274-2430493127-3107599948-1184173955-951593363\App.AppXzx3y7df1exwenz6j3n59f2kky5z0n5rc.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.ECApp_8wekyb3d8bbwe!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3950126717-3641943460-3038804466-693777006-783539386-1288712031-1294249617
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3950126717-3641943460-3038804466-693777006-783539386-1288712031-1294249617\OobeHost.AppX4tw5ggy9fr3rr39vgt7h5wx8m94jb504.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.OOBE_cw5n1h2txyewy!OobeHost
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3950126717-3641943460-3038804466-693777006-783539386-1288712031-1294249617\OobeHost.AppX57bnpdhb2y2keeh7gnjg18wys2747njp.mca
+    Capabilities    REG_DWORD    0x4
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.OOBE_cw5n1h2txyewy!OobeHost
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3950126717-3641943460-3038804466-693777006-783539386-1288712031-1294249617\OobeHost.AppX6bj56gpfgc90p49thdxsnj5be6r7f6yq.mca
+    Capabilities    REG_DWORD    0x8
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.OOBE_cw5n1h2txyewy!OobeHost
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3950126717-3641943460-3038804466-693777006-783539386-1288712031-1294249617\OobeHost.AppXjhem0jrx9ktv9247tpn0ffganfwrmp09.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.OOBE_cw5n1h2txyewy!OobeHost
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3950126717-3641943460-3038804466-693777006-783539386-1288712031-1294249617\PackageMetadata.AppXgxrs9btz46qf2trywek8d0mtzmp4w9jk.wwa
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.OOBE_cw5n1h2txyewy!PackageMetadata
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-3950126717-3641943460-3038804466-693777006-783539386-1288712031-1294249617\PackageMetadata.AppXzjqgb8q7k6pvpr113q96rjew95ghgp4y.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    MicrosoftWindows.Client.OOBE_cw5n1h2txyewy!PackageMetadata
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-4264928162-86341590-2006646042-3756743162-890444002-3415177634-881149292
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-4264928162-86341590-2006646042-3756743162-890444002-3415177634-881149292\App.AppX9k1r07j2j1r760b134v3zpg7kyf754bx.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    c5e2524a-ea46-4f67-841f-6a9465d9d515_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-4264928162-86341590-2006646042-3756743162-890444002-3415177634-881149292\App.AppXx83m4by3p4r0rr7jqaqfc35t2x3npbzn.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    c5e2524a-ea46-4f67-841f-6a9465d9d515_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-515815643-2845804217-1874292103-218650560-777617685-4287762684-137415000
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-515815643-2845804217-1874292103-218650560-777617685-4287762684-137415000\App.AppX61hpp0btbpr7ww8e8y4q7ga99y3mb921.mca
+    Capabilities    REG_DWORD    0xc
+    AppUserModelId    REG_SZ    Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-515815643-2845804217-1874292103-218650560-777617685-4287762684-137415000\App.AppX8mekmt3tnzpj2rqvv32phe9zztvazy1x.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-515815643-2845804217-1874292103-218650560-777617685-4287762684-137415000\App.AppXce0rcsqhwpztn79s8y3ad2aht6sj1bwj.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-932905279-1352884144-690731472-1935380077-77221151-3040906485-3167188873
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-932905279-1352884144-690731472-1935380077-77221151-3040906485-3167188873\App.AppXhwyds4rk7x1n5d19trv30fn7fbe01fjx.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.CredDialogHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-932905279-1352884144-690731472-1935380077-77221151-3040906485-3167188873\App.AppXr6j54agfmsnf11n440jb928bzsqqdekm.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.CredDialogHost_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-957941444-2271171641-4049211970-804197638-2225746618-2474488012-4131196493
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-957941444-2271171641-4049211970-804197638-2225746618-2474488012-4131196493\Microsoft.XboxGameCallableUI.AppX1cmwnn74xnybt9sthpeww9n07vye06vx.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.XboxGameCallableUI_cw5n1h2txyewy!Microsoft.XboxGameCallableUI
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-957941444-2271171641-4049211970-804197638-2225746618-2474488012-4131196493\Microsoft.XboxGameCallableUI.AppX8s458wyr2sn7smnarg3rs49chrqg84qg.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.XboxGameCallableUI_cw5n1h2txyewy!Microsoft.XboxGameCallableUI
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-969871995-3242822759-583047763-1618006129-3578262429-3647035748-2471858633
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-969871995-3242822759-583047763-1618006129-3578262429-3647035748-2471858633\App.AppXbe6cegqrk9q6d482qh2x7dkmydv38qp5.mca
+    Capabilities    REG_DWORD    0x7631c
+    AppUserModelId    REG_SZ    Microsoft.AccountsControl_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Notifications\BackgroundCapability\S-1-15-2-969871995-3242822759-583047763-1618006129-3578262429-3647035748-2471858633\App.AppXh7n19g4ar4fcxzvgc9xhqhz2gsyfkcbf.mca
+    Capabilities    REG_DWORD    0x1c
+    AppUserModelId    REG_SZ    Microsoft.AccountsControl_cw5n1h2txyewy!App
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\OverrideColor
+    BackgroundColorInbbggrr    REG_DWORD    0xff000000
+    ForegroundColorInbbggrr    REG_DWORD    0xffffffff
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\PicturePassword
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\SessionData
+    BootLogon    REG_DWORD    0x0
+    SCCPFirstBootLogon    REG_DWORD    0x0
+    AllowLockScreen    REG_DWORD    0x1
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\TestHooks
+    XamlCredUIAvailable    REG_DWORD    0x1
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Unattend
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\UserSwitch
+    Enabled    REG_DWORD    0x0
+    UserSID    REG_SZ    
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\UserTile
+    S-1-5-21-602702127-3753353592-2596472383-1000    REG_SZ    {60B78E88-EAD8-445C-9CFD-0B87F74EA6CD}
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\ValidateUsername
+    Enabled    REG_DWORD    0x0
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\LogonSoundPlayed
+    SoundPlayed    REG_DWORD    0x1
+    LogonUIChecked    REG_DWORD    0x1
+

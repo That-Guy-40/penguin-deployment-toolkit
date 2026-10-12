@@ -18,3 +18,14 @@ if ($pw.ContainsKey('alice')) {
 }
 # deploy's generated password works: its blank lab password is gone.
 if ($pw.ContainsKey('deploy')) { "DEPLOY_LOGON=" + (Test-Logon 'deploy' $pw['deploy']) }
+# SKELREG: alice's new hive carries the value from skel.reg. Her hive is loaded
+# while her profile is in use and unloaded afterwards; read it either way.
+$sid = (New-Object System.Security.Principal.NTAccount('alice')).Translate([System.Security.Principal.SecurityIdentifier]).Value
+$val = $null
+try { $val = (Get-ItemProperty -Path "Registry::HKEY_USERS\$sid\Software\PDT" -ErrorAction Stop).SkelFrom } catch {}
+if (-not $val) {
+    & reg load HKU\pdtprobe C:\Users\alice\NTUSER.DAT | Out-Null
+    try { $val = (Get-ItemProperty -Path 'Registry::HKEY_USERS\pdtprobe\Software\PDT' -ErrorAction Stop).SkelFrom } catch {}
+    [gc]::Collect(); & reg unload HKU\pdtprobe | Out-Null
+}
+"ALICE_SKELREG=" + $(if ($val) { $val } else { 'no' })

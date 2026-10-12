@@ -48,7 +48,11 @@ case "$NIC" in
     virtio-net-pci) ROM="$IPXE_ROM_DIR/efi-virtio.rom" ;;
     *) die "unsupported --nic $NIC (use e1000e or virtio-net-pci)" ;;
 esac
-[[ -f "$ROM" ]] || die "iPXE option ROM not found: $ROM (package ipxe-qemu)"
+# ipxe-qemu moved its ROMs from /usr/lib/ipxe/qemu (Ubuntu 24.04) to
+# /usr/share/qemu (26.04); IPXE_ROM_DIR is the first place to look, not the only one.
+[[ -f "$ROM" ]] || ROM="/usr/share/qemu/$(basename "$ROM")"
+[[ -f "$ROM" ]] || ROM="/usr/lib/ipxe/qemu/$(basename "$ROM")"
+[[ -f "$ROM" ]] || die "iPXE option ROM $(basename "$ROM") not found under $IPXE_ROM_DIR, /usr/share/qemu or /usr/lib/ipxe/qemu (package ipxe-qemu)"
 if (( NO_ROM )); then ROM=""; fi
 VARS_TEMPLATE="${VM_VARS_TEMPLATE:-$OVMF_VARS_TEMPLATE}"
 case "${VM_DISK:-ahci}" in

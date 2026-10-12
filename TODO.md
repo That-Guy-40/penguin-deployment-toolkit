@@ -11,6 +11,14 @@ parked are in `DEFERRED.md`, not here.
   packs, Secure Boot, measured PXE→desktop time; one physical model deployed
   repeatably (PLAN.md §4). `pxe-lan` runs dnsmasq with `--log-dhcp`; physical
   debugging is `status`/`logs`, never a screen (PLAN.md §3.2).
+  **First machine: a Dell Latitude E5570**, expected the week of 2026-10-13;
+  its driver pack and model file are prepared
+  (`spikes/2026-10-11-latitude-e5570-prep/`, with the first-boot checklist).
+  Do the remote shell (DEFERRED) first: a physical machine stopped in WinPE
+  is otherwise debuggable only at its keyboard.
+- [ ] A Samba AD domain controller as a lab service (a Linux VM under
+  `bin/lab-netns`, brought up with `serve`/`pxe-lan`), so that domain join
+  can be a verified role feature instead of an untested one.
 
 ## After that
 
@@ -39,13 +47,10 @@ README stating the result. Answered ones are in `PLAN.md` §5.
 - [ ] `bin/fetch-iso` has been run for 24H2 and 25H2, professional, en-us. Other
   editions and languages are untested.
 - [ ] `http/unattend/default.xml` ships a blank-password local admin (`deploy`)
-  for the lab; a role's `USERS` list re-passwords it at first logon (the lab
-  role does) and creates the real accounts. Still open: domain join; removing
-  `deploy` altogether; the Default profile's registry hive (`SKEL` copies
-  files only).
-- [ ] `bin/vm-stop` powers off through ACPI, which Windows turns into fast
-  startup unless the machine's role says `FASTSTARTUP=off` (the lab role
-  does). A VM deployed without such a role still hibernates on `vm-stop`.
+  for the lab; a role's `USERS` list re-passwords it at first logon, creates
+  the real accounts, and `DEPLOY=remove` deletes it at the next boot (the
+  lab role does all three). Still open: domain join (needs the Samba AD lab
+  service above).
 - [ ] Ports 8080 and 8088 are taken on this host by other software; `config.sh`
   here uses 8090.
 

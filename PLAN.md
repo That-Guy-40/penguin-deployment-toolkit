@@ -176,9 +176,12 @@ post-install.
   what `lint` can check.
 - Accounts are the role's too: `USERS` (`name|group|random` or `plain:<pw>`,
   `post/users.ps1`; generated passwords uploaded to the write-only endpoint and
-  removed from the disk) and `SKEL` (files for `C:\Users\Default`, inherited by
-  every profile created afterwards) **[verified]**. Not done: domain join,
-  templating the Default profile's registry hive.
+  removed from the disk), `SKEL` (files for `C:\Users\Default`, inherited by
+  every profile created afterwards), `SKELREG` (a `.reg` merged into the
+  Default profile's hive) and `DEPLOY=remove` (the unattend's `deploy` account
+  deleted by a one-shot SYSTEM task at the next boot, once the role's own
+  administrator exists) **[verified]**. Not done: domain join (no directory
+  to test against; a Samba AD lab service is queued in `TODO.md`).
 - Progress and logs go back to the server with `curl`: beacons, DISM/Setup
   logs, `reagentc`, winget's transcript and `DiagOutputDir` via `curl -T` to
   the `PUT /uploads/` endpoint (§3.2) **[verified]**.

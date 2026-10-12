@@ -18,8 +18,8 @@ effect. Companion to `docs/HOW_IT_WORKS.md` (the tour) and
 | 5 | the image | `30-apply` lays down `images/<IMAGE>.wim`; `35-updates` adds the packages in `updates/<pack>.wim`; `40-drivers` adds `drivers/<pack>.wim`; `45-winre` puts `images/<IMAGE>.winre.wim` on the recovery partition | `bin/stage-image` (ISO → `base.wim`), `bin/pack-updates`, `bin/pack-drivers`, `bin/capture-image` (a role image) | the next deploy that names it |
 | 6 | `60-unattend` | writes `C:\Windows\Panther\unattend.xml` and recreates `C:\pdt\`: `id.cmd` (server, id, run token), `beacon.cmd`, `firstlogon.cmd`, `boot-probe.cmd`, the role's files under `role\`, `winget.cmd`/`users.ps1` if the role needs them, `post.cmd` (`POST=`), `prepare-capture.cmd` (`REFERENCE=yes`) | `http/unattend/<file>.xml` or the role's own `UNATTEND=`; `http/post/*`; `http/roles/<role>/*` | next deploy: this is the moment the installed system's scripts are frozen onto its disk |
 | 7 | Windows first boot | Setup runs the unattend: specialize (computer name; `specialize` beacon), oobeSystem (creates `deploy`, autologon once) | `unattend.xml` | — |
-| 8 | **first logon, once** | `FirstLogonCommands` → `C:\pdt\firstlogon.cmd`, elevated, as `deploy`: `winre` check → `skel` → `users` → `winget` + `apps` → `faststartup` → boot probe registered → role `post.cmd` → machine `post.cmd` → `deployed` → `prepare-capture` if `REFERENCE=yes` | `http/roles/<role>/role.cfg` and what it names: `apps.txt`, `users.txt`, `skel/` + `skel.txt`, `post.cmd` (+ `FILES=`), `UNATTEND`, `FASTSTARTUP`; `POST=` in the machine or model cfg | next deploy (copied to the disk in 6). Idempotent on a machine that already has it |
-| 9 | **every boot, for ever** | two scheduled tasks (`PDT-boot-onstart`, `PDT-boot-event`) run `C:\pdt\boot-probe.cmd <trigger>` as SYSTEM → `boot ok trigger=…` | `http/post/boot-probe.cmd` | next deploy; on a running machine only by hand |
+| 8 | **first logon, once** | `FirstLogonCommands` → `C:\pdt\firstlogon.cmd`, elevated, as `deploy`: `winre` check → `skel` → `users` → `winget` + `apps` → `faststartup` → boot probe registered → role `post.cmd` → machine `post.cmd` → `deployed` → `prepare-capture` if `REFERENCE=yes` | `http/roles/<role>/role.cfg` and what it names: `apps.txt`, `users.txt`, `skel/` + `skel.txt`, `skel.reg` (`SKELREG`), `post.cmd` (+ `FILES=`), `UNATTEND`, `FASTSTARTUP`, `DEPLOY=remove`; `POST=` in the machine or model cfg | next deploy (copied to the disk in 6). Idempotent on a machine that already has it |
+| 9 | **every boot, for ever** | two scheduled tasks (`PDT-boot-onstart`, `PDT-boot-event`) run `C:\pdt\boot-probe.cmd <trigger>` as SYSTEM → `boot ok trigger=…`. With `DEPLOY=remove`, the second boot also runs the one-shot `PDT-remove-deploy` task (removes the deleted `deploy` account's profile, then itself) | `http/post/boot-probe.cmd`, `http/post/remove-deploy.cmd` | next deploy; on a running machine only by hand |
 
 ## What is in the .wim: three layers
 
@@ -52,9 +52,10 @@ first logon by `post/users.ps1`. An account that exists (the unattend's
 join the named group. `random` passwords are uploaded to
 `uploads/<id>/<run>/users.txt` on the server (`bin/logs <m> --cat users.txt`)
 and removed from the machine. New profiles inherit `skel/`
-(`C:\Users\Default`). The unattend itself only ever creates `deploy`;
-`http/roles/README.md`, "Accounts and passwords", has the details and the
-limits (no domain join, no registry-hive templating).
+(`C:\Users\Default`) and `skel.reg` (its registry side). The unattend itself
+only ever creates `deploy`, and `DEPLOY=remove` deletes it again at the next
+boot once the role's own administrator exists; `http/roles/README.md`,
+"Accounts and passwords", has the details and the limits (no domain join).
 
 ## Applications
 
@@ -79,5 +80,5 @@ deploy a reference machine with the role and capture it.
 ## Edges: what is not controllable from files today
 
 The firmware → `ipxe.efi` hop (a rebuild); anything on a machine after
-first logon except the boot beacon; domain join; the Default profile's
-registry hive. All four are in `TODO.md` or `DEFERRED.md`.
+first logon except the boot beacon and the one-shot removal task; domain
+join. All three are in `TODO.md` or `DEFERRED.md`.

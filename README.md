@@ -133,6 +133,7 @@ Raw data, if you prefer `tail -f`: `run/beacons.log` (one line per event),
 | `bin/stage-image` | the ISO's install image → `http/images/base.wim` + `base.json` + `base.winre.wim`; `--from-upload <vm>` publishes an image captured by `MODE=capture` |
 | `bin/capture-image` | capture a role image from a switched-off, generalized lab VM's disk on Linux (wimlib), publish it |
 | `bin/pack-drivers` | a directory of drivers → `http/drivers/<name>.wim` |
+| `bin/fetch-drivers` | a vendor driver pack by URL (Dell/Lenovo/HP `.CAB`/`.zip`), pinned by SHA-256 on the second run, unpacked and packed as above; the sidecar records the source |
 | `bin/pack-updates` | a directory of `.msu`/`.cab` updates → `http/updates/<name>.wim`; `--target` names the update to install (others are prerequisites), `--expect` the package version that must end up installed |
 | `bin/build-ipxe` | builds `pxe/ipxe.efi` from a pinned iPXE commit |
 | `bin/serve` | rootless nginx: static files, `GET /beacon`, `GET /ts/id.cmd`, `PUT /uploads/` |
@@ -219,8 +220,9 @@ shows its first-sign-in animation (the desktop followed within two minutes),
 and the numbers come from a fast local disk over a loopback network.
 
 Lab caveat: `bin/vm-stop` uses the ACPI power button, which Windows turns into
-fast startup (hibernation). Change VM hardware (`vm-boot --nic …`) only after a
-full shutdown from inside Windows (`shutdown /s /t 0`).
+fast startup (hibernation) unless the machine's role says `FASTSTARTUP=off`.
+`bin/vm-stop --full` types a real `shutdown /s` into the desktop instead;
+change VM hardware (`vm-boot --nic …`) only after one of those.
 
 Later the same day (evidence: `spikes/2026-10-02-bridged-lab-netns/`):
 
@@ -291,6 +293,16 @@ Later the same day, with root supplied from another shell:
 | A users list with a bad name and a bad policy | `users fail created=bob … failed=bad_name(…),carol(…)`, still `deployed`; `lint` had refused the file |
 | `bin/lint` | 32/32 injected defects, four new (users line, skel manifest both ways, FILES companion) |
 | First attempt, for the record | `New-LocalUser -PasswordNeverExpires $true` is a switch, not a bool (alice was not created); an `icacls` call left the passwords file unreadable by anyone, so the upload failed and the file stayed. Both fixed; the second fault is why `users-upload fail` keeps the file and says where it is |
+
+**Housekeeping batch, 2026-10-11** (evidence: `spikes/2026-10-11-vmstop-deploy-skelreg/`), on a host upgraded to Ubuntu 26.04 / QEMU 10.2 in between (`vm-boot` now finds the iPXE ROMs in their new place):
+
+| what | result |
+|---|---|
+| `SKELREG=skel.reg` (values merged into the Default profile's hive) | `skelreg ok`; the role's probe reads `SkelFrom=lab-apps` back from alice's freshly created hive |
+| `DEPLOY=remove` (role; `USERS` creates `admin`) | account deleted at the end of first logon (`deploy-remove ok account=deleted`), restart, profile removed by a one-shot SYSTEM task 5 s into the next boot (`deploy-removed ok profile_gone=ok`); the first sign-in screen shows `admin` and `alice` only. Took five rounds: the unattend's autologon retried the deleted account (fixed: `firstlogon.cmd` clears it), and a `deploy` tile that survived every registry cleanup turned out to be the sign-in UI's in-memory list from before the deletion, which is why the account now goes *before* the restart |
+| `vm-stop --full` on a role-less VM (fast startup on) | ACPI `vm-stop` → next boot `trigger=event` only (a resume); `vm-stop --full` → `trigger=onstart` (a real boot) |
+| `bin/lint` | 35/35 injected defects, three new (`DEPLOY=remove` without another administrator, a `.reg` key outside `HKEY_CURRENT_USER`, `post/remove-deploy.cmd` missing) |
+| Latitude E5570 prep | `bin/fetch-drivers` fetched Dell's Win10 A18 pack (912 MB, 403 without a browser User-Agent), 116 `.inf` → `drivers/latitude-e5570.wim`; `models/latitude-e5570.cfg`; lint all PASS. Nothing verified on the machine yet (`spikes/2026-10-11-latitude-e5570-prep/`) |
 
 Still not verified: anything on physical hardware, including enrolling a
 Secure Boot certificate in real firmware.

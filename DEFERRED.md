@@ -26,7 +26,10 @@ rediscovers them as surprises. Each says what would make it worth picking up.
   belongs in `images/<name>.winre.wim`; today WinRE stays at the base build
   while `35-updates` updates the OS. Would need `dism /mount-image` +
   `/add-package` on the recovery image inside WinPE, or Windows-side tooling.
-  Parked until an updated WinRE matters (Reset this PC, repair).
+  Parked until an updated WinRE matters (Reset this PC, repair). The input is
+  on the host since 2026-10-11: `bin/fetch-iso --keep` left the 24H2 UUP set
+  (8.2 GB) under `build/uupdump/4d7d34d3-…/UUPs/`, with the Safe OS dynamic
+  update `Windows11.0-KB5125758-x64.cab` in it.
 - **`bin/fetch-updates`.** Keep just the update packages of a UUP set; today
   it is `fetch-iso --keep` and picking files out of `build/uupdump/*/UUPs/`.
   Pick up when update packs are made monthly.

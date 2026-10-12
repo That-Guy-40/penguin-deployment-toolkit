@@ -29,7 +29,8 @@ if defined ROLE (
   mkdir W:\pdt\role
   copy /y %PDT%\role.cfg W:\pdt\role\role.cfg >nul || exit /b !errorlevel!
   for /f "usebackq eol=# tokens=1,* delims==" %%a in ("%PDT%\role.cfg") do (
-    for %%k in (APPS POST USERS SKEL) do if /i "%%a"=="%%k" (%CURL% -f -o "W:\pdt\role\%%b" "%SRV%/roles/%ROLE%/%%b" || exit /b !errorlevel!)
+    for %%k in (APPS POST USERS SKEL SKELREG) do if /i "%%a"=="%%k" (%CURL% -f -o "W:\pdt\role\%%b" "%SRV%/roles/%ROLE%/%%b" || exit /b !errorlevel!)
+    if /i "%%a"=="DEPLOY" (%CURL% -f -o W:\pdt\remove-deploy.cmd "%SRV%/post/remove-deploy.cmd" || exit /b !errorlevel!)
     rem SKEL: the files its manifest lists, into role\skel\ with their paths.
     if /i "%%a"=="SKEL" for /f "usebackq eol=# delims=" %%l in ("W:\pdt\role\%%b") do (
       set "SKELPATH=%%l"

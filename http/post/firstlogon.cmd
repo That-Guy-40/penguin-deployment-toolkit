@@ -48,12 +48,16 @@ set ROLE_POST=
 set FASTSTARTUP=
 set USERS=
 set SKEL=
+set SKELREG=
+set DEPLOY=
 if exist "%~dp0role\role.cfg" for /f "usebackq eol=# tokens=1,* delims==" %%a in ("%~dp0role\role.cfg") do (
   if /i "%%a"=="APPS" set "APPS=%~dp0role\%%b"
   if /i "%%a"=="POST" set "ROLE_POST=%~dp0role\%%b"
   if /i "%%a"=="FASTSTARTUP" set "FASTSTARTUP=%%b"
   if /i "%%a"=="USERS" set "USERS=%~dp0role\%%b"
   if /i "%%a"=="SKEL" set "SKEL=%~dp0role\skel"
+  if /i "%%a"=="SKELREG" set "SKELREG=%~dp0role\%%b"
+  if /i "%%a"=="DEPLOY" set "DEPLOY=%%b"
 )
 rem SKEL: files for every account created from now on (C:\Users\Default is
 rem Windows' /etc/skel: copied into each new profile at that user's first logon).
@@ -63,6 +67,19 @@ if defined SKEL (
   xcopy /e /i /y /q "%SKEL%" "%SystemDrive%\Users\Default\" >nul && (
     call "%~dp0beacon.cmd" skel ok "files=!SKELN!"
   ) || call "%~dp0beacon.cmd" skel fail "rc=!errorlevel!" "msg=xcopy into Users\Default failed"
+)
+rem SKELREG: a .reg file of HKEY_CURRENT_USER values, merged into the Default
+rem profile's hive, so every new profile starts with them. The hive is loaded
+rem under HKEY_USERS\pdtskel; the file is rewritten to that root for reg import.
+if defined SKELREG (
+  set SKELREG_V=fail
+  reg load HKU\pdtskel "%SystemDrive%\Users\Default\NTUSER.DAT" >nul 2>&1 && (
+    powershell -NoProfile -Command "(Get-Content -LiteralPath '%SKELREG%' -Raw) -replace '(?m)^\[HKEY_CURRENT_USER\\', '[HKEY_USERS\pdtskel\' | Set-Content -LiteralPath '%~dp0skelreg-hku.reg' -Encoding Unicode"
+    reg import "%~dp0skelreg-hku.reg" >nul 2>&1 && set SKELREG_V=ok
+    del /f /q "%~dp0skelreg-hku.reg" 2>nul
+    reg unload HKU\pdtskel >nul 2>&1
+  )
+  if "!SKELREG_V!"=="ok" (call "%~dp0beacon.cmd" skelreg ok) else call "%~dp0beacon.cmd" skelreg fail "msg=reg load/import into Users\Default\NTUSER.DAT failed"
 )
 rem USERS: local accounts; generated passwords go to the server, then off the disk.
 set USERS_OUT=%~dp0users-out.txt
@@ -111,3 +128,25 @@ call "%~dp0beacon.cmd" deployed ok "role=%ROLE%" "host=%COMPUTERNAME%"
 
 rem --- reference machine: generalize and shut down, ready for MODE=capture -----
 if /i "%REFERENCE%"=="yes" call "%~dp0prepare-capture.cmd"
+
+rem --- the unattend's one autologon has happened: make Winlogon forget it ------
+rem Otherwise a later boot may try it again with a password that users.ps1 has
+rem since changed (or an account DEPLOY=remove has deleted) and show "The user
+rem name or password is incorrect" instead of the sign-in screen (seen).
+set WL=HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon
+reg add "%WL%" /v AutoAdminLogon /t REG_SZ /d 0 /f >nul 2>&1
+for %%v in (DefaultPassword AutoLogonCount) do reg delete "%WL%" /v %%v /f >nul 2>&1
+
+rem --- DEPLOY=remove: the toolkit's own account goes at the next boot ---------
+rem It cannot delete itself while it is the logged-on user running this script,
+rem so remove-deploy.cmd registers a one-shot SYSTEM task for the next start
+rem and this machine restarts. Not on a reference machine: sysprep needs deploy
+rem and the captured image's unattend makes it again anyway.
+if /i "%DEPLOY%"=="remove" (
+  if /i "%REFERENCE%"=="yes" (
+    call "%~dp0beacon.cmd" deploy-remove skip "msg=reference machine keeps deploy for sysprep"
+  ) else (
+    call "%~dp0remove-deploy.cmd"
+    shutdown /r /t 10 /f
+  )
+)

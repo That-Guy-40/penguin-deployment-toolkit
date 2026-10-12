@@ -14,9 +14,15 @@ dash (`ts/slug.js`):
 slug it asked for (`model=` on its `ts-start` event).
 
 ```
-# every Latitude 5440 gets this driver pack
-DRIVERS=latitude-5440
+# every Latitude E5570 gets this driver pack
+DRIVERS=latitude-e5570
 ```
+
+The pack comes from the vendor: `bin/fetch-drivers <url> <name>` downloads
+a Dell/Lenovo/HP driver CAB or zip, pins it by SHA-256 (printed on the first
+run, `--sha256` on the next), unpacks it and makes `http/drivers/<name>.wim`
+with a sidecar that records where it came from. Dell lists its packs per
+model at https://www.dell.com/support/kbdoc/en-us/000109893.
 
 Allowed keys: `IMAGE`, `UNATTEND`, `DISKPART`, `DRIVERS`, `UPDATES`, `POST` (see
 `../machines/README.md`). A machine's own `machines/<uuid>.cfg` overrides them.

@@ -50,7 +50,7 @@ VIRTUAL = ("ts/id.cmd", "beacon", "health")
 VIRTUAL_PREFIX = ("uploads/",)
 # What a model file may set (models/<slug>.cfg) and what only a machine file may.
 MODEL_KEYS = ("IMAGE", "UNATTEND", "DISKPART", "DRIVERS", "UPDATES", "POST", "ROLE")
-ROLE_KEYS = ("UNATTEND", "APPS", "POST", "FASTSTARTUP", "USERS", "SKEL", "FILES")   # roles/<name>/role.cfg
+ROLE_KEYS = ("UNATTEND", "APPS", "POST", "FASTSTARTUP", "USERS", "SKEL", "SKELREG", "FILES", "DEPLOY")   # roles/<name>/role.cfg
 USER_RE = re.compile(r"^[A-Za-z0-9._-]{1,20}$")
 ROLE_RE = re.compile(r"^[A-Za-z0-9_-]+$")
 MACHINE_ONLY_KEYS = ("MODE", "STOP_BEFORE", "STOP_AFTER", "REFERENCE")
@@ -436,7 +436,8 @@ def lint_tree(http, deep=False, programs=None):
             if val != val.strip() or "#" in val:
                 R.fail(f"{who}/role.cfg line {n}", f"{k}={val!r} has trailing spaces or an inline comment")
             vals[k.upper()] = val
-        for k in ("UNATTEND", "APPS", "POST", "USERS", "SKEL", "FILES"):
+        admins = []   # Administrators accounts the USERS list creates (for DEPLOY=remove)
+        for k in ("UNATTEND", "APPS", "POST", "USERS", "SKEL", "SKELREG", "FILES"):
             if k not in vals:
                 continue
             if k == "FILES":
@@ -465,11 +466,26 @@ def lint_tree(http, deep=False, programs=None):
                         problems.append(f"line {n}: group must be Administrators or Users")
                     elif parts[2] != "random" and not parts[2].startswith("plain:"):
                         problems.append(f"line {n}: policy must be random or plain:<password>")
+                    elif parts[1] == "Administrators" and parts[0].lower() != "deploy":
+                        admins.append(parts[0])
                 if problems:
                     R.fail(f"{who} {k}={vals[k]}", "; ".join(problems))
                     continue
                 if not os.path.isfile(os.path.join(http, "post", "users.ps1")):
                     R.fail(f"{who} {k}={vals[k]}", "post/users.ps1 is missing")
+                    continue
+            if k == "SKELREG":
+                # A .reg of HKEY_CURRENT_USER keys only: it is merged into the Default
+                # profile's hive, where any other root would be wrong or refused.
+                text = read(f)
+                lines = text.splitlines()
+                keys = [l.strip() for l in lines if l.strip().startswith("[")]
+                wrong = [k2 for k2 in keys if not k2.upper().startswith("[HKEY_CURRENT_USER\\")]
+                if not lines or not lines[0].strip().startswith("Windows Registry Editor Version 5.00"):
+                    R.fail(f"{who} {k}={vals[k]}", "first line must be 'Windows Registry Editor Version 5.00' (reg export format)")
+                    continue
+                if not keys or wrong:
+                    R.fail(f"{who} {k}={vals[k]}", "no keys" if not keys else f"keys must be under HKEY_CURRENT_USER: {', '.join(wrong[:3])}")
                     continue
             if k == "SKEL":
                 # The manifest and the directory must agree both ways: a listed file
@@ -509,6 +525,13 @@ def lint_tree(http, deep=False, programs=None):
                     R.fail(f"{who} {k}={vals[k]}", winget_ok)
                     continue
             R.ok(f"{who} {k}={vals[k]}")
+        if "DEPLOY" in vals:
+            if vals["DEPLOY"].lower() != "remove":
+                R.fail(f"{who} DEPLOY={vals['DEPLOY']}", "the only value is remove (delete the toolkit's deploy account at the next boot)")
+            elif not admins:
+                R.fail(f"{who} DEPLOY=remove", "USERS must create another Administrators account first, or nobody could log on afterwards")
+            else:
+                R.ok(f"{who} DEPLOY=remove", f"Administrators afterwards: {', '.join(admins)}")
         if "FASTSTARTUP" in vals:
             if vals["FASTSTARTUP"].lower() == "off":
                 R.ok(f"{who} FASTSTARTUP=off")
@@ -699,6 +722,9 @@ def selftest():
             ("a skel manifest names a file that is not there", lambda d: open(os.path.join(d, "roles", "lab-apps", "skel.txt"), "a", newline="").write("Desktop/ghost.txt\r\n"), "ghost.txt"),
             ("a skel file is not in the manifest", lambda d: open(os.path.join(d, "roles", "lab-apps", "skel", "stray.txt"), "w").write("x"), "stray.txt"),
             ("a role's FILES companion is missing", lambda d: os.remove(os.path.join(d, "roles", "lab-apps", "probe-users.ps1")), "probe-users.ps1"),
+            ("DEPLOY=remove with no other administrator", lambda d: sub_text(d, "roles/lab-apps/users.txt", "admin|Administrators|random", "admin|Users|random"), "another Administrators account"),
+            ("a skel.reg with a key outside HKEY_CURRENT_USER", lambda d: open(os.path.join(d, "roles", "lab-apps", "skel.reg"), "a", newline="").write("\r\n[HKEY_LOCAL_MACHINE\\SOFTWARE\\PDT]\r\n\"x\"=\"y\"\r\n"), "HKEY_CURRENT_USER"),
+            ("a script a role needs for DEPLOY=remove is missing", lambda d: os.remove(os.path.join(d, "post", "remove-deploy.cmd")), "post/remove-deploy.cmd"),
         ]
 
         control = lint_tree(fresh(), programs=SELFTEST_PROGRAMS)
