@@ -57,9 +57,11 @@ that re-fetches every step and carries on from 40. No reboot, nothing rebuilt.
 
 ## Quick start (lab VM on this host)
 
-Needs Ubuntu 24.04 with KVM, plus: `qemu-system-x86 qemu-utils ovmf ipxe-qemu
+Needs Ubuntu 24.04 or 26.04 with KVM, plus: `qemu-system-x86 qemu-utils ovmf ipxe-qemu
 nginx wimtools p7zip-full socat uuid-runtime curl unzip python3 python3-pil
-build-essential liblzma-dev git`. And a Windows 11 ISO.
+build-essential liblzma-dev git`. And a Windows 11 ISO. Optional:
+`gcc-mingw-w64-x86-64` for the screen pusher (`bin/build-tools`),
+`mmdebstrap zstd` for the collector (`bin/build-collector`).
 
 ```bash
 cp config.sh.example config.sh     # set ISO_PATH; pick a free HTTP_PORT

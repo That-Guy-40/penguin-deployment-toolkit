@@ -83,6 +83,11 @@ Enabling UEFI PXE needs the firmware setup once. Options, best first:
    UEFI network boot entry for the next boot once the network stack is on.
 3. **Intel AMT** (below), if the unit has vPro and gets provisioned once.
 
+Once PXE is on, the **collector** (`docs/COLLECTOR.md`, built after this
+page was written) is how such a machine is driven: it boots into RAM,
+reports everything, takes `bin/shell` and SSH, and `pdt-pxe-next` sends it
+into Windows PE.
+
 ## Intel AMT as out-of-band management from Linux
 
 The E5570's i7 options: i7-6600U and i7-6820HQ are vPro parts, i7-6500U is

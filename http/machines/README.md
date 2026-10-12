@@ -39,6 +39,8 @@ without a sequence and a `STOP_*` that names no step.
 `MODE`, `STOP_*` and `REFERENCE` can only be set here. Everything else can also come from
 a per-model file, `http/models/<slug>.cfg`, which this file overrides.
 
-`bin/vm-create <name>` writes the file for a lab VM. For a real machine, take
+`bin/vm-create <name>` writes the file for a lab VM; `bin/enroll <machine>
+--role <name>` writes it from the inventory the collector uploaded
+(`docs/COLLECTOR.md`). For a real machine without the collector, take
 the UUID from `bin/status` after it has PXE-booted once, then create the file.
 The `.cfg` files are host-specific and not tracked by git.

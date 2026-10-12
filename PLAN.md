@@ -212,6 +212,11 @@ penguin-deployment-toolkit/
 │   ├── status / await        # read beacons.log: fleet view and per-boot step timings; block until a step (3.2)
 │   ├── logs                  # what a machine uploaded for a run (3.2)
 │   ├── vm-shot / vm-type     # QEMU monitor screendump / sendkey into the lab VM (3.2)
+│   ├── shell / screen        # remote shell and the latest pushed screen of any machine in WinPE or the collector, over HTTP
+│   ├── netboot / enroll      # what a machine boots next (collector or WinPE); machines/<uuid>.cfg from the collector's inventory
+│   ├── build-tools           # tools-src/*.c -> http/tools/ with mingw-w64 (pdt-screen.exe), hashes recorded
+│   ├── build-collector       # tools-src/collector/ -> http/collector/ (Debian in RAM; mmdebstrap, rootless)
+│   ├── fetch-drivers         # a vendor driver CAB/zip -> drivers/<name>.wim, pinned by hash
 │   ├── vm-stop               # ACPI power-down, then by PID
 │   ├── pxe-lan               # dnsmasq proxy-DHCP + TFTP for physical targets; --bridge for a lab bridge
 │   ├── lab-netns             # rootless host-only bridge in a network namespace (bridged lab without sudo)
@@ -228,12 +233,16 @@ penguin-deployment-toolkit/
 │   ├── drivers/              # <product-slug>.wim driver packs (+ drvload/ for WinPE-side drivers)
 │   ├── unattend/             # Panther unattend files (default.xml; a role may bring its own)
 │   ├── post/                 # first-logon scripts: firstlogon, winget, boot-probe, prepare-capture; winget/ packages
-│   ├── roles/                # <name>/role.cfg + apps.txt, post.cmd, unattend.xml: what a machine becomes (its README)
+│   ├── roles/                # <name>/role.cfg + apps.txt, users.txt, skel/, post.cmd, unattend.xml: what a machine becomes (its README)
+│   ├── boot/                 # <uuid>.ipxe / default.ipxe: one-line boot overrides (bin/netboot; not tracked)
+│   ├── collector/            # vmlinuz + initrd.img + collector.json (bin/build-collector; not tracked)
+│   ├── cmd/                  # <uuid>/<run>/<n>.cmd: commands for bin/shell (not tracked)
 │   ├── machines/             # <uuid>.cfg: MODE, IMAGE, DRIVERS, UPDATES, STOP_BEFORE/AFTER… (its README)
 │   ├── models/               # <product-slug>.cfg: per-model defaults; can never set MODE (its README)
 │   ├── updates/              # <name>.wim update packs (bin/pack-updates) for step 35-updates
 │   ├── winpe-drivers/        # drivers WinPE itself lacks: <nic-pci-id>.ipxe / model-<product>.ipxe snippets (its README)
 │   └── uploads/              # PUT target for logs and captured WIMs (never served back)
+├── tools-src/                # source of the toolkit's own programs: pdt-screen.c, the collector's scripts and hooks
 ├── run/                      # STATE_DIR: nginx pid, access.log, beacons.log (append-only; the "database")
 ├── systemd/                  # unit files for serve and pxe-lan (Phase 6)
 ├── INSTALL.md                # server install for other people (see 3.1)
@@ -496,8 +505,8 @@ from what was planned:
 - *`bin/timeline`* was not built: `bin/status <id>` prints every event of a
   boot with per-step timings, which is the §2.4 table computed.
 - *`bin/lint`* knows sequences, steps, the fetched toolkit, `STOP_*`, model
-  files and cfg hygiene; its self-test injected 21 defects then (32 after
-  Phase 3's roles, accounts and skel).
+  files and cfg hygiene; its self-test injected 21 defects then (35 after
+  Phase 3's roles, accounts, skel and the account removal).
 
 **Phase 3 — post-install roles. DONE 2026-10-02** (evidence:
 `spikes/2026-10-02-phase3-roles/`):

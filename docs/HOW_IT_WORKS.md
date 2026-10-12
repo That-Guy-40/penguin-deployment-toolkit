@@ -236,14 +236,19 @@ WinPE (`MODE=capture`); drivers for hardware WinPE itself cannot see
 (`http/winpe-drivers/`); and an `ipxe.efi` signed for firmware that enforces
 Secure Boot (`SB_KEY`/`SB_CERT`).
 
-Roles (Phase 3) are in: a directory per role with a winget list, a post
-script, an unattend and the fast-startup policy. Next is real hardware on a real LAN (Phase 5), and
+Roles (Phase 3) are in: a directory per role with a winget list, local
+accounts (generated passwords uploaded once, then gone), a skel for new
+profiles, a post script, an unattend, the fast-startup policy and the removal
+of the toolkit's own account. For machines you cannot sit at: a remote shell
+and a screen pusher over HTTP (`bin/shell`, `bin/screen`), and the collector,
+a Linux in RAM that inventories a machine and sends it on into Windows PE
+(`docs/COLLECTOR.md`). Next is real hardware on a real LAN (Phase 5), and
 an install guide good enough that someone else can stand the server up
 (Phase 6). `TODO.md` has the order and the open questions.
 
 ## 6. Trying it
 
-The README's quick start is the whole procedure. On a fresh Ubuntu 24.04 box
+The README's quick start is the whole procedure. On a fresh Ubuntu 24.04 or 26.04 box
 with KVM and a Windows 11 ISO:
 
 ```bash

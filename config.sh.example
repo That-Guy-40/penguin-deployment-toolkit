@@ -46,3 +46,7 @@ LAN_IF=""
 
 # Where runtime state lives (nginx pid/logs, beacons.log). Default: ./run
 STATE_DIR=""
+
+# The collector image (bin/build-collector): Debian suite and mirror. Optional.
+# COLLECTOR_SUITE="trixie"
+# COLLECTOR_MIRROR="http://deb.debian.org/debian"
