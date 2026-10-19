@@ -125,7 +125,8 @@ screen pusher avoids. Plan B if a live interactive session is ever needed.
 **RDP into the installed Windows.** Yes, and built in: a role key `RDP=on`
 (`fDenyTSConnections=0`, NLA on, the firewall rule) would give a full
 desktop from Linux (`xfreerdp`, Remmina, both on this host) after first
-logon. Not built yet; small.
+logon. Not built yet; small. Written up, with `SSH=on` built from the same
+template, in `DEFERRED.md`, "Remote access as role settings".
 
 **A serial console, like Linux's?** Windows has one: EMS/SAC. `bcdedit
 /ems on` plus `/emssettings` on the BCD gives a text console over a COM port
