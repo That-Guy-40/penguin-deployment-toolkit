@@ -26,6 +26,12 @@ parked are in `DEFERRED.md`, not here.
 
 ## After that
 
+- [ ] **`RDP=on` and `SSH=on` as role keys**, the first physical machine's
+  way in from this host (`ssh`, and PowerShell remoting over SSH). Written up
+  in `DEFERRED.md`, "Remote access as role settings": RDP is the template,
+  SSH the same block plus an `SSHKEYS` file and the host-key cleanup before
+  capture. Spike first (`spikes/<date>-remote-access-roles/`), the lab role
+  carries both from then on.
 - [ ] Phase 6: deployable by others as infrastructure: `INSTALL.md`,
   `bin/preflight` (PASS/FAIL/UNKNOWN rows, with deliberate failing rows),
   systemd units for `serve`/`pxe-lan`, pinned and verified inputs, and a
@@ -40,6 +46,13 @@ README stating the result. Answered ones are in `PLAN.md` §5.
 
 - [ ] **LAN throughput of a 3.5 GB WIM over HTTP versus SMB** (expected: no
   difference that matters; measure once on the physical run).
+- [ ] **A text frame log of the WinPE console**, `pdt-console`: a sibling of
+  `pdt-screen` that attaches to the deploy window and dumps its console
+  buffer as text whenever it changes (kilobytes, diffable, greppable, a
+  thing `bin/await` can wait on), and types into it (`WriteConsoleInput`),
+  which `bin/shell` cannot do to a prompt the sequence is stuck at. Design
+  and the spike's checks in `DEFERRED.md`, "A text frame log of the WinPE
+  console". Pick up the first time a physical machine waits at such a prompt.
 
 ## Housekeeping
 
