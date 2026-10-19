@@ -6,6 +6,35 @@ parked are in `DEFERRED.md`, not here.
 
 ## Next
 
+- [ ] **Local-boot handoff** (`docs/REVIEW-2026-10-12.md`, finding 1). A
+  machine that is PXE-first in firmware redeploys itself after every
+  `90-reboot` (`bin/vm-boot --pxe` says so); disk-first needs a person at F12
+  for every re-image. Neither is "nobody at the keyboard". The collector
+  commit gave `boot.ipxe` per-machine overrides (`boot/<uuid>.ipxe` and
+  `boot/default.ipxe`, one-liners written by `bin/netboot`), `bin/enroll`,
+  and `pdt-pxe-next` (BootNext from Linux), so what is left is small: a
+  third `pdt_boot` value, `local`, one line in `boot.ipxe`
+  (`iseq ${pdt_boot} local && exit ||`: iPXE returns to the firmware, which
+  boots the next entry, Windows after `bcdboot`), `bin/netboot <m> local`,
+  and `lint` accepting the third one-liner. With that, PXE-first firmware
+  is safe: `netboot <m> local` after a deploy, `netboot <m> winpe` to
+  re-image, no keyboard. Verify on a VM booted `--pxe`: deploy, `netboot
+  local`, the next boot lands on the desktop (`boot ok`, no `ts-start`);
+  `netboot winpe` and it is back in WinPE. Still open after that: a
+  disk-first installed Windows has no agent to set BootNext, so re-imaging
+  one needs `bcdedit /set {fwbootmgr} bootsequence` over RDP or a hand at
+  F12; and a watcher that runs `netboot local` on a machine's `deployed`
+  beacon (the first use for the dispatcher parked in `DEFERRED.md`). Do the
+  `local` override before the Latitude's first deploy.
+- [ ] **Disk guard** (review, finding 2). `ts/diskpart/uefi-gpt.txt` says
+  `select disk 0` then `clean`. Build a step before `20-disk` that lists the
+  disks (`diskpart list disk` into a file), refuses to continue if the chosen
+  disk is removable or smaller than a minimum, and takes `DISK=<n>` from the
+  machine or model cfg (default: the only fixed disk; fail if there are
+  several and none is named). Write the number into the diskpart script with
+  a token (`select disk @DISK@`) at run time; `lint` learns the key and the
+  token. Negative control on a VM with two disks and no `DISK=`: the step
+  fails, nothing is wiped.
 - [ ] Phase 5: real hardware over the network via iPXE (the goal): `pxe-lan`
   on the real LAN, machine allow-list gating destructive steps, per-model driver
   packs, Secure Boot, measured PXE→desktop time; one physical model deployed
