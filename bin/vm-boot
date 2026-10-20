@@ -1,7 +1,7 @@
 #!/bin/bash
 # vm-boot - start a lab VM (headless by default).
 #
-#   vm-boot <name> [--gui] [--pxe] [--nic e1000e|virtio-net-pci] [--no-rom]
+#   vm-boot <name> [--gui] [--pxe] [--nic e1000e|virtio-net-pci] [--no-rom] [--fwd <host>:<guest>[,...]]
 #
 # Hardware is chosen so stock WinPE needs no extra drivers: an e1000e NIC and
 # an AHCI disk (both inbox). Boot order is disk, then network: an empty disk
@@ -10,6 +10,9 @@
 #           new VM: it stays network-first and redeploys itself after 90-reboot
 #   --gui   open a window instead of running headless
 #   --nic   override the NIC model for this boot (e.g. to test injected drivers)
+#   --fwd   user-mode network only: forward host 127.0.0.1:<host> to the guest's
+#           <guest> port for this boot (2222:22 for the collector's sshd,
+#           3390:3389 for RDP into the installed Windows). Several, comma-separated.
 #           Do this only after a FULL shutdown inside Windows (shutdown /s /t 0):
 #           vm-stop's ACPI power-off makes Windows hibernate (fast startup), and
 #           resuming with different hardware can hang.
@@ -23,19 +26,20 @@
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 need qemu-system-x86_64 qemu-img python3
 
-NAME="" DISPLAY_MODE="none" PXE_FIRST=0 NIC="" NO_ROM=0
+NAME="" DISPLAY_MODE="none" PXE_FIRST=0 NIC="" NO_ROM=0 FWD=""
 while (( $# )); do
     case "$1" in
         --gui) DISPLAY_MODE="gtk"; shift ;;
         --pxe) PXE_FIRST=1; shift ;;
         --nic) NIC="${2:?}"; shift 2 ;;
         --no-rom) NO_ROM=1; shift ;;
-        -h|--help) sed -n '2,22p' "$0"; exit 0 ;;
+        --fwd) FWD="${2:?}"; shift 2 ;;
+        -h|--help) sed -n '2,25p' "$0"; exit 0 ;;
         -*) die "unknown option: $1" ;;
         *)  [[ -z "$NAME" ]] || die "one VM name only"; NAME="$1"; shift ;;
     esac
 done
-[[ -n "$NAME" ]] || die "usage: vm-boot <name> [--gui] [--pxe] [--nic <model>]"
+[[ -n "$NAME" ]] || die "usage: vm-boot <name> [--gui] [--pxe] [--nic <model>] [--fwd host:guest,...]"
 vm_load "$NAME"
 NIC="${NIC:-$VM_NIC}"
 
@@ -62,8 +66,13 @@ case "${VM_DISK:-ahci}" in
 esac
 
 case "$VM_NET" in
-    user)     NETDEV="user,id=net0,tftp=$PXE_DIR,bootfile=ipxe.efi" ;;
-    bridge:*) NETDEV="bridge,id=net0,br=${VM_NET#bridge:}" ;;
+    user)     NETDEV="user,id=net0,tftp=$PXE_DIR,bootfile=ipxe.efi"
+              for f in ${FWD//,/ }; do
+                  [[ "$f" =~ ^[0-9]+:[0-9]+$ ]] || die "--fwd wants <host-port>:<guest-port>, got '$f'"
+                  NETDEV+=",hostfwd=tcp:127.0.0.1:${f%%:*}-:${f##*:}"
+              done ;;
+    bridge:*) [[ -z "$FWD" ]] || die "--fwd is for the user-mode network; on a bridge the VM has its own address"
+              NETDEV="bridge,id=net0,br=${VM_NET#bridge:}" ;;
     *) die "vm.conf: bad VM_NET=$VM_NET" ;;
 esac
 

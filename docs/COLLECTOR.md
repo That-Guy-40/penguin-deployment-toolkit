@@ -28,7 +28,7 @@ bin/await <m> deployed 900
 | kernel | Debian's `linux-image-amd64` with all its modules, so unknown NICs and disks work; `dell-wmi-sysman`, `think-lmi`, `hp-bioscfg` expose firmware settings as files under `/sys/class/firmware-attributes/` |
 | form | the whole root filesystem is the initramfs (zstd cpio); the kernel unpacks it into RAM and runs systemd as `/init`. No disk is touched |
 | identity | `boot.ipxe` passes `pdt.server=` (its own base URL) and `pdt.id=` (the UUID iPXE saw) on the kernel command line; the collector reports with that id, so its events join the machine's timeline |
-| access | root over SSH by key only (the first `~/.ssh/*.pub` on the server at build time, or `--ssh-key`); no password; fresh host keys every boot; a getty on `ttyS0` for machines with a serial port |
+| access | root over SSH by key only (the first `~/.ssh/*.pub` on the server at build time, or `--ssh-key`); no password; fresh host keys every boot; a getty on `ttyS0` for machines with a serial port. Verified from this host against a lab VM (`bin/vm-boot --fwd 2222:22`, `spikes/2026-10-12-ssh-rdp/`): the key logs in, password methods and a wrong key are refused |
 | trust | the same as everything else here: whoever writes to `http/` runs code on booting machines. The collector adds sshd as a listening service, with your key; `bin/shell` adds no port |
 
 ## Firmware settings from Linux, without a screen

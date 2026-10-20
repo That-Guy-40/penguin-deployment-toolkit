@@ -61,6 +61,11 @@ Prerequisites: `config.sh` from `config.sh.example` (ISO path, a free port),
 - [ ] `bin/logs t2 --cat users.txt`: two lines, `admin` and `alice`, 32-char
       passwords. `bin/vm-shot t2` (press Enter first with `bin/vm-type t2
       --key ret`): the sign-in picker shows `admin` and `alice` only.
+- [ ] RDP (the role has `RDP=on`; boot t2 with `--fwd 3390:3389`): `rdp ok
+      listening=yes` in the timeline; `xfreerdp /v:127.0.0.1:3390 /u:admin
+      /p:<admin's line in bin/logs t2 --cat users.txt> /cert:ignore /auth-only`
+      exits 0; with a wrong password it does not. Control: a VM without the
+      key answers nothing on its forwarded 3389.
 - [ ] Power cycle: `bin/vm-stop t2` returns in seconds (fast startup is off
       for this role); `bin/vm-boot t2` → `boot ok trigger=onstart` within a
       minute.
@@ -93,8 +98,10 @@ Prerequisites: `config.sh` from `config.sh.example` (ISO path, a free port),
       login prompt; `bin/logs t5 --cat inventory.json` is valid JSON with the
       NIC's MAC.
 - [ ] `bin/shell t5 'uname -r; ss -ltn | grep :22'`: a Debian kernel, sshd
-      listening. (A real SSH login needs a routable VM: `bin/lab-netns` +
-      `--net bridge:br0`, then `ssh root@10.42.0.x` with your key.)
+      listening. For a real login, boot it with `bin/vm-boot t5 --fwd 2222:22`
+      and `ssh -p 2222 -i ~/.ssh/id_ed25519 root@127.0.0.1 hostname` →
+      `pdt-collector`. Control: `ssh -p 2222 -o PubkeyAuthentication=no
+      root@127.0.0.1 true` → `Permission denied (publickey)`.
 - [ ] `bin/enroll t5 --role lab-apps` writes `machines/<uuid>.cfg`; a second
       `bin/enroll t5` refuses without `--force`.
 - [ ] `bin/netboot t5 winpe && bin/shell t5 'pdt-pxe-next --reboot'` prints

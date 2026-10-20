@@ -50,6 +50,7 @@ set USERS=
 set SKEL=
 set SKELREG=
 set DEPLOY=
+set RDP=
 if exist "%~dp0role\role.cfg" for /f "usebackq eol=# tokens=1,* delims==" %%a in ("%~dp0role\role.cfg") do (
   if /i "%%a"=="APPS" set "APPS=%~dp0role\%%b"
   if /i "%%a"=="POST" set "ROLE_POST=%~dp0role\%%b"
@@ -58,6 +59,7 @@ if exist "%~dp0role\role.cfg" for /f "usebackq eol=# tokens=1,* delims==" %%a in
   if /i "%%a"=="SKEL" set "SKEL=%~dp0role\skel"
   if /i "%%a"=="SKELREG" set "SKELREG=%~dp0role\%%b"
   if /i "%%a"=="DEPLOY" set "DEPLOY=%%b"
+  if /i "%%a"=="RDP" set "RDP=%%b"
 )
 rem SKEL: files for every account created from now on (C:\Users\Default is
 rem Windows' /etc/skel: copied into each new profile at that user's first logon).
@@ -111,6 +113,20 @@ if /i "%FASTSTARTUP%"=="off" (
   set HIBER=
   for /f "tokens=3" %%h in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Power" /v HibernateEnabled ^| find "HibernateEnabled"') do set HIBER=%%h
   if "!HIBER!"=="0x0" (call "%~dp0beacon.cmd" faststartup ok "state=off") else call "%~dp0beacon.cmd" faststartup fail "state=!HIBER!" "msg=powercfg /h off did not take"
+)
+
+rem RDP=on: Windows' own Remote Desktop, with NLA, through the firewall, and
+rem every account of the role's USERS list allowed to use it (Administrators
+rem can anyway; others must be in Remote Desktop Users).
+if /i "%RDP%"=="on" (
+  set RDP_V=ok
+  reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f >nul || set RDP_V=fail
+  reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" /v UserAuthentication /t REG_DWORD /d 1 /f >nul || set RDP_V=fail
+  netsh advfirewall firewall set rule group="remote desktop" new enable=Yes >nul || set RDP_V=fail
+  if defined USERS for /f "usebackq eol=# tokens=1 delims=|" %%u in ("%USERS%") do net localgroup "Remote Desktop Users" "%%u" /add >nul 2>&1
+  set RDP_LISTEN=no
+  for /f %%l in ('powershell -NoProfile -Command "(Get-NetTCPConnection -LocalPort 3389 -State Listen -ErrorAction SilentlyContinue | Measure-Object).Count"') do if not "%%l"=="0" set RDP_LISTEN=yes
+  call "%~dp0beacon.cmd" rdp !RDP_V! "listening=!RDP_LISTEN!"
 )
 
 rem --- the every-boot probe: a "boot" beacon after each real boot or resume -----

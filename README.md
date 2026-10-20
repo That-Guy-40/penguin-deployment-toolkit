@@ -330,6 +330,13 @@ Later the same day, with root supplied from another shell:
 | `bin/enroll <vm> --role lab-apps`, `bin/netboot <vm> winpe`, `bin/shell <vm> 'pdt-pxe-next --reboot'` | `machines/<uuid>.cfg` from the inventory; the VM rebooted into Windows PE and ran the full role deploy to `deployed` in 245 s |
 | BootNext, on the disk that now boots Windows | set from the collector, disk-first boot → the collector again (`BootCurrent: 0003`); control without it → Windows (`boot ok`), no `collect` |
 
+**SSH and RDP from the host, 2026-10-12** (evidence: `spikes/2026-10-12-ssh-rdp/`; `bin/vm-boot --fwd` is the new piece):
+
+| what | result |
+|---|---|
+| `ssh -p 2222 -i ~/.ssh/id_ed25519 root@127.0.0.1` into a collector VM | logs in (hostname, uid, kernel, boot entries); password methods and a wrong key: `Permission denied (publickey)` |
+| Role key `RDP=on` | `rdp ok listening=yes`; the RDP listener selects CredSSP (NLA) in the first protocol exchange; a VM without the key answers nothing on 3389. Credentials over RDP not yet exercised (no `xfreerdp` on this host) |
+
 Still not verified: anything on physical hardware, including enrolling a
 Secure Boot certificate in real firmware.
 

@@ -88,6 +88,6 @@ reason, while the machine was already rebooting).
 
 ## Not verified
 
-A real SSH session (the user-mode VM is not reachable from the host; the
-bridged lab would show it), AMT on real hardware, firmware attributes on a
-Dell (`firmware=none` in QEMU is the correct answer, not evidence either way).
+AMT on real hardware, firmware attributes on a Dell (`firmware=none` in QEMU
+is the correct answer, not evidence either way). (A real SSH session was
+verified later the same day: `spikes/2026-10-12-ssh-rdp/`.)

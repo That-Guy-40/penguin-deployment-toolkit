@@ -13,6 +13,7 @@ files; `role.cfg` names the rest:
 | `SKEL` | a manifest: one relative path per line | the files, kept under `skel/` in the role directory, are copied into `C:\Users\Default`: Windows' `/etc/skel`, copied into every profile created from then on. `lint` insists the manifest and the directory agree |
 | `SKELREG` | a `.reg` file (`reg export` format) of `HKEY_CURRENT_USER` keys | merged into the Default profile's hive (`C:\Users\Default\NTUSER.DAT`), so every profile created afterwards starts with those values: Explorer, locale and taskbar defaults are the usual use. `lint` refuses any other root |
 | `DEPLOY` | `remove` (or absent) | delete the toolkit's own `deploy` account. `post/remove-deploy.cmd` deletes the account at the end of first logon (Windows allows deleting the logged-on account; the session lives until the restart that follows), registers a one-shot SYSTEM task for the next boot that removes the profile directory, and restarts (`deploy-remove ok account=deleted`, then `deploy-removed ok` from the next boot). `lint` requires `USERS` to create another `Administrators` account first. Skipped on a reference machine (sysprep needs `deploy`; the captured image's unattend makes it again) |
+| `RDP` | `on` (or absent) | Windows' own Remote Desktop: enabled with NLA, the "Remote Desktop" firewall group opened, and every account of `USERS` added to Remote Desktop Users (Administrators may connect anyway). Beacon `rdp ok listening=yes`. From Linux: `xfreerdp /v:<machine> /u:<user> /p:<password>` (`/auth-only` to just check the credentials); in the lab, `bin/vm-boot <vm> --fwd 3390:3389` then `/v:127.0.0.1:3390` |
 | `FILES` | file names, space-separated | companions of the post script, fetched next to it |
 | `FASTSTARTUP` | `off` (or absent) | `off`: `powercfg /h off` at first logon, so every shutdown is a real shutdown and every power-on a real boot. Absent: Windows' default (fast startup on). See below |
 
@@ -24,7 +25,7 @@ and `firstlogon.cmd` works through them in this order:
 ```
 firstlogon ok  →  winre ok  →  skel ok files=N  →  skelreg ok  →  users ok created=… set=… failed=
   →  users-upload ok  →  winget ok version=…  →  apps ok installed=… failed=
-  →  faststartup ok state=off  →  boot-tasks ok  →  role-post …  →  (POST script)
+  →  faststartup ok state=off  →  rdp ok listening=yes  →  boot-tasks ok  →  role-post …  →  (POST script)
   →  deployed ok role=<name>   →  (REFERENCE=yes: prepare-capture)
   →  (DEPLOY=remove: deploy-remove ok account=deleted, restart, then deploy-removed ok from the next boot)
 ```
@@ -90,7 +91,7 @@ sends `boot ok trigger=onstart|event` after each boot: the `event` task
 ## Example
 
 `lab-apps/` is the role the lab tests with: 7-Zip and Notepad++, fast startup
-off, a skel with two files and a `skel.reg`, accounts `admin` and `alice`
+off, Remote Desktop on, a skel with two files and a `skel.reg`, accounts `admin` and `alice`
 (and `deploy` re-passworded, then removed at the next boot), and a post
 script that probes all of it (logs on as each account with the generated
 password, checks alice's new profile has the skel files and the registry

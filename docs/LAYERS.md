@@ -171,8 +171,8 @@ probe (two scheduled tasks → `boot ok trigger=…` after every boot) and, with
 **Add something that runs every boot.** A role `post.cmd` that registers its
 own scheduled task, as `boot-probe.cmd` does (`schtasks /create /sc onstart
 /ru SYSTEM …`), with the script left under `C:\pdt\` by the role's `FILES=`.
-Remote access to the installed OS is Windows' own RDP, which a role can
-switch on (not built yet; a registry value and a firewall rule).
+Remote access to the installed OS is Windows' own RDP, which a role switches
+on with `RDP=on` (NLA, the firewall group, the role's accounts allowed).
 
 ## 8. The collector: `tools-src/collector/`, `bin/build-collector`
 

@@ -50,7 +50,7 @@ VIRTUAL = ("ts/id.cmd", "beacon", "health")
 VIRTUAL_PREFIX = ("uploads/",)
 # What a model file may set (models/<slug>.cfg) and what only a machine file may.
 MODEL_KEYS = ("IMAGE", "UNATTEND", "DISKPART", "DRIVERS", "UPDATES", "POST", "ROLE")
-ROLE_KEYS = ("UNATTEND", "APPS", "POST", "FASTSTARTUP", "USERS", "SKEL", "SKELREG", "FILES", "DEPLOY")   # roles/<name>/role.cfg
+ROLE_KEYS = ("UNATTEND", "APPS", "POST", "FASTSTARTUP", "USERS", "SKEL", "SKELREG", "FILES", "DEPLOY", "RDP")   # roles/<name>/role.cfg
 USER_RE = re.compile(r"^[A-Za-z0-9._-]{1,20}$")
 ROLE_RE = re.compile(r"^[A-Za-z0-9_-]+$")
 MACHINE_ONLY_KEYS = ("MODE", "STOP_BEFORE", "STOP_AFTER", "REFERENCE")
@@ -551,6 +551,11 @@ def lint_tree(http, deep=False, programs=None):
                 R.fail(f"{who} DEPLOY=remove", "USERS must create another Administrators account first, or nobody could log on afterwards")
             else:
                 R.ok(f"{who} DEPLOY=remove", f"Administrators afterwards: {', '.join(admins)}")
+        if "RDP" in vals:
+            if vals["RDP"].lower() == "on":
+                R.ok(f"{who} RDP=on", "Remote Desktop with NLA; the USERS accounts may connect")
+            else:
+                R.fail(f"{who} RDP={vals['RDP']}", "the only value is on (leave the key out for off)")
         if "FASTSTARTUP" in vals:
             if vals["FASTSTARTUP"].lower() == "off":
                 R.ok(f"{who} FASTSTARTUP=off")
@@ -745,6 +750,7 @@ def selftest():
             ("DEPLOY=remove with no other administrator", lambda d: sub_text(d, "roles/lab-apps/users.txt", "admin|Administrators|random", "admin|Users|random"), "another Administrators account"),
             ("a skel.reg with a key outside HKEY_CURRENT_USER", lambda d: open(os.path.join(d, "roles", "lab-apps", "skel.reg"), "a", newline="").write("\r\n[HKEY_LOCAL_MACHINE\\SOFTWARE\\PDT]\r\n\"x\"=\"y\"\r\n"), "HKEY_CURRENT_USER"),
             ("a script a role needs for DEPLOY=remove is missing", lambda d: os.remove(os.path.join(d, "post", "remove-deploy.cmd")), "post/remove-deploy.cmd"),
+            ("a role.cfg sets RDP to something that is not on", lambda d: open(os.path.join(d, "roles", "lab-apps", "role.cfg"), "a", newline="").write("RDP=yes\r\n"), "RDP=yes"),
         ]
 
         control = lint_tree(fresh(), programs=SELFTEST_PROGRAMS)
