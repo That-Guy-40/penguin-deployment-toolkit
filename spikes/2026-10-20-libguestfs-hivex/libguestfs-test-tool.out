@@ -1,0 +1,89 @@
+     ************************************************************
+     *                    IMPORTANT NOTICE
+     *
+     * When reporting bugs, include the COMPLETE, UNEDITED
+     * output below in your bug report.
+     *
+     ************************************************************
+PATH=/home/sqs/.local/state/lab-create/micro-cloud-s3:/home/sqs/.elan/bin:/home/sqs/.bun/bin:/home/sqs/.bun/bin:/home/sqs/.opencode/bin:/home/sqs/.local/bin:/home/sqs/.elan/bin:/home/sqs/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/opt/rocm/bin
+XDG_RUNTIME_DIR=/run/user/1000
+SELinux: sh: 1: getenforce: not found
+guestfs_get_append: (null)
+guestfs_get_autosync: 1
+guestfs_get_backend: direct
+guestfs_get_backend_settings: []
+guestfs_get_cachedir: /var/tmp
+guestfs_get_hv: /usr/bin/qemu-system-x86_64
+guestfs_get_memsize: 1280
+guestfs_get_network: 0
+guestfs_get_path: /usr/lib/x86_64-linux-gnu/guestfs
+guestfs_get_pgroup: 0
+guestfs_get_program: libguestfs-test-tool
+guestfs_get_recovery_proc: 1
+guestfs_get_smp: 1
+guestfs_get_sockdir: /run/user/1000
+guestfs_get_tmpdir: /tmp
+guestfs_get_trace: 0
+guestfs_get_verbose: 1
+host_cpu: x86_64
+Launching appliance, timeout set to 600 seconds.
+libguestfs: launch: program=libguestfs-test-tool
+libguestfs: launch: version=1.58.1
+libguestfs: launch: backend registered: libvirt
+libguestfs: launch: backend registered: direct
+libguestfs: launch: backend=direct
+libguestfs: launch: tmpdir=/tmp/libguestfsIFmTJ8
+libguestfs: launch: umask=0002
+libguestfs: launch: euid=1000
+libguestfs: launch: host: Linux badass-box 7.0.0-38-generic #38-Ubuntu SMP PREEMPT_DYNAMIC Fri Sep  4 09:10:14 UTC 2026 x86_64
+libguestfs: begin building supermin appliance
+libguestfs: run supermin
+libguestfs: command: run: /usr/bin/supermin
+libguestfs: command: run: \ --build
+libguestfs: command: run: \ --verbose
+libguestfs: command: run: \ --if-newer
+libguestfs: command: run: \ --lock /var/tmp/.guestfs-1000/lock
+libguestfs: command: run: \ --copy-kernel
+libguestfs: command: run: \ -f ext2
+libguestfs: command: run: \ --host-cpu x86_64
+libguestfs: command: run: \ /usr/lib/x86_64-linux-gnu/guestfs/supermin.d
+libguestfs: command: run: \ -o /var/tmp/.guestfs-1000/appliance.d
+supermin: version: 5.2.2
+supermin: package handler: debian/dpkg
+supermin: acquiring lock on /var/tmp/.guestfs-1000/lock
+supermin: build: /usr/lib/x86_64-linux-gnu/guestfs/supermin.d
+supermin: reading the supermin appliance
+supermin: build: visiting /usr/lib/x86_64-linux-gnu/guestfs/supermin.d/base.tar.gz type gzip base image (tar)
+supermin: build: visiting /usr/lib/x86_64-linux-gnu/guestfs/supermin.d/daemon.tar.gz type gzip base image (tar)
+supermin: build: visiting /usr/lib/x86_64-linux-gnu/guestfs/supermin.d/excludefiles type uncompressed excludefiles
+supermin: build: visiting /usr/lib/x86_64-linux-gnu/guestfs/supermin.d/hostfiles type uncompressed hostfiles
+supermin: build: visiting /usr/lib/x86_64-linux-gnu/guestfs/supermin.d/init.tar.gz type gzip base image (tar)
+supermin: build: visiting /usr/lib/x86_64-linux-gnu/guestfs/supermin.d/packages type uncompressed packages
+supermin: build: visiting /usr/lib/x86_64-linux-gnu/guestfs/supermin.d/packages-hfsplus type uncompressed packages
+supermin: build: visiting /usr/lib/x86_64-linux-gnu/guestfs/supermin.d/packages-xfs type uncompressed packages
+supermin: build: visiting /usr/lib/x86_64-linux-gnu/guestfs/supermin.d/udev-rules.tar.gz type gzip base image (tar)
+supermin: mapping package names to installed packages
+supermin: resolving full list of package dependencies
+supermin: build: 242 packages, including dependencies
+supermin: build: 13133 files
+supermin: build: 9082 files, after matching excludefiles
+supermin: build: 9091 files, after adding hostfiles
+supermin: build: 9091 files, after removing unreadable files
+supermin: build: 9098 files, after munging
+supermin: kernel: looking for kernel using environment variables ...
+supermin: kernel: looking for kernels in /lib/modules/*/vmlinuz ...
+supermin: kernel: looking for kernels in /boot ...
+supermin: kernel: kernel version of /boot/vmlinuz-7.0.0-38-generic = 7.0.0-38-generic (from filename)
+supermin: kernel: picked modules path /lib/modules/7.0.0-38-generic
+supermin: kernel: kernel version of /boot/vmlinuz-6.8.0-146-generic = 6.8.0-146-generic (from filename)
+supermin: kernel: picked modules path /lib/modules/6.8.0-146-generic
+supermin: kernel: picked vmlinuz /boot/vmlinuz-7.0.0-38-generic
+supermin: kernel: kernel_version 7.0.0-38-generic
+supermin: kernel: modpath /lib/modules/7.0.0-38-generic
+cp: cannot open '/boot/vmlinuz-7.0.0-38-generic' for reading: Permission denied
+supermin: cp -p '/boot/vmlinuz-7.0.0-38-generic' '/var/tmp/.guestfs-1000/appliance.d.fngkml82/kernel': command failed, see earlier errors
+libguestfs: error: /usr/bin/supermin exited with error status 1, see debug messages above
+libguestfs: closing guestfs handle 0x555abec93c00 (state 0)
+libguestfs: command: run: rm
+libguestfs: command: run: \ -rf /tmp/libguestfsIFmTJ8
+rc=1

@@ -1,0 +1,6 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\skel\Software\PDT]
+"Deployed"=dword:00000001
+"SkelFrom"=hex(1):6c,00,61,00,62,00,2d,00,61,00,70,00,70,00,73,00,00,00
+

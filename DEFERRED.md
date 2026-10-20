@@ -136,6 +136,19 @@ or when `bin/await` on screen text would save a manual check. Not before:
 `bin/screen` already shows the one thing text cannot, a firmware screen or
 a BSOD, and the beacons already say where a sequence is.
 
+### libguestfs / hivex: offline registry and BCD edits on Linux (feasibility done)
+
+`spikes/2026-10-20-libguestfs-hivex/`: hivex reads and writes the hives
+pulled out of a WIM with wimlib, no root, no appliance (verified on
+`SYSTEM`, `SOFTWARE`, the Default profile's `NTUSER.DAT` with a role's
+`skel.reg` merged in, and the served WinPE `BCD`). In order of value: the
+EMS/serial-console elements in the `BCD` from Linux; `ImageState` of a
+captured image read on Linux in `stage-image`; the registry half of a role
+baked into a role image at capture time; `virt-inspector` for an installed
+-applications list in the sidecar (needs the appliance, i.e. a readable
+`/boot/vmlinuz`). Pick up the first with the serial-console spike, the
+second whenever `stage-image` is next touched.
+
 ### Remote access as role settings: `RDP=on`, and `SSH=on` from the same template
 
 *(2026-10-20: `RDP=on` is built and verified up to the credential check,
