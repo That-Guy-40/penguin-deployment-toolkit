@@ -126,7 +126,9 @@ screen pusher avoids. Plan B if a live interactive session is ever needed.
 (`fDenyTSConnections=0`, NLA on, the firewall group, the role's accounts in
 Remote Desktop Users) gives a full desktop from Linux (`xfreerdp`, Remmina)
 after first logon; `bin/vm-boot --fwd 3390:3389` reaches a lab VM's.
-Verification: `spikes/2026-10-12-ssh-rdp/`.
+Verification: `spikes/2026-10-12-ssh-rdp/`. `SSH=on` (Windows' OpenSSH
+server, PowerShell remoting over SSH) is written up from the same template
+in `DEFERRED.md`, "Remote access as role settings", not built.
 
 **A serial console, like Linux's?** Windows has one: EMS/SAC. `bcdedit
 /ems on` plus `/emssettings` on the BCD gives a text console over a COM port

@@ -6,6 +6,35 @@ parked are in `DEFERRED.md`, not here.
 
 ## Next
 
+- [ ] **Local-boot handoff** (`docs/REVIEW-2026-10-12.md`, finding 1). A
+  machine that is PXE-first in firmware redeploys itself after every
+  `90-reboot` (`bin/vm-boot --pxe` says so); disk-first needs a person at F12
+  for every re-image. Neither is "nobody at the keyboard". The collector
+  commit gave `boot.ipxe` per-machine overrides (`boot/<uuid>.ipxe` and
+  `boot/default.ipxe`, one-liners written by `bin/netboot`), `bin/enroll`,
+  and `pdt-pxe-next` (BootNext from Linux), so what is left is small: a
+  third `pdt_boot` value, `local`, one line in `boot.ipxe`
+  (`iseq ${pdt_boot} local && exit ||`: iPXE returns to the firmware, which
+  boots the next entry, Windows after `bcdboot`), `bin/netboot <m> local`,
+  and `lint` accepting the third one-liner. With that, PXE-first firmware
+  is safe: `netboot <m> local` after a deploy, `netboot <m> winpe` to
+  re-image, no keyboard. Verify on a VM booted `--pxe`: deploy, `netboot
+  local`, the next boot lands on the desktop (`boot ok`, no `ts-start`);
+  `netboot winpe` and it is back in WinPE. Still open after that: a
+  disk-first installed Windows has no agent to set BootNext, so re-imaging
+  one needs `bcdedit /set {fwbootmgr} bootsequence` over RDP or a hand at
+  F12; and a watcher that runs `netboot local` on a machine's `deployed`
+  beacon (the first use for the dispatcher parked in `DEFERRED.md`). Do the
+  `local` override before the Latitude's first deploy.
+- [ ] **Disk guard** (review, finding 2). `ts/diskpart/uefi-gpt.txt` says
+  `select disk 0` then `clean`. Build a step before `20-disk` that lists the
+  disks (`diskpart list disk` into a file), refuses to continue if the chosen
+  disk is removable or smaller than a minimum, and takes `DISK=<n>` from the
+  machine or model cfg (default: the only fixed disk; fail if there are
+  several and none is named). Write the number into the diskpart script with
+  a token (`select disk @DISK@`) at run time; `lint` learns the key and the
+  token. Negative control on a VM with two disks and no `DISK=`: the step
+  fails, nothing is wiped.
 - [ ] Phase 5: real hardware over the network via iPXE (the goal): `pxe-lan`
   on the real LAN, machine allow-list gating destructive steps, per-model driver
   packs, Secure Boot, measured PXE→desktop time; one physical model deployed
@@ -26,6 +55,13 @@ parked are in `DEFERRED.md`, not here.
 
 ## After that
 
+- [ ] **`SSH=on` as a role key** (`RDP=on` is built: `spikes/2026-10-12-ssh-rdp/`,
+  the lab role carries it), the access that works from this host with no
+  display: `ssh`, and PowerShell remoting over SSH. Written up in
+  `DEFERRED.md`, "Remote access as role settings": the same block as RDP
+  plus an `SSHKEYS` file and the host-key cleanup before capture. The
+  credential check for RDP (`xfreerdp /auth-only`) still needs a FreeRDP
+  client on this host (`freerdp3-x11`).
 - [ ] Phase 6: deployable by others as infrastructure: `INSTALL.md`,
   `bin/preflight` (PASS/FAIL/UNKNOWN rows, with deliberate failing rows),
   systemd units for `serve`/`pxe-lan`, pinned and verified inputs, and a
@@ -40,6 +76,13 @@ README stating the result. Answered ones are in `PLAN.md` §5.
 
 - [ ] **LAN throughput of a 3.5 GB WIM over HTTP versus SMB** (expected: no
   difference that matters; measure once on the physical run).
+- [ ] **A text frame log of the WinPE console**, `pdt-console`: a sibling of
+  `pdt-screen` that attaches to the deploy window and dumps its console
+  buffer as text whenever it changes (kilobytes, diffable, greppable, a
+  thing `bin/await` can wait on), and types into it (`WriteConsoleInput`),
+  which `bin/shell` cannot do to a prompt the sequence is stuck at. Design
+  and the spike's checks in `DEFERRED.md`, "A text frame log of the WinPE
+  console". Pick up the first time a physical machine waits at such a prompt.
 
 ## Housekeeping
 
