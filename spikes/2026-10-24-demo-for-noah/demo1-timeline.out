@@ -1,0 +1,65 @@
+$ bin/status demo1
+e6c96dba-9367-4e1b-8406-618b9e343fcd  demo1
+  2026-10-24T04:31:04-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:01:8e:13 nic=01:80:86:10:d3 chip=82574l bootsrv=10.0.2.2 serial=demo1
+  2026-10-24T04:31:06-04:00  +    1.7s  (+   1.7s)  wim         ok    msg=475 MiB in 1.5s (323 MiB/s)
+  2026-10-24T04:31:15-04:00  +   10.2s  (+   8.5s)  ts-start    ok    mode=deploy model=lab-vm product=lab-vm mac=52:54:00:01:8e:13
+  2026-10-24T04:31:15-04:00  +   10.6s  (+   0.4s)  15-preflight start 
+  2026-10-24T04:31:16-04:00  +   11.4s  (+   0.8s)  15-preflight ok    
+  2026-10-24T04:31:16-04:00  +   11.7s  (+   0.3s)  17-diskguard start 
+  2026-10-24T04:31:17-04:00  +   12.1s  (+   0.4s)  17-diskguard ok    msg=disk 0:QEMU HARDDISK 64GiB of 1 (the only fixed disk)
+  2026-10-24T04:31:17-04:00  +   12.4s  (+   0.3s)  20-disk     start 
+  2026-10-24T04:31:26-04:00  +   22.0s  (+   9.6s)  20-disk     ok    
+  2026-10-24T04:31:27-04:00  +   22.3s  (+   0.3s)  25-download start 
+  2026-10-24T04:31:42-04:00  +   37.9s  (+  15.6s)  25-download ok    
+  2026-10-24T04:31:43-04:00  +   38.1s  (+   0.2s)  30-apply    start 
+  2026-10-24T04:32:57-04:00  +  113.0s  (+  74.9s)  30-apply    ok    
+  2026-10-24T04:32:58-04:00  +  113.4s  (+   0.4s)  35-updates  start 
+  2026-10-24T04:32:58-04:00  +  113.6s  (+   0.2s)  35-updates  ok    msg=skipped: no UPDATES set
+  2026-10-24T04:32:58-04:00  +  113.9s  (+   0.3s)  40-drivers  start 
+  2026-10-24T04:32:59-04:00  +  114.1s  (+   0.2s)  40-drivers  ok    msg=skipped: no DRIVERS set
+  2026-10-24T04:32:59-04:00  +  114.5s  (+   0.4s)  45-winre    start 
+  2026-10-24T04:33:00-04:00  +  115.4s  (+   0.9s)  45-winre    ok    
+  2026-10-24T04:33:00-04:00  +  115.7s  (+   0.3s)  50-boot     start 
+  2026-10-24T04:33:01-04:00  +  116.3s  (+   0.6s)  50-boot     ok    
+  2026-10-24T04:33:01-04:00  +  116.6s  (+   0.3s)  60-unattend start 
+  2026-10-24T04:33:02-04:00  +  117.5s  (+   0.9s)  60-unattend ok    
+  2026-10-24T04:33:02-04:00  +  117.7s  (+   0.3s)  90-reboot   start 
+  2026-10-24T04:33:02-04:00  +  117.8s  (+   0.1s)  90-reboot   ok    
+  2026-10-24T04:33:02-04:00  +  118.0s  (+   0.2s)  ts-done     ok    
+  2026-10-24T04:33:50-04:00  +  166.0s  (+  48.0s)  specialize  ok    
+  2026-10-24T04:34:55-04:00  +  231.1s  (+  65.1s)  firstlogon  ok    host=WIN-0K236I478AO build=26100.1 secureboot=False
+  2026-10-24T04:34:58-04:00  +  233.9s  (+   2.9s)  winre       ok    status=Enabled location=\\?\GLOBALROOT\device\harddisk0\partition4\Recovery\WindowsRE windows_partition=3
+  2026-10-24T04:34:59-04:00  +  234.2s  (+   0.2s)  skel        ok    
+  2026-10-24T04:34:59-04:00  +  234.7s  (+   0.5s)  skelreg     ok    
+  2026-10-24T04:35:00-04:00  +  235.9s  (+   1.2s)  users       ok    
+  2026-10-24T04:35:00-04:00  +  236.0s  (+   0.1s)  users-upload ok    msg=generated passwords are in the uploads as users.txt
+  2026-10-24T04:35:16-04:00  +  251.1s  (+  15.1s)  winget      ok    version=v1.29.380
+  2026-10-24T04:35:51-04:00  +  286.2s  (+  35.1s)  apps        ok    installed=7zip.7zip,Notepad++.Notepad++,Microsoft.PowerShell
+  2026-10-24T04:35:51-04:00  +  286.4s  (+   0.2s)  faststartup ok    state=off
+  2026-10-24T04:35:54-04:00  +  290.0s  (+   3.6s)  rdp         ok    listening=yes
+  2026-10-24T04:36:07-04:00  +  302.8s  (+  12.8s)  ssh         ok    port=22 shell=pwsh keys=1 listening=yes
+  2026-10-24T04:36:07-04:00  +  303.0s  (+   0.2s)  boot-tasks  ok    
+  2026-10-24T04:36:11-04:00  +  306.5s  (+   3.5s)  role-post   ok    sevenzip=yes
+  2026-10-24T04:36:11-04:00  +  306.6s  (+   0.1s)  deployed    ok    host=WIN-0K236I478AO role=lab-apps
+  2026-10-24T04:36:11-04:00  +  306.9s  (+   0.3s)  deploy-remove ok    account=deleted msg=profile removal scheduled for the next boot; restarting
+
+$ bin/logs demo1
+e6c96dba-9367-4e1b-8406-618b9e343fcd  run 57828827  (1 run(s): 57828827)
+         156  2026-10-24 04:36:07  boot-probe.txt
+        2441  2026-10-24 04:33:02  dism.log
+      323661  2026-10-24 04:34:58  panther-setupact.log
+          85  2026-10-24 04:34:58  panther-setuperr.log
+         487  2026-10-24 04:34:58  reagentc.txt
+     3072054  2026-10-24 04:33:07  screen.bmp
+        1896  2026-10-24 04:36:07  ssh.txt
+        9667  2026-10-24 04:33:03  ts.log
+         121  2026-10-24 04:35:00  users.txt
+      102441  2026-10-24 04:35:51  winget-diag.log
+        1884  2026-10-24 04:35:51  winget.txt
+  (http/uploads/e6c96dba-9367-4e1b-8406-618b9e343fcd/57828827)
+
+$ bin/logs demo1 --cat users.txt (passwords masked here)
+deploy	<32 characters>
+admin	<32 characters>
+alice	<32 characters>
+

@@ -1,0 +1,7 @@
+$ echo MODE=wipe > http/machines/00000000-0000-0000-0000-000000000000.cfg; bin/lint; echo rc=$?
+PASS     lint self-test: 45/45 injected defects were reported as FAIL
+FAIL     machines/00000000-0000-0000-0000-000000000000.cfg MODE=wipe: no ts/wipe.seq (modes: shell, capture, deploy)
+195 PASS, 1 FAIL, 0 UNKNOWN   (-v lists every row)
+rc=1
+$ bin/lint | tail -1
+192 PASS, 0 FAIL, 0 UNKNOWN   (-v lists every row)

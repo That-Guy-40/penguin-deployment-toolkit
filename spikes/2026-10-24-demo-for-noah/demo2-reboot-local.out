@@ -1,0 +1,11 @@
+# 2026-10-24T08:46:13Z reboot demo2 (override: local) and wait for Windows on disk 1 to report boot
+VM demo2 running: pid 2153757, nic e1000e, boot disk then network, monitor 127.0.0.1:7003
+id for bin/status and bin/await: 43915312-eec8-41fa-ac93-5fa371b471b2
+await: TIMEOUT after 420s waiting for boot ok; no event from this machine at all
+await rc=2
+2026-10-24T08:53:13Z
+43915312-eec8-41fa-ac93-5fa371b471b2  demo2
+  2026-10-24T04:46:21-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:70:1d:c9 nic=01:80:86:10:d3 chip=82574l bootsrv=10.0.2.2 serial=demo2
+--- serial since this boot:
+PDT: local boot requested - back to the firmware
+failed to start Boot0003 "UEFI PXEv4 (MAC:525400701DC9)" from PciRoot(0x0)/Pci(0x2,0x0)/MAC(525400701DC9,0x1)/IPv4(0.0.0.0,0x0,DHCP,0.0.0.0,0.0.0.0,0.0.0.0): 0000007F

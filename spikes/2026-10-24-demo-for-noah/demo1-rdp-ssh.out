@@ -1,0 +1,44 @@
+$ bin/await demo1 boot 300
+await: TIMEOUT after 300s waiting for boot ok; no event from this machine at all
+rc=2
+  2026-10-24T04:36:11-04:00  +  306.9s  (+   0.3s)  deploy-remove ok    account=deleted msg=profile removal scheduled for the next boot; restarting
+  2026-10-24T04:36:41-04:00  +  336.8s  (+  29.9s)  boot        ok    host=WIN-0K236I478AO trigger=onstart
+  2026-10-24T04:36:46-04:00  +  341.6s  (+   4.9s)  deploy-removed ok    profile_gone=ok
+
+# RDP
+$ xfreerdp /v:127.0.0.1:3390 /u:admin /p:<admin pw from users.txt> /cert:ignore /auth-only
+rc=0
+[04:43:03:945] [2104636:00201d3e] [ERROR][com.freerdp.core] - [freerdp_connect_begin]: Authentication only, exit status 1
+[04:43:03:946] [2104636:00201d3c] [ERROR][com.freerdp.core] - [freerdp_abort_connect_context]: ERRCONNECT_CONNECT_CANCELLED [0x0002000B]
+[04:43:03:684] [2104636:00201d3e] [INFO][com.freerdp.client.x11] - [xf_pre_connect]: Authentication only. Don't connect to X.
+$ ... /u:admin /p:wrong-password
+rc=134
+[04:43:03:970] [2104645:00201d47] [ERROR][com.freerdp.core] - [nla_recv_pdu]: ERRCONNECT_LOGON_FAILURE [0x00020014]
+$ ... /u:deploy /p:<deploy pw from users.txt>  (account deleted at the end of first logon)
+rc=134
+[04:43:03:991] [2104654:00201d50] [ERROR][com.freerdp.core] - [nla_recv_pdu]: ERRCONNECT_LOGON_FAILURE [0x00020014]
+
+# SSH
+$ ssh -p 2223 -o StrictHostKeyChecking=no admin@127.0.0.1 hostname
+WIN-0K236I478AO
+rc=0
+$ ssh -p 2223 admin@127.0.0.1 'whoami; $PSVersionTable.PSVersion.ToString(); Get-Volume C | Select-Object -ExpandProperty SizeRemaining'
+win-0k236i478ao\admin
+7.6.8
+55991091200
+rc=0
+$ ssh-keyscan -t ed25519 -p 2223 127.0.0.1 | ssh-keygen -lf -
+256 SHA256:EbUlwSueE0zvWO3c191lRfwcP3RLkINzrUPu2QV97ls [127.0.0.1]:2223 (ED25519)
+$ bin/logs demo1 --cat ssh.txt | grep -i ed25519
+hostkey 256 SHA256:EbUlwSueE0zvWO3c191lRfwcP3RLkINzrUPu2QV97ls system@WIN-0K236I478AO (ED25519)
+hostkey 256 SHA256:yqkx55HOSjMj7O94RiTo7au7KHjsmSrinemreVW7LLc system@WIN-0K236I478AO (MLDSA44-ED25519)
+$ ssh -p 2223 -o PubkeyAuthentication=no admin@127.0.0.1 true   (control: no key)
+admin@127.0.0.1: Permission denied (publickey).
+rc=255
+$ ssh -p 2223 alice@127.0.0.1 true   (control: a Users account, same key)
+alice@127.0.0.1: Permission denied (publickey).
+rc=255
+$ pwsh -c 'Invoke-Command -HostName 127.0.0.1 -Port 2223 -UserName admin -ScriptBlock { $env:COMPUTERNAME; (Get-CimInstance Win32_OperatingSystem).Version }'
+WIN-0K236I478AO
+10.0.26100
+rc=0

@@ -1,0 +1,105 @@
+# 2026-10-24T08:35:15Z
+$ bin/netboot demo0 collector
+demo0: collector on the next PXE boot (http/boot/f37a3735-46c3-48a6-8b06-470cefa458c2.ipxe)
+$ bin/shell demo0 'wpeutil reboot'
+timeout after 20 s: no output for cmd 4 (run 5826807); if it is still running, bin/logs demo0 --cat cmd-4.out later
+rc=2
+$ bin/await demo0 collect 300
+await: TIMEOUT after 300s waiting for collect ok; no event from this machine at all
+rc=2
+$ bin/status demo0
+f37a3735-46c3-48a6-8b06-470cefa458c2  demo0
+  2026-10-24T04:35:25-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:bf:f3:5a nic=01:80:86:10:d3 chip=82574l bootsrv=10.0.2.2 serial=demo0
+  2026-10-24T04:35:29-04:00  +    4.7s  (+   4.7s)  collect     start os=linux
+  2026-10-24T04:35:29-04:00  +    4.8s  (+   0.1s)  collect     ok    product=lab-vm os=linux serial=demo0 amt=absent firmware=none pxe_entry=0003 ssh=up
+$ bin/logs demo0
+f37a3735-46c3-48a6-8b06-470cefa458c2  run 085004278  (2 run(s): 5826807, 085004278)
+         549  2026-10-24 04:35:29  inventory.json
+        4770  2026-10-24 04:35:29  inventory.txt
+  (http/uploads/f37a3735-46c3-48a6-8b06-470cefa458c2/085004278)
+$ bin/logs demo0 --cat inventory.json | head -40
+{
+  "id": "f37a3735-46c3-48a6-8b06-470cefa458c2", "run": "085004278", "os": "linux", "collected": "2026-10-24T08:35:28+00:00",
+  "product": "lab-vm", "manufacturer": "PDT", "serial": "demo0",
+  "nics": {"enp0s2": "52:54:00:bf:f3:5a"},
+  "amt": "absent",
+  "firmware_attributes_driver": "",
+  "firmware_attributes": {},
+  "pxe_boot_entry": "0003",
+  "secure_boot": "SecureBoot disabled",
+  "memory_mb": 3854, "cpu": "AMD Ryzen 9 9950X3D 16-Core Processor",
+  "disks": [{"name": "sda", "size": "64G", "model": "QEMU", "transport": "HARDDISK sata"}]
+}
+
+$ bin/shell demo0 'uname -r; ss -ltn | grep :22; lsblk'
+6.12.107+deb13-amd64
+LISTEN 0      128          0.0.0.0:22        0.0.0.0:*   
+LISTEN 0      128             [::]:22           [::]:*   
+NAME MAJ:MIN RM SIZE RO TYPE MOUNTPOINTS
+sda    8:0    0  64G  0 disk 
+rc=0
+$ bin/enroll demo0
+wrote http/machines/f37a3735-46c3-48a6-8b06-470cefa458c2.cfg:
+  # PDT lab-vm, serial demo0
+  # NICs: enp0s2=52:54:00:bf:f3:5a; AMT: absent; firmware attributes: none
+  # enrolled 2026-10-24 04:40 by bin/enroll from the collector's inventory (http/uploads/f37a3735-46c3-48a6-8b06-470cefa458c2/085004278/inventory.json)
+  MODE=deploy
+  IMAGE=base.wim
+  UNATTEND=default.xml
+next: bin/netboot demo0 winpe && bin/shell demo0 'pdt-pxe-next --reboot'
+rc=0
+$ bin/enroll demo0 (again)
+ERROR: http/machines/f37a3735-46c3-48a6-8b06-470cefa458c2.cfg exists; --force to replace it
+rc=2
+$ cat the new cfg
+# PDT lab-vm, serial demo0
+# NICs: enp0s2=52:54:00:bf:f3:5a; AMT: absent; firmware attributes: none
+# enrolled 2026-10-24 04:40 by bin/enroll from the collector's inventory (http/uploads/f37a3735-46c3-48a6-8b06-470cefa458c2/085004278/inventory.json)
+MODE=deploy
+IMAGE=base.wim
+UNATTEND=default.xml
+$ bin/netboot demo0 winpe
+demo0: Windows PE (no override)
+$ bin/netboot
+43915312-eec8-41fa-ac93-5fa371b471b2  demo2	#!ipxe
+set pdt_boot local
+$ bin/shell demo0 'pdt-pxe-next --reboot'
+BootNext=0003: Boot0003* UEFI PXEv4 (MAC:525400BFF35A)	PciRoot(0x0)/Pci(0x2,0x0)/MAC(525400bff35a,1)/IPv4(0.0.0.00.0.0.0,0,0){auto_created_boot_option}
+rebooting in 3 s
+rc=0
+$ bin/await demo0 deployed 900
+await: 2026-10-24T04:44:30-04:00 deployed ok
+rc=0
+# 2026-10-24T08:44:31Z
+f37a3735-46c3-48a6-8b06-470cefa458c2  demo0
+  2026-10-24T04:40:50-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:bf:f3:5a nic=01:80:86:10:d3 chip=82574l bootsrv=10.0.2.2 serial=demo0
+  2026-10-24T04:40:51-04:00  +    1.7s  (+   1.7s)  wim         ok    msg=475 MiB in 1.4s (329 MiB/s)
+  2026-10-24T04:41:00-04:00  +    9.9s  (+   8.1s)  ts-start    ok    mode=deploy model=lab-vm product=lab-vm mac=52:54:00:bf:f3:5a
+  2026-10-24T04:41:00-04:00  +   10.3s  (+   0.4s)  15-preflight start 
+  2026-10-24T04:41:00-04:00  +   10.5s  (+   0.3s)  15-preflight ok    
+  2026-10-24T04:41:01-04:00  +   10.8s  (+   0.3s)  17-diskguard start 
+  2026-10-24T04:41:01-04:00  +   11.3s  (+   0.4s)  17-diskguard ok    msg=disk 0:QEMU HARDDISK 64GiB of 1 (the only fixed disk)
+  2026-10-24T04:41:01-04:00  +   11.5s  (+   0.3s)  20-disk     start 
+  2026-10-24T04:41:11-04:00  +   21.0s  (+   9.5s)  20-disk     ok    
+  2026-10-24T04:41:11-04:00  +   21.3s  (+   0.2s)  25-download start 
+  2026-10-24T04:41:27-04:00  +   36.9s  (+  15.6s)  25-download ok    
+  2026-10-24T04:41:27-04:00  +   37.1s  (+   0.2s)  30-apply    start 
+  2026-10-24T04:42:42-04:00  +  112.2s  (+  75.1s)  30-apply    ok    
+  2026-10-24T04:42:42-04:00  +  112.5s  (+   0.3s)  35-updates  start 
+  2026-10-24T04:42:42-04:00  +  112.6s  (+   0.2s)  35-updates  ok    msg=skipped: no UPDATES set
+  2026-10-24T04:42:43-04:00  +  112.9s  (+   0.3s)  40-drivers  start 
+  2026-10-24T04:42:43-04:00  +  113.1s  (+   0.2s)  40-drivers  ok    msg=skipped: no DRIVERS set
+  2026-10-24T04:42:43-04:00  +  113.4s  (+   0.3s)  45-winre    start 
+  2026-10-24T04:42:44-04:00  +  114.2s  (+   0.8s)  45-winre    ok    
+  2026-10-24T04:42:44-04:00  +  114.5s  (+   0.3s)  50-boot     start 
+  2026-10-24T04:42:45-04:00  +  115.0s  (+   0.5s)  50-boot     ok    
+  2026-10-24T04:42:45-04:00  +  115.3s  (+   0.3s)  60-unattend start 
+  2026-10-24T04:42:45-04:00  +  115.7s  (+   0.4s)  60-unattend ok    
+  2026-10-24T04:42:46-04:00  +  115.9s  (+   0.3s)  90-reboot   start 
+  2026-10-24T04:42:46-04:00  +  116.0s  (+   0.1s)  90-reboot   ok    
+  2026-10-24T04:42:46-04:00  +  116.1s  (+   0.2s)  ts-done     ok    
+  2026-10-24T04:43:34-04:00  +  164.0s  (+  47.8s)  specialize  ok    
+  2026-10-24T04:44:26-04:00  +  216.7s  (+  52.7s)  firstlogon  ok    host=WIN-IHFH6R5ORVM build=26100.1 secureboot=False
+  2026-10-24T04:44:30-04:00  +  220.0s  (+   3.3s)  winre       ok    status=Enabled location=\\?\GLOBALROOT\device\harddisk0\partition4\Recovery\WindowsRE windows_partition=3
+  2026-10-24T04:44:30-04:00  +  220.3s  (+   0.3s)  boot-tasks  ok    
+  2026-10-24T04:44:30-04:00  +  220.4s  (+   0.1s)  deployed    ok    host=WIN-IHFH6R5ORVM

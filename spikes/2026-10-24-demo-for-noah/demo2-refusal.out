@@ -1,0 +1,20 @@
+$ bin/logs demo2 --tail 6 ts.log
+[pdt] beacon 17-diskguard start
+0|Fixed hard disk media|IDE|64|QEMU HARDDISK|eligible
+1|Fixed hard disk media|IDE|64|QEMU HARDDISK|eligible
+2 fixed disks (0:QEMU HARDDISK 64GiB, 1:QEMU HARDDISK 64GiB): set DISK=<n> in the machine or model cfg
+[pdt] beacon 17-diskguard fail
+
+
+$ bin/shell demo2 'echo list disk>X:\ld.txt& diskpart /s X:\ld.txt'
+
+Microsoft DiskPart version 10.0.26100.1
+
+Copyright (C) Microsoft Corporation.
+On computer: MININT-IGAGSBN
+
+  Disk ###  Status         Size     Free     Dyn  Gpt
+  --------  -------------  -------  -------  ---  ---
+  Disk 0    Online           64 GB    64 GB         
+  Disk 1    Online           64 GB    64 GB         
+rc=0

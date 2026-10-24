@@ -1,0 +1,15 @@
+# 2026-10-24T08:36:03Z demo2 rebooted after its first deploy and PXE-booted again (disk 0 blank, firmware order disk0 then network): second run started
+$ bin/status demo2 | head -8
+43915312-eec8-41fa-ac93-5fa371b471b2  demo2
+  2026-10-24T04:34:43-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:70:1d:c9 nic=01:80:86:10:d3 chip=82574l bootsrv=10.0.2.2 serial=demo2
+  2026-10-24T04:34:45-04:00  +    1.8s  (+   1.8s)  wim         ok    msg=475 MiB in 1.6s (305 MiB/s)
+  2026-10-24T04:34:53-04:00  +   10.4s  (+   8.5s)  ts-start    ok    mode=deploy model=lab-vm product=lab-vm mac=52:54:00:70:1d:c9
+  2026-10-24T04:34:54-04:00  +   10.8s  (+   0.4s)  15-preflight start 
+  2026-10-24T04:34:54-04:00  +   11.1s  (+   0.3s)  15-preflight ok    
+  2026-10-24T04:34:54-04:00  +   11.4s  (+   0.3s)  17-diskguard start 
+  2026-10-24T04:34:55-04:00  +   11.8s  (+   0.5s)  17-diskguard ok    msg=disk 1:QEMU HARDDISK 64GiB of 2 (DISK=1)
+$ bin/netboot demo2 local
+demo2: local disk (iPXE exits to the firmware) on the next PXE boot (http/boot/43915312-eec8-41fa-ac93-5fa371b471b2.ipxe)
+rc=0
+#!ipxe
+set pdt_boot local

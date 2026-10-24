@@ -1,0 +1,20 @@
+$ bin/shell demo0 'dir C:\'
+The system cannot find the path specified.
+rc=1
+
+$ bin/shell demo0 'echo list disk>X:\ld.txt& diskpart /s X:\ld.txt'
+
+Microsoft DiskPart version 10.0.26100.1
+
+Copyright (C) Microsoft Corporation.
+On computer: MININT-TDJ983I
+
+  Disk ###  Status         Size     Free     Dyn  Gpt
+  --------  -------------  -------  -------  ---  ---
+  Disk 0    Online           64 GB    64 GB         
+rc=0
+
+$ bin/shell demo0 nosuchprogram
+'nosuchprogram' is not recognized as an internal or external command,
+operable program or batch file.
+rc=1

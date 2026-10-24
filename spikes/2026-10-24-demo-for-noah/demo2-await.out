@@ -1,0 +1,15 @@
+await: 2026-10-24T04:45:05-04:00 deployed ok
+await rc=0
+2026-10-24T08:45:05Z
+43915312-eec8-41fa-ac93-5fa371b471b2  demo2
+  2026-10-24T04:40:58-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:70:1d:c9 nic=01:80:86:10:d3 chip=82574l bootsrv=10.0.2.2 serial=demo2
+  2026-10-24T04:45:01-04:00  +  243.0s  (+ 243.0s)  firstlogon  ok    host=WIN-HHM9OJT61Q3 build=26100.1 secureboot=False
+  2026-10-24T04:45:05-04:00  +  246.6s  (+   3.7s)  winre       ok    status=Enabled location=\\?\GLOBALROOT\device\harddisk1\partition4\Recovery\WindowsRE windows_partition=3
+  2026-10-24T04:45:05-04:00  +  247.0s  (+   0.4s)  boot-tasks  ok    
+  2026-10-24T04:45:05-04:00  +  247.1s  (+   0.1s)  deployed    ok    host=WIN-HHM9OJT61Q3
+--- serial tail:
+119:PDT: PDT lab-vm uuid 43915312-eec8-41fa-ac93-5fa371b471b2 mac 52:54:00:70:1d:c9
+213:PDT: PDT lab-vm uuid 43915312-eec8-41fa-ac93-5fa371b471b2 mac 52:54:00:70:1d:c9
+215:PDT: local boot requested - back to the firmware
+257:PDT: PDT lab-vm uuid 43915312-eec8-41fa-ac93-5fa371b471b2 mac 52:54:00:70:1d:c9
+259:PDT: local boot requested - back to the firmware

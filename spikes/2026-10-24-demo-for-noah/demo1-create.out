@@ -1,0 +1,6 @@
+created VM demo1
+  uuid e6c96dba-9367-4e1b-8406-618b9e343fcd   mac 52:54:00:01:8e:13   monitor 127.0.0.1:7001
+  disk 64G   net user   machines entry: MODE=deploy
+next: bin/vm-boot demo1
+VM demo1 running: pid 1915212, nic e1000e, boot disk then network, monitor 127.0.0.1:7001
+id for bin/status and bin/await: e6c96dba-9367-4e1b-8406-618b9e343fcd

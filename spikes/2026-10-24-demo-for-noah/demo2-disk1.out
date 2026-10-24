@@ -1,0 +1,30 @@
+$ echo DISK=1 >> http/machines/43915312-eec8-41fa-ac93-5fa371b471b2.cfg
+# lab VM demo2 (bin/vm-create, 2026-10-24)
+MODE=deploy
+IMAGE=base.wim
+UNATTEND=default.xml
+DISK=1
+
+$ bin/shell demo2 'start "" cmd /c %SystemRoot%\System32\deploy.cmd'
+rc=0
+$ bin/await demo2 20-disk 300
+await: 2026-10-24T04:32:54-04:00 20-disk ok
+rc=0
+$ bin/shell demo2 'echo list disk>X:\ld.txt& diskpart /s X:\ld.txt'
+
+Microsoft DiskPart version 10.0.26100.1
+
+Copyright (C) Microsoft Corporation.
+On computer: MININT-IGAGSBN
+
+  Disk ###  Status         Size     Free     Dyn  Gpt
+  --------  -------------  -------  -------  ---  ---
+  Disk 0    Online           64 GB    64 GB         
+  Disk 1    Online           64 GB      0 B        *
+$ bin/status demo2 | grep -E "diskguard|20-disk"
+  2026-10-24T04:31:16-04:00  +   11.1s  (+   0.2s)  17-diskguard start 
+  2026-10-24T04:31:16-04:00  +   11.5s  (+   0.4s)  17-diskguard fail  rc=1
+  2026-10-24T04:32:48-04:00  +  103.1s  (+   0.3s)  17-diskguard start 
+  2026-10-24T04:32:48-04:00  +  103.3s  (+   0.2s)  17-diskguard ok    msg=disk 1:QEMU HARDDISK 64GiB of 2 (DISK=1)
+  2026-10-24T04:32:48-04:00  +  103.6s  (+   0.3s)  20-disk     start 
+  2026-10-24T04:32:54-04:00  +  109.1s  (+   5.6s)  20-disk     ok    
