@@ -1,0 +1,10 @@
+# hd: the final hasher (rebuilt after the review) fetched and exercised on the machine (2026-10-24T14:23:04-04:00)
+$ bin/shell hd "curl.exe -sS -f -o X:\pdt\pdt-sha256.exe %SRV%/tools/pdt-sha256.exe & cmd /v:on /c \"X:\pdt\pdt-sha256.exe >nul 2>&1 & echo no-args exit !errorlevel! (want 2)\" & X:\pdt\pdt-sha256.exe X:\pdt\pdt-sha256.exe & X:\pdt\pdt-sha256.exe --check X:\pdt\image.json W:\image.wim"
+no-args exit 2 (want 2) 
+cd0965834efb92c03499bc327ca7e6ed72c6e10176c53bea13a411bda1356aa0  X:\pdt\pdt-sha256.exe
+479880ef403058ee2999a9a616977f38ed5b85c7150c6c32b6dbd295b1c943f7  W:\image.wim
+479880ef403058ee2999a9a616977f38ed5b85c7150c6c32b6dbd295b1c943f7  X:\pdt\image.json (sidecar)
+match
+exit 0
+$ grep -A3 pdt-sha256.exe http/tools/built.json | grep \"sha256\"
+    "sha256": "cd0965834efb92c03499bc327ca7e6ed72c6e10176c53bea13a411bda1356aa0",

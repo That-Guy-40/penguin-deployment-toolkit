@@ -1,0 +1,9 @@
+# How long does the hash of the 3.5 GB image take inside the VM? (hd still holds W:\image.wim: 30-apply failed before deleting it)
+# (a first attempt used %time%, which cmd expands once per line; delayed expansion below)
+$ bin/shell hd "cmd /v:on /c \"echo !time!& X:\pdt\pdt-sha256.exe W:\image.wim& echo !time!& X:\pdt\openssl.exe dgst -sha256 W:\image.wim& echo !time!\""
+18:11:10.53
+479880ef403058ee2999a9a616977f38ed5b85c7150c6c32b6dbd295b1c943f7  W:\image.wim
+18:11:19.91
+SHA2-256(W:\image.wim)= 479880ef403058ee2999a9a616977f38ed5b85c7150c6c32b6dbd295b1c943f7
+18:11:26.37
+exit 0

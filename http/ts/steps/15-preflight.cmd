@@ -1,10 +1,13 @@
 @echo off
 rem 15-preflight - before anything is destroyed: is every file this install
-rem needs on the server? A typo in a cfg must cost a reboot, not a disk.
+rem needs on the server? A typo in a cfg must cost a reboot, not a disk. The
+rem image's sidecar and tools/pdt-sha256.exe are on the list: 25-download
+rem refuses to continue without them.
 setlocal EnableExtensions EnableDelayedExpansion
 call X:\pdt\env.cmd
 set MISSING=
-for %%u in ("ts/diskpart/%DISKPART%" "images/%IMAGE%" "unattend/%UNATTEND%" "ts/beacon.cmd" "post/firstlogon.cmd" "post/boot-probe.cmd") do (
+if /i not "%IMAGE:~-4%"==".wim" set "MISSING=!MISSING! IMAGE=%IMAGE% (must end in .wim: the sidecar is images/<name>.json)"
+for %%u in ("ts/diskpart/%DISKPART%" "images/%IMAGE%" "images/%IMAGE:.wim=.json%" "tools/pdt-sha256.exe" "unattend/%UNATTEND%" "ts/beacon.cmd" "post/firstlogon.cmd" "post/boot-probe.cmd") do (
   %CURL% -f -I -o nul "%SRV%/%%~u" || set "MISSING=!MISSING! %%~u"
 )
 if defined DRIVERS (%CURL% -f -I -o nul "%SRV%/drivers/%DRIVERS%.wim" || set "MISSING=!MISSING! drivers/%DRIVERS%.wim")

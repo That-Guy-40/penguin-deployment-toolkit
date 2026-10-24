@@ -1,0 +1,50 @@
+# hp: a plain deploy stopped after 25-download (STOP_AFTER), for the on-machine checks.
+$ bin/status hp | tail -3
+  2026-10-24T14:05:22-04:00  +   21.9s  (+   0.3s)  25-download start 
+  2026-10-24T14:05:47-04:00  +   46.8s  (+  24.8s)  25-download ok    msg=sha256 0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279 matches images/base.json
+  2026-10-24T14:05:47-04:00  +   46.9s  (+   0.2s)  stop        ok    after=25-download
+
+$ bin/shell hp "type X:\pdt\image.sha256"   (what 25-download saw)
+0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279  W:\image.wim
+0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279  X:\pdt\image.json (sidecar)
+match
+exit 0
+
+$ bin/shell hp "X:\pdt\pdt-sha256.exe X:\pdt\pdt-sha256.exe X:\pdt\pdt-screen.exe"   (the tools hash themselves; compare with http/tools/built.json)
+ddd0fd067cd6e7fb37d29a106f1eaf6a3cde6bfbed11ab22e7a6915eb79ba8da  X:\pdt\pdt-sha256.exe
+31f25d2816b819d21abf011519f7fa7cd2dd37fd8efc0e84ee3085c70225c61d  X:\pdt\pdt-screen.exe
+exit 0
+
+$ grep -E "\"sha256\"" http/tools/built.json   (the record on the server)
+    "sha256": "31f25d2816b819d21abf011519f7fa7cd2dd37fd8efc0e84ee3085c70225c61d",
+    "sha256": "ddd0fd067cd6e7fb37d29a106f1eaf6a3cde6bfbed11ab22e7a6915eb79ba8da",
+    "sha256": "5384210784f5a4182192316bba6d2b0a0381f65ed8e0e6ea6067c889354f687c",
+
+$ bin/shell hp "curl.exe -sS -o X:\pdt\openssl.exe %SRV%/tools/openssl.exe & X:\pdt\openssl.exe version -a"
+OpenSSL 3.5.9 29 Sep 2026 (Library: OpenSSL 3.5.9 29 Sep 2026)
+built on: Thu Jan  1 00:00:01 1970 UTC
+platform: mingw64
+options:  bn(64,64)
+compiler: x86_64-w64-mingw32-gcc -m64 -Wall -O3 -s -DL_ENDIAN -DUNICODE -D_UNICODE -DWIN32_LEAN_AND_MEAN -D_MT -DOPENSSL_BUILDING_OPENSSL -DNDEBUG
+OPENSSLDIR: "/pdt/ssl"
+ENGINESDIR: "/pdt/lib64/engines-3"
+MODULESDIR: "/pdt/lib64/ossl-modules"
+Seeding source: os-specific
+CPUINFO: OPENSSL_ia32cap=0xfff83203078bffff:0x18405f4ef1bf07ab:0x000000309c000110:0x0000000000000000:0x0000000000000000
+exit 0
+
+$ bin/shell hp "X:\pdt\pdt-sha256.exe X:\pdt\openssl.exe"   (is it the recorded openssl.exe?)
+5384210784f5a4182192316bba6d2b0a0381f65ed8e0e6ea6067c889354f687c  X:\pdt\openssl.exe
+exit 0
+
+$ bin/shell hp "X:\pdt\openssl.exe dgst -sha256 X:\pdt\pdt-sha256.exe X:\pdt\pdt-screen.exe W:\image.wim"   (OpenSSL's opinion of the same files)
+SHA2-256(X:\pdt\pdt-sha256.exe)= ddd0fd067cd6e7fb37d29a106f1eaf6a3cde6bfbed11ab22e7a6915eb79ba8da
+SHA2-256(X:\pdt\pdt-screen.exe)= 31f25d2816b819d21abf011519f7fa7cd2dd37fd8efc0e84ee3085c70225c61d
+SHA2-256(W:\image.wim)= 0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279
+exit 0
+
+$ bin/shell hp "X:\pdt\pdt-sha256.exe --check X:\pdt\image.json W:\image.wim"   (again, by hand)
+0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279  W:\image.wim
+0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279  X:\pdt\image.json (sidecar)
+match
+exit 0

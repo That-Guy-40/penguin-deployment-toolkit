@@ -2,12 +2,19 @@
 # build-tools - build the toolkit's own Windows programs from tools-src/ with
 # mingw-w64 into http/tools/, reproducibly, and record what was built.
 #
-#   build-tools            the canonical build: in a pinned Debian container
-#                          (podman or docker, rootless), compiler pinned too
+#   build-tools            the canonical build of pdt-screen.exe and pdt-sha256.exe:
+#                          in a pinned Debian container (podman or docker, rootless),
+#                          compiler pinned too. 25-download needs pdt-sha256.exe.
 #   build-tools host       the same build with this host's x86_64-w64-mingw32-gcc
 #                          (needs gcc-mingw-w64-x86-64; a different GCC gives a
 #                          different, equally valid, binary)
-#   build-tools check      verify http/tools/ against the record (no compiler)
+#   build-tools openssl    OpenSSL's command-line tool as one static openssl.exe,
+#                          from the source tarball pinned below, in the same
+#                          container (minutes). Optional: nothing in the task
+#                          sequence runs it; it is the independent second opinion
+#                          on pdt-sha256.exe, on the machine (openssl dgst -sha256).
+#   build-tools check      verify http/tools/ against the record (no compiler);
+#                          bin/lint runs this
 #
 # Reproducible: two builds of the same source with the same compiler differed in
 # exactly two bytes, the PE header timestamp (2026-10-24); -Wl,--no-insert-timestamp
@@ -20,12 +27,21 @@
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 need sha256sum python3 cmp
 
-# The canonical toolchain. Both pins are identities, not version strings: the
+# The canonical toolchain. Every pin is an identity, not a version string: the
 # image by digest, the package by its exact Debian version (apt fails loudly
 # when that version is gone from the mirror; bump it here and rebuild, and the
-# recorded hash changes with it).
+# recorded hashes change with it), the OpenSSL source by its SHA-256.
 IMAGE="docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16"   # trixie-slim, 2026-10-24
 MINGW_PKG="gcc-mingw-w64-x86-64=14.2.0-17+27"
+OPENSSL_TGZ="openssl-3.5.9.tar.gz"                                                                          # 3.5 is the LTS series (to 2030)
+OPENSSL_URL="https://github.com/openssl/openssl/releases/download/openssl-3.5.9/$OPENSSL_TGZ"
+OPENSSL_SHA256="603f5602e2eef00d77fbd429d34dcd5822bb301757a1bc9cdb24c670f1eb859a"   # openssl.org/source and the GitHub release publish the same value (2026-10-24)
+
+# name|source in tools-src/|extra libraries
+TOOLS=(
+    "pdt-screen.exe|pdt-screen.c|-lgdi32"
+    "pdt-sha256.exe|pdt-sha256.c|"
+)
 
 CC=x86_64-w64-mingw32-gcc
 CFLAGS="-O2 -s -static -Wall -Wextra"
@@ -34,6 +50,10 @@ LDFLAGS_REPRO="${PDT_LDFLAGS_REPRO--Wl,--no-insert-timestamp}"
 SRC="$PDT_ROOT/tools-src"
 OUT="$HTTP_DIR/tools"
 RECORD="$OUT/built.json"
+DL="$BUILD_DIR/dl"
+TMP=""; CTR=""; RUNTIME=""
+cleanup() { { [[ -n "$CTR" ]] && "$RUNTIME" rm -f "$CTR" >/dev/null 2>&1; } || true; { [[ -n "$TMP" ]] && rm -rf "$TMP"; } || true; }
+trap cleanup EXIT
 
 record() {  # record <name> <source> <binary> <cc-version> <builder>: add/replace an entry
     python3 - "$RECORD" "$@" <<'PY'
@@ -49,77 +69,149 @@ PY
 }
 
 check() {
-    [[ -f "$RECORD" ]] || die "no $RECORD: nothing was built yet (run bin/build-tools)"
-    python3 - "$RECORD" "$OUT" "$SRC" <<'PY'
-import hashlib, json, os, sys
-rec, out, src = sys.argv[1:4]
-h = lambda p: hashlib.sha256(open(p, "rb").read()).hexdigest()
+    if [[ ! -f "$RECORD" ]]; then
+        echo "FAIL tools/built.json: nothing was built yet (run bin/build-tools; 25-download needs tools/pdt-sha256.exe)"
+        return 1
+    fi
+    local names=(); local spec; for spec in "${TOOLS[@]}"; do names+=("${spec%%|*}"); done
+    python3 - "$RECORD" "$OUT" "$SRC" "container $IMAGE $MINGW_PKG" "${names[*]}" "$OPENSSL_TGZ=$OPENSSL_SHA256" <<'PY'
+import glob, hashlib, json, os, sys
+rec, out, src, canonical, required = sys.argv[1:6]
+pins = dict(a.split("=", 1) for a in sys.argv[6:])   # sources that are pinned downloads, not files in tools-src/
+def h(p):
+    d = hashlib.sha256()
+    with open(p, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 22), b""):
+            d.update(chunk)
+    return d.hexdigest()
 bad = 0
-for name, e in json.load(open(rec)).items():
-    b = os.path.join(out, name)
-    s = os.path.join(src, e["source"])
+d = json.load(open(rec))
+# The tool list is the authority, not the record: a tool the task sequence needs
+# with no entry, or a binary in tools/ that nothing recorded, is a FAIL too.
+for name in required.split():
+    if name not in d:
+        print(f"FAIL tools/{name}: not recorded in built.json (never built here: run bin/build-tools)"); bad += 1
+for b in glob.glob(os.path.join(out, "pdt-*.exe")) + glob.glob(os.path.join(out, "openssl.exe")):
+    if os.path.basename(b) not in d:
+        print(f"FAIL tools/{os.path.basename(b)}: present but not recorded in built.json: not built here, provenance unknown"); bad += 1
+for name, e in d.items():
+    b, who, s = os.path.join(out, name), f"tools/{name}", e["source"]
     if not os.path.isfile(b):
-        print(f"MISSING  {name}"); bad += 1
+        print(f"FAIL {who}: recorded in built.json but the file is gone (run bin/build-tools)"); bad += 1
     elif h(b) != e["sha256"]:
-        print(f"CHANGED  {name}: not the binary that was recorded ({e['sha256'][:16]}…)"); bad += 1
-    elif not os.path.isfile(s) or h(s) != e["source_sha256"]:
-        print(f"STALE    {name}: {e['source']} changed since it was built"); bad += 1
+        print(f"FAIL {who}: not the binary that was recorded ({e['sha256'][:16]}…): rebuild it, or put the recorded one back"); bad += 1
+    elif s in pins and e["source_sha256"] != pins[s]:
+        print(f"FAIL {who}: built from a different {s} ({e['source_sha256'][:16]}…) than bin/build-tools pins now ({pins[s][:16]}…): rebuild"); bad += 1
+    elif s not in pins and s.endswith(".tar.gz"):
+        print(f"FAIL {who}: built from {s}, which bin/build-tools no longer pins: rebuild"); bad += 1
+    elif s not in pins and (not os.path.isfile(os.path.join(src, s)) or h(os.path.join(src, s)) != e["source_sha256"]):
+        print(f"FAIL {who}: tools-src/{s} changed since it was built (run bin/build-tools)"); bad += 1
+    elif not e.get("builder", "").startswith(canonical):
+        print(f"PASS {who}: {e['size']} bytes, but NOT the canonical build: built {e['built']} by {e.get('builder', '?')}, {e.get('cc', '?')} (bin/build-tools pins {canonical})")
     else:
-        print(f"ok       {name}  {e['size']} bytes, built {e['built']} by {e.get('builder', '?')}, {e.get('cc', '?')}")
+        print(f"PASS {who}: {e['size']} bytes, built {e['built']} by {e.get('builder', '?')}, {e.get('cc', '?')}")
 sys.exit(1 if bad else 0)
 PY
 }
 
-# compile_twice <compile-command...>: run it into two temp files, demand equality,
-# leave the result in $BUILT. The command gets the output path as its last word.
+# compile_twice <name> <compile-fn> <src> <libs>: compile into two files, demand
+# equality, leave the result in $BUILT.
 compile_twice() {
-    local tmp; tmp="$(mktemp -d)"
-    "$@" "$tmp/a.exe" || die "compile failed"
-    "$@" "$tmp/b.exe" || die "compile failed (second pass)"
-    cmp -s "$tmp/a.exe" "$tmp/b.exe" || die "two builds of the same source differ ($(cmp -l "$tmp/a.exe" "$tmp/b.exe" | wc -l) byte(s)): the build is not reproducible, nothing recorded"
-    BUILT="$tmp/a.exe"
+    local name="$1" fn="$2" src="$3" libs="$4"
+    "$fn" "$src" "$TMP/$name.a" "$libs" || die "$name: compile failed"
+    "$fn" "$src" "$TMP/$name.b" "$libs" || die "$name: compile failed (second pass)"
+    cmp -s "$TMP/$name.a" "$TMP/$name.b" || die "$name: two builds of the same source differ ($(cmp -l "$TMP/$name.a" "$TMP/$name.b" | wc -l) byte(s)): the build is not reproducible, nothing recorded"
+    BUILT="$TMP/$name.a"
 }
 
-host_cc() {   # host_cc <src> <out>
-    "$CC" $CFLAGS $LDFLAGS_REPRO -o "$2" "$1" -lgdi32
+host_cc() {   # host_cc <src> <out> <libs>
+    # shellcheck disable=SC2086
+    "$CC" $CFLAGS $LDFLAGS_REPRO -o "$2" "$1" $3
 }
 
-container_cc() {   # container_cc <src> <out>: the same compile inside the pinned image
-    local src="$1" out="$2"
-    "$RUNTIME" run --rm -v "$(dirname "$src"):/src:ro" -v "$(dirname "$out"):/out" "$IMAGE" bash -ec "
+runtime() { RUNTIME="$(command -v podman || command -v docker)" || die "neither podman nor docker found: install one, or run bin/build-tools host"; }
+
+# One container for the whole build: the pinned image, tools-src/ read-only at
+# /src, the temp dir at /out, the pinned compiler installed once.
+ctr_start() {
+    CTR="$("$RUNTIME" run -d --rm -v "$SRC:/src:ro" -v "$TMP:/out" "$IMAGE" sleep infinity)" || die "cannot start $IMAGE"
+    "$RUNTIME" exec "$CTR" bash -ec "
         apt-get -qq update >/dev/null
-        apt-get -qq install -y --no-install-recommends '$MINGW_PKG' >/dev/null 2>&1 || { echo 'ERROR: $MINGW_PKG is not in the mirror any more: bump MINGW_PKG in bin/build-tools (and expect a new hash)' >&2; exit 1; }
-        $CC $CFLAGS $LDFLAGS_REPRO -o /out/$(basename "$out") /src/$(basename "$src") -lgdi32
-        $CC --version | head -1 > /out/cc-version.txt"
+        apt-get -qq install -y --no-install-recommends '$MINGW_PKG' >/dev/null 2>&1 || { echo 'ERROR: $MINGW_PKG is not in the mirror any more: bump MINGW_PKG in bin/build-tools (and expect new hashes)' >&2; exit 1; }" || exit 1
+}
+ctr_cc() {   # ctr_cc <src> <out> <libs>: the same compile inside the container
+    # shellcheck disable=SC2086
+    "$RUNTIME" exec "$CTR" $CC $CFLAGS $LDFLAGS_REPRO -o "/out/$(basename "$2")" "/src/$(basename "$1")" $3
 }
 
 build() {   # build host|container
-    local how="$1" src="$SRC/pdt-screen.c" bin="$OUT/pdt-screen.exe" ccver builder
+    local how="$1" spec name src libs fn ccver builder
     mkdir -p "$OUT"
+    TMP="$(mktemp -d)"
     case "$how" in
         host)
             command -v "$CC" >/dev/null || die "$CC not found: sudo apt install gcc-mingw-w64-x86-64, or run bin/build-tools (container)"
-            info "building pdt-screen.exe with this host's $CC..."
-            compile_twice host_cc "$src"
-            ccver="$("$CC" --version | head -1)"; builder="host"
+            fn=host_cc; ccver="$("$CC" --version)"; ccver="${ccver%%$'\n'*}"; builder="host"
+            info "building ${#TOOLS[@]} tools with this host's $CC ($ccver)..."
             ;;
         container)
-            RUNTIME="$(command -v podman || command -v docker)" || die "neither podman nor docker found: install one, or run bin/build-tools host"
-            info "building pdt-screen.exe in $IMAGE with $MINGW_PKG ($(basename "$RUNTIME"))..."
-            compile_twice container_cc "$src"
-            ccver="$(cat "$(dirname "$BUILT")/cc-version.txt")"; builder="container $IMAGE $MINGW_PKG"
+            runtime
+            info "building ${#TOOLS[@]} tools in $IMAGE with $MINGW_PKG ($(basename "$RUNTIME"))..."
+            ctr_start
+            fn=ctr_cc; ccver="$("$RUNTIME" exec "$CTR" $CC --version)"; ccver="${ccver%%$'\n'*}"; builder="container $IMAGE $MINGW_PKG"
             ;;
     esac
-    install -m 0644 "$BUILT" "$bin"
-    rm -rf "$(dirname "$BUILT")"
-    record pdt-screen.exe "$src" "$bin" "$ccver" "$builder"
-    info "http/tools/pdt-screen.exe: $(stat -c%s "$bin") bytes, sha256 $(sha256sum "$bin" | cut -c1-16)…  built twice, identical; $ccver; recorded in http/tools/built.json"
+    for spec in "${TOOLS[@]}"; do
+        IFS='|' read -r name src libs <<<"$spec"
+        [[ -f "$SRC/$src" ]] || die "tools-src/$src: no such source"
+        compile_twice "$name" "$fn" "$SRC/$src" "$libs"
+        install -m 0644 "$BUILT" "$OUT/$name"
+        record "$name" "$SRC/$src" "$OUT/$name" "$ccver" "$builder"
+        info "http/tools/$name: $(stat -c%s "$OUT/$name") bytes, sha256 $(sha256sum "$OUT/$name" | cut -c1-16)…  built twice, identical; recorded"
+    done
+    info "$ccver; http/tools/built.json updated"
+}
+
+# The OpenSSL build: fetch the pinned tarball (kept in build/dl like every other
+# download), build it twice from scratch in the pinned container, static, no
+# shared libraries, no providers to load, SOURCE_DATE_EPOCH fixed so the
+# "built on" string is constant; keep apps/openssl.exe if the two are identical.
+build_openssl() {
+    runtime
+    mkdir -p "$DL" "$OUT"
+    if ! { [[ -f "$DL/$OPENSSL_TGZ" ]] && sha256_is "$DL/$OPENSSL_TGZ" "$OPENSSL_SHA256"; }; then
+        info "downloading $OPENSSL_TGZ..."
+        curl -fsSL --retry 3 -o "$DL/$OPENSSL_TGZ.part" "$OPENSSL_URL" || die "download failed: $OPENSSL_URL"
+        sha256_is "$DL/$OPENSSL_TGZ.part" "$OPENSSL_SHA256" || die "$OPENSSL_TGZ: SHA-256 is $(sha256sum "$DL/$OPENSSL_TGZ.part" | cut -d' ' -f1), not the pinned $OPENSSL_SHA256; not kept"
+        mv "$DL/$OPENSSL_TGZ.part" "$DL/$OPENSSL_TGZ"
+    fi
+    TMP="$(mktemp -d)"
+    info "building openssl.exe twice from $OPENSSL_TGZ in $IMAGE with $MINGW_PKG make perl ($(basename "$RUNTIME"); several minutes)..."
+    "$RUNTIME" run --rm -v "$DL:/dl:ro" -v "$TMP:/out" -e "MINGW_PKG=$MINGW_PKG" -e "TGZ=$OPENSSL_TGZ" -e "LDFLAGS_REPRO=$LDFLAGS_REPRO" "$IMAGE" bash -ec '
+        export DEBIAN_FRONTEND=noninteractive
+        apt-get -qq update >/dev/null
+        apt-get -qq install -y --no-install-recommends "$MINGW_PKG" make perl >/dev/null 2>&1 || { echo "ERROR: $MINGW_PKG is not in the mirror any more: bump MINGW_PKG in bin/build-tools (and expect new hashes)" >&2; exit 1; }
+        export SOURCE_DATE_EPOCH=1
+        for pass in a b; do
+            rm -rf /b && mkdir /b && cd /b && tar xzf "/dl/$TGZ" && cd "${TGZ%.tar.gz}"
+            ./Configure mingw64 --cross-compile-prefix=x86_64-w64-mingw32- --prefix=/pdt --openssldir=/pdt/ssl \
+                no-shared no-tests no-docs no-dso no-module -static -s $LDFLAGS_REPRO > "/out/configure-$pass.log" 2>&1 || { echo "Configure failed (pass $pass):"; tail -20 "/out/configure-$pass.log"; exit 1; }
+            make -j"$(nproc)" build_sw > "/out/make-$pass.log" 2>&1 || { echo "make failed (pass $pass):"; tail -30 "/out/make-$pass.log"; exit 1; }
+            cp apps/openssl.exe "/out/openssl.exe.$pass"
+        done
+        x86_64-w64-mingw32-gcc --version | head -1 > /out/cc-version.txt
+        dpkg-query -W -f "\${Package}=\${Version} " make perl | sed "s/ $//" > /out/build-deps.txt' || die "the OpenSSL build failed"
+    cmp -s "$TMP/openssl.exe.a" "$TMP/openssl.exe.b" || die "openssl.exe: two builds of the same source differ ($(cmp -l "$TMP/openssl.exe.a" "$TMP/openssl.exe.b" | wc -l) byte(s)): not reproducible, nothing recorded"
+    install -m 0644 "$TMP/openssl.exe.a" "$OUT/openssl.exe"
+    record openssl.exe "$DL/$OPENSSL_TGZ" "$OUT/openssl.exe" "$(cat "$TMP/cc-version.txt")" "container $IMAGE $MINGW_PKG $(cat "$TMP/build-deps.txt")"
+    info "http/tools/openssl.exe: $(stat -c%s "$OUT/openssl.exe") bytes, sha256 $(sha256sum "$OUT/openssl.exe" | cut -c1-16)…  built twice, identical; recorded in http/tools/built.json"
 }
 
 case "${1:-container}" in
     container) build container ;;
     host)      build host ;;
+    openssl)   build_openssl ;;
     check)     check ;;
-    -h|--help) sed -n '2,19p' "$0" ;;
+    -h|--help) sed -n '2,27p' "$0" ;;
     *) die "unknown argument: $1" ;;
 esac

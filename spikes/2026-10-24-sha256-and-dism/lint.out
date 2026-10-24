@@ -1,0 +1,34 @@
+$ bin/lint
+PASS     lint self-test: 50/50 injected defects were reported as FAIL
+208 PASS, 0 FAIL, 0 UNKNOWN   (-v lists every row)
+exit 0
+
+$ bin/lint --selftest
+PASS     lint self-test: 50/50 injected defects were reported as FAIL
+1 PASS, 0 FAIL, 0 UNKNOWN   (-v lists every row)
+exit 0
+
+--- control: one byte of tools/pdt-sha256.exe flipped (copy kept aside, restored after)
+$ bin/build-tools check
+PASS tools/pdt-screen.exe: 40960 bytes, built 2026-10-24T14:17:55-0400 by container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27, x86_64-w64-mingw32-gcc (GCC) 14-win32
+FAIL tools/pdt-sha256.exe: not the binary that was recorded (cd0965834efb92c0…): rebuild it, or put the recorded one back
+PASS tools/openssl.exe: 7268352 bytes, built 2026-10-24T14:10:19-0400 by container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27 make=4.4.1-2 perl=5.40.1-6+deb13u1, x86_64-w64-mingw32-gcc (GCC) 14-win32
+exit 1
+$ bin/lint
+PASS     lint self-test: 50/50 injected defects were reported as FAIL
+FAIL     tools/pdt-sha256.exe: not the binary that was recorded (cd0965834efb92c0…): rebuild it, or put the recorded one back
+207 PASS, 1 FAIL, 0 UNKNOWN   (-v lists every row)
+exit 1
+--- restored:
+$ bin/build-tools check
+PASS tools/pdt-screen.exe: 40960 bytes, built 2026-10-24T14:17:55-0400 by container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27, x86_64-w64-mingw32-gcc (GCC) 14-win32
+PASS tools/pdt-sha256.exe: 45056 bytes, built 2026-10-24T14:17:55-0400 by container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27, x86_64-w64-mingw32-gcc (GCC) 14-win32
+PASS tools/openssl.exe: 7268352 bytes, built 2026-10-24T14:10:19-0400 by container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27 make=4.4.1-2 perl=5.40.1-6+deb13u1, x86_64-w64-mingw32-gcc (GCC) 14-win32
+exit 0
+
+--- control: a binary nobody recorded (an empty tools/pdt-foreign.exe) must FAIL check
+FAIL tools/pdt-foreign.exe: present but not recorded in built.json: not built here, provenance unknown
+PASS tools/pdt-screen.exe: 40960 bytes, built 2026-10-24T14:17:55-0400 by container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27, x86_64-w64-mingw32-gcc (GCC) 14-win32
+PASS tools/pdt-sha256.exe: 45056 bytes, built 2026-10-24T14:17:55-0400 by container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27, x86_64-w64-mingw32-gcc (GCC) 14-win32
+PASS tools/openssl.exe: 7268352 bytes, built 2026-10-24T14:10:19-0400 by container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27 make=4.4.1-2 perl=5.40.1-6+deb13u1, x86_64-w64-mingw32-gcc (GCC) 14-win32
+exit 1

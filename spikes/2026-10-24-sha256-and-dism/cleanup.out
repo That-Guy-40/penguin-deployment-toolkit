@@ -1,0 +1,35 @@
+# clean-up (2026-10-24T14:23:16-04:00)
+$ bin/vm-stop hp --force; bin/teardown --purge-vm hp --yes
+VM hp stopped
+VM hp is not running
+deleted VM hp (and machines/cad9b607-2a43-4511-a653-ea28d6eccc74.cfg, its boot override and command files)
+$ bin/vm-stop hc --force; bin/teardown --purge-vm hc --yes
+VM hc stopped
+VM hc is not running
+deleted VM hc (and machines/70d362fa-bb16-47c6-8ab1-bb6040d7fac6.cfg, its boot override and command files)
+$ bin/vm-stop hd --force; bin/teardown --purge-vm hd --yes
+VM hd stopped
+VM hd is not running
+deleted VM hd (and machines/e39ae6c1-cc07-4faa-86da-33da210b7702.cfg, its boot override and command files)
+$ bin/vm-stop hv --force; bin/teardown --purge-vm hv --yes
+VM hv stopped
+VM hv is not running
+deleted VM hv (and machines/dc34b37d-4043-4113-bc05-635a96103f39.cfg, its boot override and command files)
+$ rm http/images/corrupt*
+removed 'http/images/corrupt.json'
+removed 'http/images/corrupt-true.json'
+removed 'http/images/corrupt-true.wim'
+removed 'http/images/corrupt-true.winre.wim'
+removed 'http/images/corrupt.wim'
+removed 'http/images/corrupt.winre.wim'
+$ ls vms/ http/machines/ http/boot/
+http/boot/:
+
+http/machines/:
+README.md
+
+vms/:
+$ bin/status | head -3
+ID                                    VM  LAST EVENT             AGE          MODE    RUN         PRODUCT  MODEL   DETAIL
+dc34b37d-4043-4113-bc05-635a96103f39      deployed ok            65s          deploy  1734715859  lab-vm   lab-vm
+cad9b607-2a43-4511-a653-ea28d6eccc74      deployed ok            10m          deploy  1472813621  lab-vm   lab-vm

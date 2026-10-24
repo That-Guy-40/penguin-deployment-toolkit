@@ -1,0 +1,65 @@
+$ bin/status hp
+cad9b607-2a43-4511-a653-ea28d6eccc74  hp
+  2026-10-24T14:05:00-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:bf:9b:53 nic=01:80:86:10:d3 chip=82574l bootsrv=10.0.2.2 serial=hp
+  2026-10-24T14:05:02-04:00  +    1.8s  (+   1.8s)  wim         ok    msg=475 MiB in 1.5s (319 MiB/s)
+  2026-10-24T14:05:10-04:00  +   10.1s  (+   8.4s)  ts-start    ok    mode=deploy model=lab-vm product=lab-vm mac=52:54:00:bf:9b:53
+  2026-10-24T14:05:10-04:00  +   10.6s  (+   0.4s)  15-preflight start 
+  2026-10-24T14:05:11-04:00  +   10.9s  (+   0.3s)  15-preflight ok    
+  2026-10-24T14:05:11-04:00  +   11.2s  (+   0.3s)  17-diskguard start 
+  2026-10-24T14:05:11-04:00  +   11.6s  (+   0.4s)  17-diskguard ok    msg=disk 0:QEMU HARDDISK 64GiB of 1 (the only fixed disk)
+  2026-10-24T14:05:12-04:00  +   11.9s  (+   0.3s)  20-disk     start 
+  2026-10-24T14:05:21-04:00  +   21.6s  (+   9.7s)  20-disk     ok    
+  2026-10-24T14:05:22-04:00  +   21.9s  (+   0.3s)  25-download start 
+  2026-10-24T14:05:47-04:00  +   46.8s  (+  24.8s)  25-download ok    msg=sha256 0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279 matches images/base.json
+  2026-10-24T14:05:47-04:00  +   46.9s  (+   0.2s)  stop        ok    after=25-download
+  2026-10-24T14:09:32-04:00  +  271.8s  (+ 224.8s)  30-apply    start 
+  2026-10-24T14:11:00-04:00  +  360.7s  (+  89.0s)  30-apply    ok    
+  2026-10-24T14:11:01-04:00  +  361.0s  (+   0.3s)  35-updates  start 
+  2026-10-24T14:11:01-04:00  +  361.2s  (+   0.1s)  35-updates  ok    msg=skipped: no UPDATES set
+  2026-10-24T14:11:01-04:00  +  361.5s  (+   0.3s)  40-drivers  start 
+  2026-10-24T14:11:01-04:00  +  361.6s  (+   0.2s)  40-drivers  ok    msg=skipped: no DRIVERS set
+  2026-10-24T14:11:02-04:00  +  361.9s  (+   0.3s)  45-winre    start 
+  2026-10-24T14:11:03-04:00  +  362.8s  (+   0.8s)  45-winre    ok    
+  2026-10-24T14:11:03-04:00  +  363.0s  (+   0.3s)  50-boot     start 
+  2026-10-24T14:11:03-04:00  +  363.5s  (+   0.5s)  50-boot     ok    
+  2026-10-24T14:11:04-04:00  +  363.8s  (+   0.3s)  60-unattend start 
+  2026-10-24T14:11:04-04:00  +  364.2s  (+   0.4s)  60-unattend ok    
+  2026-10-24T14:11:04-04:00  +  364.5s  (+   0.3s)  90-reboot   start 
+  2026-10-24T14:11:04-04:00  +  364.6s  (+   0.1s)  90-reboot   ok    
+  2026-10-24T14:11:04-04:00  +  364.7s  (+   0.2s)  ts-done     ok    
+  2026-10-24T14:11:51-04:00  +  411.7s  (+  47.0s)  specialize  ok    
+  2026-10-24T14:12:40-04:00  +  460.7s  (+  48.9s)  firstlogon  ok    host=WIN-70HQ9PLD7DM build=26100.1 secureboot=False
+  2026-10-24T14:12:44-04:00  +  464.3s  (+   3.6s)  winre       ok    status=Enabled location=\\?\GLOBALROOT\device\harddisk0\partition4\Recovery\WindowsRE windows_partition=3
+  2026-10-24T14:12:44-04:00  +  464.7s  (+   0.4s)  boot-tasks  ok    
+  2026-10-24T14:12:45-04:00  +  464.8s  (+   0.1s)  deployed    ok    host=WIN-70HQ9PLD7DM
+
+$ bin/status hc
+70d362fa-bb16-47c6-8ab1-bb6040d7fac6  hc
+  2026-10-24T14:05:00-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:a3:94:82 nic=01:80:86:10:d3 chip=82574l bootsrv=10.0.2.2 serial=hc
+  2026-10-24T14:05:02-04:00  +    1.8s  (+   1.8s)  wim         ok    msg=475 MiB in 1.5s (322 MiB/s)
+  2026-10-24T14:05:10-04:00  +   10.2s  (+   8.4s)  ts-start    ok    mode=deploy model=lab-vm product=lab-vm mac=52:54:00:a3:94:82
+  2026-10-24T14:05:10-04:00  +   10.7s  (+   0.5s)  15-preflight start 
+  2026-10-24T14:05:11-04:00  +   11.0s  (+   0.4s)  15-preflight ok    
+  2026-10-24T14:05:11-04:00  +   11.3s  (+   0.3s)  17-diskguard start 
+  2026-10-24T14:05:12-04:00  +   11.8s  (+   0.4s)  17-diskguard ok    msg=disk 0:QEMU HARDDISK 64GiB of 1 (the only fixed disk)
+  2026-10-24T14:05:12-04:00  +   12.0s  (+   0.3s)  20-disk     start 
+  2026-10-24T14:05:21-04:00  +   21.7s  (+   9.7s)  20-disk     ok    
+  2026-10-24T14:05:22-04:00  +   22.0s  (+   0.3s)  25-download start 
+  2026-10-24T14:05:47-04:00  +   46.9s  (+  24.9s)  25-download fail  rc=1 msg=image.wim does not match the sha256 in images/corrupt.json: download deleted, nothing applied
+
+$ bin/status hd
+e39ae6c1-cc07-4faa-86da-33da210b7702  hd
+  2026-10-24T14:05:00-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:a7:68:91 nic=01:80:86:10:d3 chip=82574l bootsrv=10.0.2.2 serial=hd
+  2026-10-24T14:05:02-04:00  +    1.7s  (+   1.7s)  wim         ok    msg=475 MiB in 1.5s (327 MiB/s)
+  2026-10-24T14:05:10-04:00  +   10.1s  (+   8.4s)  ts-start    ok    mode=deploy model=lab-vm product=lab-vm mac=52:54:00:a7:68:91
+  2026-10-24T14:05:10-04:00  +   10.6s  (+   0.4s)  15-preflight start 
+  2026-10-24T14:05:11-04:00  +   10.9s  (+   0.3s)  15-preflight ok    
+  2026-10-24T14:05:11-04:00  +   11.2s  (+   0.3s)  17-diskguard start 
+  2026-10-24T14:05:11-04:00  +   11.6s  (+   0.4s)  17-diskguard ok    msg=disk 0:QEMU HARDDISK 64GiB of 1 (the only fixed disk)
+  2026-10-24T14:05:12-04:00  +   11.9s  (+   0.3s)  20-disk     start 
+  2026-10-24T14:05:22-04:00  +   21.7s  (+   9.8s)  20-disk     ok    
+  2026-10-24T14:05:22-04:00  +   21.9s  (+   0.3s)  25-download start 
+  2026-10-24T14:05:48-04:00  +   47.8s  (+  25.9s)  25-download ok    msg=sha256 479880ef403058ee2999a9a616977f38ed5b85c7150c6c32b6dbd295b1c943f7 matches images/corrupt-true.json
+  2026-10-24T14:05:48-04:00  +   48.1s  (+   0.3s)  30-apply    start 
+  2026-10-24T14:06:27-04:00  +   86.9s  (+  38.8s)  30-apply    fail  rc=1392
+

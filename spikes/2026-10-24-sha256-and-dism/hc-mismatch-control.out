@@ -1,0 +1,46 @@
+# hc: IMAGE=corrupt.wim whose sidecar carries base.wim's hash. What 25-download did:
+$ bin/status hc | tail -3
+  2026-10-24T14:05:21-04:00  +   21.7s  (+   9.7s)  20-disk     ok    
+  2026-10-24T14:05:22-04:00  +   22.0s  (+   0.3s)  25-download start 
+  2026-10-24T14:05:47-04:00  +   46.9s  (+  24.9s)  25-download fail  rc=1 msg=image.wim does not match the sha256 in images/corrupt.json: download deleted, nothing applied
+
+$ bin/logs hc --cat ts.log   (tail: the hasher's lines and the step verdict)
+* Volume 2     R   Recovery     NTFS   Partition   1024 MB  Healthy    Hidden  
+
+Leaving DiskPart...
+[pdt] beacon 20-disk ok
+
+[pdt] ===== 25-download
+[pdt] beacon 25-download start
+479880ef403058ee2999a9a616977f38ed5b85c7150c6c32b6dbd295b1c943f7  W:\image.wim
+0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279  X:\pdt\image.json (sidecar)
+MISMATCH: the file is not the one the sidecar describes
+[pdt] beacon 25-download fail
+
+
+$ bin/shell hc "dir W:\\"   (the download must be gone, the volume otherwise untouched)
+ Volume in drive W is Windows
+ Volume Serial Number is 9847-D2C1
+
+ Directory of W:\
+
+10/24/2026  06:05 PM    <DIR>          Scratch
+               0 File(s)              0 bytes
+               1 Dir(s)  67,254,947,840 bytes free
+exit 0
+
+$ bin/shell hc "dir X:\pdt\image.* X:\pdt\pdt-sha256.exe"
+ Volume in drive X is Boot
+ Volume Serial Number is D60A-0DC2
+
+ Directory of X:\pdt
+
+10/24/2026  06:05 PM               270 image.json
+10/24/2026  06:05 PM               232 image.sha256
+
+ Directory of X:\pdt
+
+10/24/2026  06:05 PM            45,056 pdt-sha256.exe
+               3 File(s)         45,558 bytes
+               0 Dir(s)     529,506,304 bytes free
+exit 0

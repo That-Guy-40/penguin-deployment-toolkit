@@ -63,6 +63,22 @@ reports it as such until built). It needs podman or docker (or, for
 missing; `bin/build-tools check` tells a stale binary from a current one by
 the source hash, and names the compiler and builder that made it).
 
+### 3. A hash on the machine **[verified, built]** — `tools/pdt-sha256.exe`
+
+WinPE has no `certutil`, no PowerShell and no .NET, so until 2026-10-24 nothing
+on the machine could say what it had just downloaded. `tools-src/pdt-sha256.c`
+(plain C99, SHA-256 of files, and `--check <sidecar.json> <file>` against the
+sidecar's `"sha256"`) is built by the same `bin/build-tools` pipeline as the
+pusher and checked on Linux against FIPS vectors, coreutils and the sidecars
+`bin/stage-image` wrote. `25-download` runs it on every image before `30-apply`;
+a mismatch deletes the download and fails the step. From the shell:
+`bin/shell <m> 'X:\pdt\pdt-sha256.exe X:\pdt\pdt-screen.exe'` is the proof that
+the machine runs the recorded binary. For a second opinion that is not our
+code, `bin/build-tools openssl` cross-builds OpenSSL's command-line tool from
+the pinned source tarball, static, twice, into `tools/openssl.exe`
+(`openssl dgst -sha256 <file>` on the machine agrees with `pdt-sha256`).
+Evidence: `spikes/2026-10-24-sha256-and-dism/`.
+
 ### What you get with both
 
 PXE → WinPE → every step → first logon, as beacons and logs (today), plus a

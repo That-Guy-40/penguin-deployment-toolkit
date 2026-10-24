@@ -1,0 +1,38 @@
+$ gcc -std=c99 -pedantic -O2 -Wall -Wextra -Wconversion -Wshadow -Werror -o pdt-sha256 tools-src/pdt-sha256.c
+PASS  native compile, warnings are errors
+--- FIPS 180-4 vectors
+PASS  empty
+PASS  abc
+PASS  448-bit
+PASS  a x 1,000,000
+--- random files at block and buffer boundaries, vs sha256sum
+PASS  23 sizes agree with sha256sum
+--- a file over 4 GiB (the length field's high word), vs sha256sum
+PASS  4,400,000,000 zero bytes
+--- the sidecar rule, exit codes 0 / 1 / 4
+PASS  sidecar good -> exit 0   (match)
+PASS  sidecar upper -> exit 0   (match)
+PASS  sidecar wrong -> exit 1   (MISMATCH: the file is not the one the sidecar describes)
+PASS  sidecar 65 -> exit 4   (pdt-sha256: the "sha256" value in sc-65.json is not a quoted string of 64 hex digits)
+PASS  sidecar 63 -> exit 4   (pdt-sha256: the "sha256" value in sc-63.json is not a quoted string of 64 hex digits)
+PASS  sidecar num -> exit 4   (pdt-sha256: the "sha256" value in sc-num.json is not a quoted string of 64 hex digits)
+PASS  sidecar none -> exit 4   (pdt-sha256: no "sha256" key in sc-none.json)
+PASS  sidecar apps -> exit 4   (pdt-sha256: no "sha256" key in sc-apps.json)
+PASS  sidecar eof -> exit 4   (pdt-sha256: the "sha256" value in sc-eof.json is not a quoted string of 64 hex digits)
+PASS  sidecar nul -> exit 0   (match)
+PASS  sidecar huge -> exit 4   (pdt-sha256: sc-huge.json is larger than a sidecar can be (1048576 bytes))
+--- usage and unreadable files, exit codes 2 / 3
+PASS  no arguments -> 2
+PASS  --check with one argument -> 2
+PASS  unknown option -> 2
+PASS  a missing file among others -> 3, the others still printed
+PASS  missing sidecar -> 3
+PASS  missing file -> 3
+PASS  a directory -> 3
+--- the served images, vs their sidecars (bin/stage-image, Python hashlib)
+PASS  base.wim matches base.json (3563286653 bytes)
+PASS  lab-apps.wim matches lab-apps.json (3359294954 bytes)
+--- base.wim, vs sha256sum (a third implementation)
+PASS  base.wim: pdt-sha256 == sha256sum
+
+all checks passed

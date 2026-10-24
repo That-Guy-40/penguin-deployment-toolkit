@@ -34,6 +34,14 @@ parked are in `DEFERRED.md`, not here.
 
 ## Housekeeping
 
+- [ ] **Verify driver and update packs on the machine too.** Since 2026-10-24
+  `25-download` checks the OS image's SHA-256 against its sidecar with
+  `tools/pdt-sha256.exe`, and `bin/pack-drivers` / `bin/pack-updates` write a
+  `sha256` into their sidecars; `35-updates` and `40-drivers` do not check it
+  yet, and packs made before that date carry none (re-pack them first). The
+  separate `images/<name>.winre.wim` that `45-winre` fetches has no sidecar at
+  all. Same mechanism, three more call sites; make lint demand the hash once
+  the steps do (`spikes/2026-10-24-sha256-and-dism/`).
 - [ ] **A `DISK=<n>` install on a disk the firmware does not boot first re-images
   itself** (seen 2026-10-24, demo for Noah): a two-disk lab VM deployed onto
   disk 1 with disk 0 left blank; at `90-reboot` the firmware tried disk 0

@@ -1,0 +1,145 @@
+# hd: IMAGE=corrupt-true.wim (one byte flipped at the midpoint, sidecar truthful): 25-download passes it, so DISM meets the corruption.
+$ bin/status hd | tail -4
+  2026-10-24T14:05:22-04:00  +   21.9s  (+   0.3s)  25-download start 
+  2026-10-24T14:05:48-04:00  +   47.8s  (+  25.9s)  25-download ok    msg=sha256 479880ef403058ee2999a9a616977f38ed5b85c7150c6c32b6dbd295b1c943f7 matches images/corrupt-true.json
+  2026-10-24T14:05:48-04:00  +   48.1s  (+   0.3s)  30-apply    start 
+  2026-10-24T14:06:27-04:00  +   86.9s  (+  38.8s)  30-apply    fail  rc=1392
+
+$ bin/logs hd --cat ts.log | tail -25
+[====================       35.0%                          ] 
+[====================       36.0%                          ] 
+[=====================      37.0%                          ] 
+[======================     38.0%                          ] 
+[======================     39.0%                          ] 
+[=======================    40.0%                          ] 
+[=======================    41.0%                          ] 
+[========================   42.0%                          ] 
+[========================   43.0%                          ] 
+[=========================  44.0%                          ] 
+[========================== 45.0%                          ] 
+[========================== 46.0%                          ] 
+[===========================47.0%                          ] 
+[===========================48.0%                          ] 
+[===========================49.0%                          ] 
+[===========================50.0%                          ] 
+[===========================51.0%                          ] 
+
+Error: 1392
+
+The file or directory is corrupted and unreadable.
+
+The DISM log file can be found at W:\Scratch\dism.log
+[pdt] beacon 30-apply fail
+
+
+$ bin/shell hd "dir W:\\"
+ Volume in drive W is Windows
+ Volume Serial Number is 1647-D324
+
+ Directory of W:\
+
+10/24/2026  06:05 PM     3,563,286,653 image.wim
+03/31/2024  11:26 PM    <DIR>          PerfLogs
+04/01/2024  12:03 AM    <DIR>          Program Files
+04/01/2024  12:03 AM    <DIR>          Program Files (x86)
+10/24/2026  06:05 PM    <DIR>          Scratch
+03/31/2024  11:34 PM    <DIR>          Users
+10/24/2026  06:06 PM    <DIR>          Windows
+               1 File(s)  3,563,286,653 bytes
+               6 Dir(s)  59,276,210,176 bytes free
+exit 0
+
+$ bin/shell hd "dir W:\Windows"   (a partial apply?)
+ Volume in drive W is Windows
+ Volume Serial Number is 1647-D324
+
+ Directory of W:\Windows
+
+10/24/2026  06:06 PM    <DIR>          .
+03/31/2024  11:34 PM    <DIR>          appcompat
+10/24/2026  06:06 PM    <DIR>          apppatch
+03/31/2024  11:26 PM    <DIR>          AppReadiness
+04/01/2024  12:04 AM    <DIR>          assembly
+03/31/2024  11:26 PM    <DIR>          bcastdvr
+03/31/2024  11:34 PM    <DIR>          Boot
+03/31/2024  11:26 PM    <DIR>          Branding
+10/24/2026  06:06 PM    <DIR>          BrowserCore
+04/01/2024  12:04 AM    <DIR>          CbsTemp
+04/01/2024  12:03 AM    <DIR>          Containers
+10/24/2026  06:06 PM    <DIR>          Cursors
+03/31/2024  11:26 PM    <DIR>          debug
+03/31/2024  11:34 PM    <DIR>          diagnostics
+03/31/2024  11:34 PM    <DIR>          DiagTrack
+04/01/2024  12:00 AM    <DIR>          DigitalLocker
+10/24/2026  06:06 PM    <DIR>          en-US
+03/31/2024  11:22 PM         4,145,752 explorer.exe
+03/31/2024  11:26 PM    <DIR>          GameBarPresenceWriter
+04/01/2024  12:03 AM    <DIR>          Globalization
+04/01/2024  12:00 AM    <DIR>          Help
+10/24/2026  06:06 PM    <DIR>          IdentityCRL
+04/01/2024  12:00 AM    <DIR>          IME
+10/24/2026  06:06 PM    <DIR>          ImmersiveControlPanel
+10/24/2026  06:06 PM    <DIR>          InboxApps
+10/24/2026  06:06 PM    <DIR>          INF
+03/31/2024  11:34 PM    <DIR>          InputMethod
+10/24/2026  06:06 PM    <DIR>          L2Schemas
+03/31/2024  11:26 PM    <DIR>          LiveKernelReports
+03/31/2024  11:34 PM    <DIR>          Logs
+03/31/2024  11:22 PM            43,131 mib.bin
+03/31/2024  11:34 PM    <DIR>          Microsoft.NET
+03/31/2024  11:26 PM    <DIR>          Migration
+03/31/2024  11:26 PM    <DIR>          ModemLogs
+04/01/2024  12:03 AM    <DIR>          OCR
+03/31/2024  11:26 PM    <DIR>          Offline Web Pages
+03/31/2024  11:26 PM    <DIR>          Performance
+03/31/2024  11:34 PM    <DIR>          PLA
+10/24/2026  06:06 PM    <DIR>          PolicyDefinitions
+03/31/2024  11:22 PM            25,359 Professional.xml
+10/24/2026  06:06 PM    <DIR>          Provisioning
+03/31/2024  11:34 PM    <DIR>          Registration
+04/01/2024  12:03 AM    <DIR>          RemotePackages
+03/31/2024  11:26 PM    <DIR>          rescache
+03/31/2024  11:34 PM    <DIR>          Resources
+03/31/2024  11:26 PM    <DIR>          SchCache
+04/01/2024  12:03 AM    <DIR>          schemas
+04/01/2024  12:03 AM    <DIR>          security
+03/31/2024  11:26 PM    <DIR>          ServiceState
+04/01/2024  12:01 AM    <DIR>          servicing
+03/31/2024  11:29 PM    <DIR>          Setup
+10/24/2026  06:06 PM    <DIR>          ShellComponents
+10/24/2026  06:06 PM    <DIR>          ShellExperiences
+03/31/2024  11:34 PM    <DIR>          SKB
+03/31/2024  11:26 PM    <DIR>          Speech
+03/31/2024  11:26 PM    <DIR>          Speech_OneCore
+03/31/2024  11:22 PM           196,608 splwow64.exe
+03/31/2024  11:26 PM    <DIR>          System
+10/24/2026  06:06 PM    <DIR>          System32
+04/01/2024  12:03 AM    <DIR>          SystemApps
+10/24/2026  06:06 PM    <DIR>          SystemResources
+03/31/2024  11:26 PM    <DIR>          SystemTemp
+10/24/2026  06:06 PM    <DIR>          SysWOW64
+03/31/2024  11:26 PM    <DIR>          TAPI
+03/31/2024  11:26 PM    <DIR>          Tasks
+04/01/2024  12:04 AM    <DIR>          Temp
+03/31/2024  11:26 PM    <DIR>          tracing
+03/31/2024  11:26 PM    <DIR>          twain_32
+03/31/2024  11:26 PM    <DIR>          UUS
+03/31/2024  11:26 PM    <DIR>          Vss
+03/31/2024  11:26 PM    <DIR>          WaaS
+03/31/2024  11:34 PM    <DIR>          Web
+04/01/2024  12:04 AM    <DIR>          WinSxS
+04/01/2024  12:03 AM           316,640 WMSysPr9.prx
+03/31/2024  11:26 PM    <DIR>          WUModels
+               5 File(s)      4,727,490 bytes
+              70 Dir(s)  59,276,210,176 bytes free
+exit 0
+
+$ bin/shell hd "find /i \"error\" W:\Scratch\dism.log"   (DISM's own words; find is case-insensitive here)
+
+---------- W:\SCRATCH\DISM.LOG
+2026-10-24 18:06:26, Error                 DISM   DISM WIM Provider: PID=2488 W:\Windows\WinSxS\wow64_microsoft-windows-f..rcluster-clientcore_31bf3856ad364e35_10.0.26100.1_none_988fdb1ed54cf8b3\resutils.dll (HRESULT=0x80070570) - CWimManager::WimProviderMsgLogCallback
+[2488.2492] [0x80070570] GetImageErrorCode:(8174): The file or directory is corrupted and unreadable.
+2026-10-24 18:06:26, Error                 DISM   DISM WIM Provider: PID=2488 TID=2492 onecore\base\ntsetup\opktools\dism\providers\wimprovider\dll\wimmanager.cpp:998 - CWimManager::Apply(hr:0x80070570)
+2026-10-24 18:06:26, Error                 DISM   DISM Imaging Provider: PID=2488 TID=2492 onecore\base\ntsetup\opktools\dism\providers\imagingprovider\dll\genericimagingmanager.cpp:2847 - CGenericImagingManager::InternalCmdWimApply(hr:0x80070570)
+2026-10-24 18:06:26, Error                 DISM   DISM Imaging Provider: PID=2488 TID=2492 onecore\base\ntsetup\opktools\dism\providers\imagingprovider\dll\genericimagingmanager.cpp:538 - CGenericImagingManager::ExecuteCmdLine(hr:0x80070570)
+exit 0

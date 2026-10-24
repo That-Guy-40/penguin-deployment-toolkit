@@ -25,9 +25,13 @@ wimlib-imagex capture "$SRC" "$OUT_DIR/$NAME.wim" "$NAME" --compress=LZX >/dev/n
 chmod 0644 "$OUT_DIR/$NAME.wim"
 
 python3 - "$OUT_DIR/$NAME.wim" "$OUT_DIR/$NAME.json" "${INFS[@]}" <<'PY'
-import json, os, sys, time
+import hashlib, json, os, sys, time
 wim, sidecar, *infs = sys.argv[1:]
-json.dump({"file": os.path.basename(wim), "size": os.path.getsize(wim), "kind": "drivers",
+h = hashlib.sha256()
+with open(wim, "rb") as f:
+    for chunk in iter(lambda: f.read(1 << 22), b""):
+        h.update(chunk)
+json.dump({"file": os.path.basename(wim), "size": os.path.getsize(wim), "sha256": h.hexdigest(), "kind": "drivers",
            "infs": infs, "created": time.strftime("%Y-%m-%dT%H:%M:%S%z")}, open(sidecar, "w"), indent=2)
 PY
 info "http/drivers/$NAME.wim: ${#INFS[@]} .inf file(s), $(( $(stat -c%s "$OUT_DIR/$NAME.wim") / 1024 )) KiB"

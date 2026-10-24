@@ -96,7 +96,9 @@ It refuses to start if the port is taken (it never kills anything), and it
 tests its own endpoints every time it starts.
 
 **`bin/lint`.** Reads `boot.ipxe`, the task sequence and every machine cfg and
-checks that each file they refer to exists, that images match their sidecars,
+checks that each file they refer to exists, that images match their sidecars
+and the sidecars carry the hash `25-download` will demand, that the served
+`tools/` binaries are the ones `bin/build-tools` recorded,
 that every file `.gitattributes` marks `eol=crlf` (what Windows runs or reads) is CRLF in the tree, that `ipxe.efi` still matches
 `config.sh`. A typo that would be a 404 three minutes into a boot is a `FAIL`
 row before anything boots. Each run also breaks a scratch copy in eleven known
@@ -153,7 +155,7 @@ read what machines report; `teardown` stops it all. Every script answers
      | `15-preflight` | every file this install needs is on the server, *before* destroying anything |
      | `17-diskguard` | which disk may be wiped: the only fixed one, or `DISK=<n>` from the cfg; several, none, removable or too small → the step fails and nothing is touched |
      | `20-disk` | `diskpart` on that disk (`select disk @DISK@` filled in): GPT with EFI, MSR, Windows and a 1 GB recovery partition |
-     | `25-download` | the image to the new Windows partition with `curl` |
+     | `25-download` | the image to the new Windows partition with `curl`, then its SHA-256 against the sidecar's (`tools/pdt-sha256.exe`, built from `tools-src/`; WinPE has no certutil); a mismatch deletes the download and fails the step |
      | `30-apply` | `dism /apply-image` |
      | `35-updates` | optional: an update pack, `dism /add-package` |
      | `40-drivers` | optional: a driver pack, `dism /add-driver` |

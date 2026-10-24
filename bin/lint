@@ -26,10 +26,13 @@ What is checked:
   machines/*.cfg models/*.cfg (and the defaults in env.cmd): only known keys,
                  no inline comments; MODE has a sequence; STOP_* name a step of
                  it; a model file cannot set MODE; image present with a
-                 matching sidecar; unattend well-formed; diskpart script, driver
-                 pack (with an .inf) and update pack present
-  host           pinned third-party binaries, pxe/ipxe.efi matching config.sh,
-                 boot.wim free of a winpeshl.ini, the server answering
+                 matching sidecar that carries a sha256 (25-download verifies
+                 the download against it); unattend well-formed; diskpart
+                 script, driver pack (with an .inf) and update pack present
+  host           pinned third-party binaries (bin/fetch-tools check), the
+                 toolkit's own built tools against their record (bin/build-tools
+                 check), pxe/ipxe.efi matching config.sh, boot.wim free of a
+                 winpeshl.ini, the server answering
 """
 import argparse
 import glob
@@ -331,7 +334,7 @@ def lint_tree(http, deep=False, programs=None):
                 R.ok(f"{rel(script)} runs System32\\{m.group(1)}", "injected by boot.ipxe" if prog in injected else "inbox")
             else:
                 R.fail(f"{rel(script)} runs System32\\{m.group(1)}", "boot.ipxe does not inject it (no initrd --name)")
-        for m in re.finditer(r"(?i)(?:X:\\pdt|%PDT%)\\([\w-]+\.(?:cmd|js))", text):
+        for m in re.finditer(r"(?i)(?:X:\\pdt|%PDT%)\\([\w-]+\.(?:cmd|js))(?![\w.])", text):   # .js, not .json: a data file is not a helper
             if m.group(1).lower() not in toolkit:
                 R.fail(f"{rel(script)} uses X:\\pdt\\{m.group(1)}", "ts/deploy.cmd does not fetch it into X:\\pdt")
     # Every program a WinPE script runs must be in WinPE or injected. A missing
@@ -645,6 +648,8 @@ def winget_packages(http):
 def check_asset(http, key, path, deep):
     """Return a problem string, or '' if the asset a machine refers to is sound."""
     full = os.path.join(http, path)
+    if key == "IMAGE" and not path.lower().endswith(".wim"):
+        return f"http/{path}: IMAGE must end in .wim (25-download derives the sidecar name images/<name>.json from it)"
     if not os.path.isfile(full):
         return f"http/{path} does not exist"
     if key == "UNATTEND":
@@ -671,6 +676,8 @@ def check_asset(http, key, path, deep):
             return f"sidecar {os.path.basename(sidecar)} does not parse ({e})"
         if meta.get("size") != os.path.getsize(full):
             return f"http/{path} is {os.path.getsize(full)} bytes but its sidecar describes a {meta.get('size')}-byte file"
+        if key == "IMAGE" and not re.fullmatch(r"[0-9a-fA-F]{64}", str(meta.get("sha256", ""))):
+            return f"sidecar {os.path.basename(sidecar)} has no 64-digit sha256: 25-download would refuse http/{path} (re-run bin/stage-image)"
         if key == "DRIVERS" and not meta.get("infs"):
             return f"driver pack http/{path} lists no .inf files"
         if key == "UPDATES" and not meta.get("packages"):
@@ -680,7 +687,7 @@ def check_asset(http, key, path, deep):
             with open(full, "rb") as f:
                 for chunk in iter(lambda: f.read(1 << 22), b""):
                     h.update(chunk)
-            if h.hexdigest() != meta["sha256"]:
+            if h.hexdigest() != str(meta["sha256"]).lower():   # pdt-sha256 compares case-insensitively too
                 return f"http/{path} does not match the SHA-256 in its sidecar"
     return ""
 
@@ -691,13 +698,15 @@ def lint_host():
     p = _pdt.paths()
     http = p["HTTP_DIR"]
 
-    r = subprocess.run([os.path.join(_pdt.ROOT, "bin", "fetch-tools"), "check"], capture_output=True, text=True)
-    for line in r.stdout.splitlines():
-        verdict, _, rest = line.partition(" ")
-        if verdict in ("PASS", "FAIL"):
-            R.add(verdict, rest.strip())
-    if r.returncode not in (0, 1) or not r.stdout.strip():
-        R.unknown("pinned third-party binaries", f"bin/fetch-tools check did not run ({r.stderr.strip()[:80]})")
+    # Two scripts report "PASS/FAIL <what>" per pinned or built file; their rows are ours.
+    for script, label in (("fetch-tools", "pinned third-party binaries"), ("build-tools", "the toolkit's own built tools (tools/built.json)")):
+        r = subprocess.run([os.path.join(_pdt.ROOT, "bin", script), "check"], capture_output=True, text=True)
+        for line in r.stdout.splitlines():
+            verdict, _, rest = line.partition(" ")
+            if verdict in ("PASS", "FAIL"):
+                R.add(verdict, rest.strip())
+        if r.returncode not in (0, 1) or not r.stdout.strip():
+            R.unknown(label, f"bin/{script} check did not run ({r.stderr.strip()[:80]})")
 
     efi = os.path.join(p["PXE_DIR"], "ipxe.efi")
     want = f'chain {p["BASE_URL"]}/boot.ipxe?'.encode()
@@ -776,7 +785,8 @@ def selftest():
                     os.makedirs(os.path.dirname(os.path.join(d, path)), exist_ok=True)
                     open(os.path.join(d, path), "w").write("x")
             open(os.path.join(d, "images", "base.wim"), "w").write("image")
-            json.dump({"size": 5}, open(os.path.join(d, "images", "base.json"), "w"))
+            json.dump({"size": 5, "sha256": "0" * 64}, open(os.path.join(d, "images", "base.json"), "w"))
+            open(os.path.join(d, "tools", "pdt-sha256.exe"), "w").write("x")   # a host that has run bin/build-tools
             open(os.path.join(d, "machines", "11111111-2222-3333-4444-555555555555.cfg"), "w").write("MODE=deploy\n")
             return d
 
@@ -850,6 +860,9 @@ def selftest():
             ("SSH=on with no keys file", lambda d: sub_text(d, "roles/lab-apps/role.cfg", "SSHKEYS=authorized_keys\n", ""), "needs SSHKEYS"),
             ("the keys file holds no public key", lambda d: open(os.path.join(d, "roles", "lab-apps", "authorized_keys"), "w").write("# empty\n"), "no OpenSSH public key"),
             ("SSH=on but fetch-tools openssh never ran", lambda d: os.remove(os.path.join(d, "post", "openssh", "files.txt")), "fetch-tools openssh"),
+            ("the hasher 25-download needs was never built", lambda d: os.remove(os.path.join(d, "tools", "pdt-sha256.exe")), "tools/pdt-sha256.exe"),
+            ("an image sidecar carries no sha256", lambda d: json.dump({"size": 5}, open(os.path.join(d, "images", "base.json"), "w")), "no 64-digit sha256"),
+            ("a machine names an image that is not a .wim", lambda d: (open(os.path.join(d, "images", "base.esd"), "w").write("image"), cfg(d, "MODE=deploy\nIMAGE=base.esd\n")), "must end in .wim"),
         ]
 
         control = lint_tree(fresh(), programs=SELFTEST_PROGRAMS)

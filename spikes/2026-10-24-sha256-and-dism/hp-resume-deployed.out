@@ -1,0 +1,4 @@
+# hp resumed at 30-apply from the WinPE prompt (2026-10-24T14:09:30-04:00); the verified image.wim is still on W:\
+$ bin/shell hp "start \"\" cmd /c %SystemRoot%\System32\deploy.cmd 30" && bin/await hp deployed 900
+await: 2026-10-24T14:12:45-04:00 deployed ok
+exit 0 (2026-10-24T14:12:45-04:00)

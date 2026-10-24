@@ -8,11 +8,12 @@ Tick the boxes as you go; a box you cannot tick is a finding.
 
 Prerequisites: `config.sh` from `config.sh.example` (ISO path, a free port),
 `bin/fetch-tools`, `bin/stage-winpe`, `bin/stage-image`, `bin/build-ipxe`,
+`bin/build-tools` (podman or docker; `25-download` needs `tools/pdt-sha256.exe`),
 `bin/serve`. Then `bin/lint` must end in `0 FAIL`; if it does not, stop here.
 
 ## 0. The checker itself
 
-- [ ] `bin/lint --selftest` says `47/47 injected defects were reported as FAIL`.
+- [ ] `bin/lint --selftest` says `50/50 injected defects were reported as FAIL`.
 - [ ] Control: `echo 'MODE=wipe' > http/machines/00000000-0000-0000-0000-000000000000.cfg; bin/lint; rm http/machines/00000000-*.cfg`
       → one `FAIL … MODE=wipe`, exit 1.
 
@@ -64,8 +65,13 @@ Prerequisites: `config.sh` from `config.sh.example` (ISO path, a free port),
 - [ ] During a deploy, `bin/logs t1 --tail 5 ts.log` follows the log (pushed
       every 20 s) and `bin/status --watch` shows the step as `busy`.
 - [ ] `bin/shell t1 'dir W:\'` during `30-apply` lists the half-applied
-      volume; `bin/screen t1` shows the WinPE console (requires
-      `bin/build-tools` once, podman or docker).
+      volume; `bin/screen t1` shows the WinPE console.
+- [ ] A hash on the machine: `bin/shell t1 'X:\pdt\pdt-sha256.exe X:\pdt\pdt-screen.exe'`
+      prints the SHA-256 recorded for it in `http/tools/built.json`. Second
+      opinion, if `bin/build-tools openssl` was run: `bin/shell t1 'curl.exe -sS -o X:\pdt\openssl.exe %SRV%/tools/openssl.exe & X:\pdt\openssl.exe dgst -sha256 X:\pdt\pdt-screen.exe'`
+      agrees. Control: `bin/build-tools check` after flipping a byte of
+      `http/tools/pdt-sha256.exe` → `FAIL tools/pdt-sha256.exe: not the binary
+      that was recorded`, and so does `bin/lint`; put the copy back.
 - [ ] Control: `bin/shell t1 'nosuchprogram'` → "not recognized", exit 1.
 
 ## 4. A role: apps, accounts, skel, policy, removal

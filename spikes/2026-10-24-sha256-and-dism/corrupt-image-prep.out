@@ -1,0 +1,24 @@
+# A deliberately corrupted copy of base.wim: one byte flipped at the midpoint.
+flipped byte at offset 1781643326 of 3563286653: 0xf9 -> 0x06
+base.json sha256:   0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279
+corrupt.wim sha256: 479880ef403058ee2999a9a616977f38ed5b85c7150c6c32b6dbd295b1c943f7
+-rw-rw-r--  1 sqs sqs        279 Oct 24 14:02 corrupt-true.json
+-rw-r--r--  2 sqs sqs 3563286653 Oct 24 14:02 corrupt-true.wim
+-rw-r--r--  3 sqs sqs  480562488 Oct  2 04:06 corrupt-true.winre.wim
+-rw-rw-r--  1 sqs sqs        270 Oct 24 14:02 corrupt.json
+-rw-r--r--  2 sqs sqs 3563286653 Oct 24 14:02 corrupt.wim
+-rw-r--r--  3 sqs sqs  480562488 Oct  2 04:06 corrupt.winre.wim
+{
+  "file": "corrupt.wim",
+  "size": 3563286653,
+  "sha256": "0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279",
+  "kind": "lab-control",
+  "note": "base.wim with one byte flipped; the sha256 above is base.wim's, so 25-download must refuse this image"
+}
+{
+  "file": "corrupt-true.wim",
+  "size": 3563286653,
+  "sha256": "479880ef403058ee2999a9a616977f38ed5b85c7150c6c32b6dbd295b1c943f7",
+  "kind": "lab-control",
+  "note": "the same corrupted file with its own true sha256, so 25-download accepts it and DISM meets the corruption"
+}

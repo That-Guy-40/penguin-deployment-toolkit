@@ -1,0 +1,37 @@
+$ bin/vm-create hp && bin/vm-create hc --image corrupt && bin/vm-create hd --image corrupt-true
+created VM hp
+  uuid cad9b607-2a43-4511-a653-ea28d6eccc74   mac 52:54:00:bf:9b:53   monitor 127.0.0.1:7001
+  disk 64G   net user   machines entry: MODE=deploy
+next: bin/vm-boot hp
+created VM hc
+  uuid 70d362fa-bb16-47c6-8ab1-bb6040d7fac6   mac 52:54:00:a3:94:82   monitor 127.0.0.1:7002
+  disk 64G   net user   machines entry: MODE=deploy
+next: bin/vm-boot hc
+created VM hd
+  uuid e39ae6c1-cc07-4faa-86da-33da210b7702   mac 52:54:00:a7:68:91   monitor 127.0.0.1:7003
+  disk 64G   net user   machines entry: MODE=deploy
+next: bin/vm-boot hd
+--- hp cfg (stops after the verified download, for the on-machine checks):
+# lab VM hp (bin/vm-create, 2026-10-24)
+MODE=deploy
+IMAGE=base.wim
+UNATTEND=default.xml
+STOP_AFTER=25-download
+--- hc cfg:
+# lab VM hc (bin/vm-create, 2026-10-24)
+MODE=deploy
+IMAGE=corrupt.wim
+UNATTEND=default.xml
+--- hd cfg:
+# lab VM hd (bin/vm-create, 2026-10-24)
+MODE=deploy
+IMAGE=corrupt-true.wim
+UNATTEND=default.xml
+$ bin/vm-boot hp; bin/vm-boot hc; bin/vm-boot hd
+VM hp running: pid 2514598, nic e1000e, boot disk then network, monitor 127.0.0.1:7001
+id for bin/status and bin/await: cad9b607-2a43-4511-a653-ea28d6eccc74
+VM hc running: pid 2514628, nic e1000e, boot disk then network, monitor 127.0.0.1:7002
+id for bin/status and bin/await: 70d362fa-bb16-47c6-8ab1-bb6040d7fac6
+VM hd running: pid 2514657, nic e1000e, boot disk then network, monitor 127.0.0.1:7003
+id for bin/status and bin/await: e39ae6c1-cc07-4faa-86da-33da210b7702
+2026-10-24T14:04:52-04:00

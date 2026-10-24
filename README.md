@@ -60,8 +60,10 @@ that re-fetches every step and carries on from 40. No reboot, nothing rebuilt.
 
 Needs Ubuntu 24.04 or 26.04 with KVM, plus: `qemu-system-x86 qemu-utils ovmf ipxe-qemu
 nginx wimtools p7zip-full socat uuid-runtime curl unzip python3 python3-pil
-build-essential liblzma-dev git`. And a Windows 11 ISO. Optional:
-podman or docker for the screen pusher's canonical build (`bin/build-tools`; or `gcc-mingw-w64-x86-64` for `bin/build-tools host`),
+build-essential liblzma-dev git`. And a Windows 11 ISO. Plus podman or docker
+(or `gcc-mingw-w64-x86-64` for `bin/build-tools host`) for `bin/build-tools`, which
+builds the hasher `25-download` verifies every image with (WinPE has no certutil)
+and the screen pusher, reproducibly in a pinned container. Optional:
 `mmdebstrap zstd` for the collector (`bin/build-collector`).
 
 ```bash
@@ -147,12 +149,12 @@ Raw data, if you prefer `tail -f`: `run/beacons.log` (one line per event),
 | `bin/vm-create`, `vm-boot`, `vm-stop`, `vm-shot`, `vm-type` | the lab VM |
 | `bin/status`, `await`, `logs`, `lint` | read-only tools over the logs and `http/` |
 | `bin/shell` | run a command on a machine in WinPE over HTTP (`ts/shell-loop.cmd` polls for it); for machines with no screen, i.e. every physical one |
-| `bin/screen`, `bin/build-tools` | the latest screen a machine pushed (needs `tools/pdt-screen.exe`, built from `tools-src/` with mingw-w64 in a pinned container, reproducibly: two builds must be identical) |
+| `bin/screen`, `bin/build-tools` | the latest screen a machine pushed (needs `tools/pdt-screen.exe`); `build-tools` builds it and `tools/pdt-sha256.exe` (the hash `25-download` checks every image with) from `tools-src/` with mingw-w64 in a pinned container, reproducibly: two builds must be identical; `build-tools openssl` cross-builds a static `tools/openssl.exe` from the pinned OpenSSL source the same way, as an independent second opinion on the machine; `check` verifies the served binaries against `tools/built.json` (lint runs it) |
 | `bin/build-collector`, `bin/netboot`, `bin/enroll` | the collector: a small Debian that PXE-boots into RAM, inventories a machine, takes commands and SSH, and reboots it into Windows PE; which machines boot it; `machines/<uuid>.cfg` from its inventory (`docs/COLLECTOR.md`) |
 | `bin/teardown` | stop services; optionally delete lab state |
 | `http/boot.ipxe` | the iPXE script every target runs (static, relative URLs) |
 | `http/ts/` | the WinPE task sequence: `deploy.cmd` (bootstrap + runner), `env.cmd` (all state), `step.cmd`/`beacon.cmd`/`push.cmd` (helpers), `shell-loop.cmd` (the remote shell and screen pusher), `*.seq` (which steps a MODE runs), `steps/` (one file per step), `diskpart/` |
-| `tools-src/` | source of the toolkit's own Windows programs (`pdt-screen.c`), built by `bin/build-tools` |
+| `tools-src/` | source of the toolkit's own Windows programs (`pdt-screen.c`, `pdt-sha256.c`), built by `bin/build-tools` |
 | `http/unattend/` | Panther unattend files (`default.xml`: local admin `deploy`, **blank password**, one autologon: lab defaults) |
 | `http/post/` | scripts run by the installed system from `C:\pdt\`: `firstlogon.cmd` (orchestrates the rest), `winget.cmd` (bootstrap + the role's apps), `users.ps1` (the role's accounts; generated passwords uploaded, then removed), `boot-probe.cmd` (a `boot` beacon after every boot), `prepare-capture.cmd` (sysprep, for `REFERENCE=yes`), and your own (`POST=` in a cfg); `winget/` holds the fetched packages (not tracked) |
 | `http/roles/` | `<name>/role.cfg` + files: what a machine becomes after Windows is on it (winget apps, local accounts, a skel for new profiles, post script, unattend, fast-startup policy); `ROLE=<name>` in a cfg selects it (see its README) |
@@ -322,6 +324,19 @@ Later the same day, with root supplied from another shell:
 | `bin/screen <vm>` vs `bin/vm-shot` a second apart | 1280×800, 100.00 % identical pixels; a 3 MB BMP every ~6 s; after `--off` the age grows instead |
 | both during `30-apply` on a deploying VM | `dir W:\` of the half-applied volume, a screen of DISM's progress; the deploy finishes (`deployed`) |
 | `bin/build-tools` | `tools/pdt-screen.exe` 43 KB from 62 lines of C, hashes of source and binary recorded; `check` flags a stale or changed binary |
+
+**A hash on the machine, 2026-10-24** (evidence: `spikes/2026-10-24-sha256-and-dism/`):
+
+| what | result |
+|---|---|
+| `tools-src/pdt-sha256.c` compiled natively on Linux | FIPS vectors, 23 boundary-sized files and a 4.4 GB file agree with `sha256sum`; both served images match their sidecars; every exit code provoked (28/28) |
+| `bin/build-tools` (pinned container, two builds each) | `pdt-screen.exe` unchanged (`31f25d28…`), `pdt-sha256.exe` 45 KB (`cd096583…` after the review's fixes); control without `--no-insert-timestamp`: "differ (2 byte(s))", nothing recorded; after the source changed, `check` called the served binary stale until the rebuild |
+| An independent security review before the commit | twelve findings, eight fixed (a partial download could reach a resumed `deploy 30`; `check` trusted the record over the tool list; an `IMAGE` not ending in `.wim`; a non-running hasher read as "mismatch"; smaller ones); `30-apply` now demands the same-boot token `25-download` writes, shown refusing on a VM |
+| `bin/build-tools openssl` | OpenSSL 3.5.9 from the pinned tarball, static `openssl.exe` 7.3 MB, identical across two passes and a third container run (`53842107…`); runs in WinPE, `dgst -sha256` agrees with `pdt-sha256` on the tools and the 3.5 GB image |
+| `25-download` on a plain deploy | `ok msg=sha256 0c947e48… matches images/base.json` (24.8 s download + hash; the hash alone is 9.4 s in the VM), then `deployed` |
+| Control: `base.wim` with one byte flipped, sidecar still claiming base's hash | `25-download fail rc=1 … download deleted, nothing applied`; `W:\` holds only `Scratch` |
+| The same corrupt file with a truthful sidecar (does DISM notice?) | `25-download ok`, then `30-apply fail rc=1392`, `dism.log`: `0x80070570 The file or directory is corrupted and unreadable`, 39 s in, `W:\Windows` half written |
+| `bin/lint` | 208 PASS, self-test 49/49 (hasher not built; sidecar without `sha256`); a flipped byte in `tools/pdt-sha256.exe` → `build-tools check` and `lint` FAIL "not the binary that was recorded" |
 
 **The collector, 2026-10-12** (evidence: `spikes/2026-10-12-collector/`, design: `docs/COLLECTOR.md`):
 

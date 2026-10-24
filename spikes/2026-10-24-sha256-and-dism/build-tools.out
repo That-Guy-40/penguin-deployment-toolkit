@@ -1,0 +1,90 @@
+$ PDT_LDFLAGS_REPRO= bin/build-tools host   (negative control: without the flag the guard must refuse, nothing recorded)
+building 2 tools with this host's x86_64-w64-mingw32-gcc (x86_64-w64-mingw32-gcc (GCC) 13-win32)...
+ERROR: pdt-screen.exe: two builds of the same source differ (2 byte(s)): the build is not reproducible, nothing recorded
+exit 1
+
+$ bin/build-tools   (canonical: pinned container)
+building 2 tools in docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 with gcc-mingw-w64-x86-64=14.2.0-17+27 (podman)...
+http/tools/pdt-screen.exe: 40960 bytes, sha256 31f25d2816b819d2…  built twice, identical; recorded
+http/tools/pdt-sha256.exe: 45056 bytes, sha256 ddd0fd067cd6e7fb…  built twice, identical; recorded
+x86_64-w64-mingw32-gcc (GCC) 14-win32; http/tools/built.json updated
+exit 0
+
+$ bin/build-tools openssl
+downloading openssl-3.5.9.tar.gz...
+building openssl.exe twice from openssl-3.5.9.tar.gz in docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 with gcc-mingw-w64-x86-64=14.2.0-17+27 make perl (podman; several minutes)...
+http/tools/openssl.exe: 7268352 bytes, sha256 5384210784f5a418…  built twice, identical; recorded in http/tools/built.json
+exit 0
+
+$ bin/build-tools check
+PASS tools/pdt-screen.exe: 40960 bytes, built 2026-10-24T14:02:22-0400 by container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27, x86_64-w64-mingw32-gcc (GCC) 14-win32
+PASS tools/pdt-sha256.exe: 45056 bytes, built 2026-10-24T14:02:22-0400 by container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27, x86_64-w64-mingw32-gcc (GCC) 14-win32
+PASS tools/openssl.exe: 7268352 bytes, built 2026-10-24T14:03:19-0400 by container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27 make=4.4.1-2 perl=5.40.1-6+deb13u1 , x86_64-w64-mingw32-gcc (GCC) 14-win32
+exit 0
+
+$ sha256sum http/tools/pdt-*.exe http/tools/openssl.exe
+31f25d2816b819d21abf011519f7fa7cd2dd37fd8efc0e84ee3085c70225c61d  http/tools/pdt-screen.exe
+ddd0fd067cd6e7fb37d29a106f1eaf6a3cde6bfbed11ab22e7a6915eb79ba8da  http/tools/pdt-sha256.exe
+5384210784f5a4182192316bba6d2b0a0381f65ed8e0e6ea6067c889354f687c  http/tools/openssl.exe
+
+$ cat http/tools/built.json
+{
+  "pdt-screen.exe": {
+    "source": "pdt-screen.c",
+    "source_sha256": "fe8062c50c68aaa88d9d9facdac5f5c2660f2d9409797067a97b8af686395d0d",
+    "sha256": "31f25d2816b819d21abf011519f7fa7cd2dd37fd8efc0e84ee3085c70225c61d",
+    "size": 40960,
+    "built": "2026-10-24T14:02:22-0400",
+    "cc": "x86_64-w64-mingw32-gcc (GCC) 14-win32",
+    "builder": "container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27"
+  },
+  "pdt-sha256.exe": {
+    "source": "pdt-sha256.c",
+    "source_sha256": "d240c820984ccb94d5ed00d4431ca04f073a4678a4d630f760a086d76ded6de9",
+    "sha256": "ddd0fd067cd6e7fb37d29a106f1eaf6a3cde6bfbed11ab22e7a6915eb79ba8da",
+    "size": 45056,
+    "built": "2026-10-24T14:02:22-0400",
+    "cc": "x86_64-w64-mingw32-gcc (GCC) 14-win32",
+    "builder": "container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27"
+  },
+  "openssl.exe": {
+    "source": "openssl-3.5.9.tar.gz",
+    "source_sha256": "603f5602e2eef00d77fbd429d34dcd5822bb301757a1bc9cdb24c670f1eb859a",
+    "sha256": "5384210784f5a4182192316bba6d2b0a0381f65ed8e0e6ea6067c889354f687c",
+    "size": 7268352,
+    "built": "2026-10-24T14:03:19-0400",
+    "cc": "x86_64-w64-mingw32-gcc (GCC) 14-win32",
+    "builder": "container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27 make=4.4.1-2 perl=5.40.1-6+deb13u1 "
+  }
+}
+--- addendum: a third OpenSSL build, in a fresh container run (2026-10-24T14:09:30-04:00); the hash must not move
+$ bin/build-tools openssl
+building openssl.exe twice from openssl-3.5.9.tar.gz in docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 with gcc-mingw-w64-x86-64=14.2.0-17+27 make perl (podman; several minutes)...
+http/tools/openssl.exe: 7268352 bytes, sha256 5384210784f5a418…  built twice, identical; recorded in http/tools/built.json
+exit 0
+$ bin/build-tools check
+PASS tools/pdt-screen.exe: 40960 bytes, built 2026-10-24T14:02:22-0400 by container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27, x86_64-w64-mingw32-gcc (GCC) 14-win32
+PASS tools/pdt-sha256.exe: 45056 bytes, built 2026-10-24T14:02:22-0400 by container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27, x86_64-w64-mingw32-gcc (GCC) 14-win32
+PASS tools/openssl.exe: 7268352 bytes, built 2026-10-24T14:10:19-0400 by container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27 make=4.4.1-2 perl=5.40.1-6+deb13u1, x86_64-w64-mingw32-gcc (GCC) 14-win32
+exit 0
+
+--- addendum 2 (2026-10-24T14:17:48-04:00): pdt-sha256.c changed after the review (stdout failure -> exit 3); check must call the served binary stale, then the rebuild
+$ bin/build-tools check
+PASS tools/pdt-screen.exe: 40960 bytes, built 2026-10-24T14:02:22-0400 by container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27, x86_64-w64-mingw32-gcc (GCC) 14-win32
+FAIL tools/pdt-sha256.exe: tools-src/pdt-sha256.c changed since it was built (run bin/build-tools)
+PASS tools/openssl.exe: 7268352 bytes, built 2026-10-24T14:10:19-0400 by container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27 make=4.4.1-2 perl=5.40.1-6+deb13u1, x86_64-w64-mingw32-gcc (GCC) 14-win32
+exit 1
+$ bin/build-tools
+building 2 tools in docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 with gcc-mingw-w64-x86-64=14.2.0-17+27 (podman)...
+http/tools/pdt-screen.exe: 40960 bytes, sha256 31f25d2816b819d2…  built twice, identical; recorded
+http/tools/pdt-sha256.exe: 45056 bytes, sha256 cd0965834efb92c0…  built twice, identical; recorded
+x86_64-w64-mingw32-gcc (GCC) 14-win32; http/tools/built.json updated
+exit 0
+$ bin/build-tools check
+PASS tools/pdt-screen.exe: 40960 bytes, built 2026-10-24T14:17:55-0400 by container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27, x86_64-w64-mingw32-gcc (GCC) 14-win32
+PASS tools/pdt-sha256.exe: 45056 bytes, built 2026-10-24T14:17:55-0400 by container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27, x86_64-w64-mingw32-gcc (GCC) 14-win32
+PASS tools/openssl.exe: 7268352 bytes, built 2026-10-24T14:10:19-0400 by container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27 make=4.4.1-2 perl=5.40.1-6+deb13u1, x86_64-w64-mingw32-gcc (GCC) 14-win32
+exit 0
+$ sha256sum tools-src/pdt-sha256.c http/tools/pdt-sha256.exe
+8a391401c94a9fce21f8018c7d2723de38c10fcbc0409d6b7e76e6985344d4b4  tools-src/pdt-sha256.c
+cd0965834efb92c03499bc327ca7e6ed72c6e10176c53bea13a411bda1356aa0  http/tools/pdt-sha256.exe
