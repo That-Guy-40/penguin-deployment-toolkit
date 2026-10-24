@@ -19,3 +19,27 @@ Not verified today: anything on physical hardware (the doc's hardware
 section is [read] throughout); `boot ok` after the power cycle of demo2 was
 not seen (the VM had been force-stopped 2 s after `deployed`, before the boot
 task's registration was necessarily on disk; a desktop was).
+
+## Addendum: the screen pusher was built and in use (correction)
+
+The first draft of the demo doc said `pdt-screen.exe` had not been built on
+this host. Wrong: `http/tools/pdt-screen.exe` (built 2026-10-12, recorded in
+`http/tools/built.json`, `bin/build-tools check` ok) was fetched 20 times on
+2026-10-24 and every VM pushed `screen.bmp`;
+`demo1-screen-pushed-during-30-apply.png` is `bin/screen` on demo1's last
+frame. Reproducibility (`screen-build-repro-*.out`): two builds with the same
+flags on this host differ in two bytes (the PE header timestamp); a Debian
+trixie container (GCC 14) differs more (different toolchain); with
+`-Wl,--no-insert-timestamp` or `SOURCE_DATE_EPOCH=0` two builds are
+bit-identical (`257745e4…`). `bin/build-tools` passes neither flag yet.
+
+Then done (`build-tools-repro.out`, `screen-canonical-vm-test.out`,
+`sc-live-canonical-pusher.png`): `bin/build-tools` now passes
+`-Wl,--no-insert-timestamp`, compiles twice and refuses a result that differs
+from itself (control: with the flag emptied it refuses, "2 byte(s)"), and the
+default build runs in a pinned container (`debian@sha256:38a76d01…`,
+`gcc-mingw-w64-x86-64=14.2.0-17+27`): 40960 bytes, sha256 `31f25d28…`,
+builder and compiler recorded in `built.json` and shown by `check`. A fresh
+`--mode none` VM fetched that binary (40960 bytes in the access log) and
+`bin/screen` showed its WinPE console 2 s old. The host build (GCC 13) is
+`257745e4…`, also self-identical, a different binary.

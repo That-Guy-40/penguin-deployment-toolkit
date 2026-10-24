@@ -61,7 +61,7 @@ that re-fetches every step and carries on from 40. No reboot, nothing rebuilt.
 Needs Ubuntu 24.04 or 26.04 with KVM, plus: `qemu-system-x86 qemu-utils ovmf ipxe-qemu
 nginx wimtools p7zip-full socat uuid-runtime curl unzip python3 python3-pil
 build-essential liblzma-dev git`. And a Windows 11 ISO. Optional:
-`gcc-mingw-w64-x86-64` for the screen pusher (`bin/build-tools`),
+podman or docker for the screen pusher's canonical build (`bin/build-tools`; or `gcc-mingw-w64-x86-64` for `bin/build-tools host`),
 `mmdebstrap zstd` for the collector (`bin/build-collector`).
 
 ```bash
@@ -147,7 +147,7 @@ Raw data, if you prefer `tail -f`: `run/beacons.log` (one line per event),
 | `bin/vm-create`, `vm-boot`, `vm-stop`, `vm-shot`, `vm-type` | the lab VM |
 | `bin/status`, `await`, `logs`, `lint` | read-only tools over the logs and `http/` |
 | `bin/shell` | run a command on a machine in WinPE over HTTP (`ts/shell-loop.cmd` polls for it); for machines with no screen, i.e. every physical one |
-| `bin/screen`, `bin/build-tools` | the latest screen a machine pushed (needs `tools/pdt-screen.exe`, built from `tools-src/` with mingw-w64) |
+| `bin/screen`, `bin/build-tools` | the latest screen a machine pushed (needs `tools/pdt-screen.exe`, built from `tools-src/` with mingw-w64 in a pinned container, reproducibly: two builds must be identical) |
 | `bin/build-collector`, `bin/netboot`, `bin/enroll` | the collector: a small Debian that PXE-boots into RAM, inventories a machine, takes commands and SSH, and reboots it into Windows PE; which machines boot it; `machines/<uuid>.cfg` from its inventory (`docs/COLLECTOR.md`) |
 | `bin/teardown` | stop services; optionally delete lab state |
 | `http/boot.ipxe` | the iPXE script every target runs (static, relative URLs) |

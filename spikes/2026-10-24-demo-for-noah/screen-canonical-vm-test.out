@@ -1,0 +1,12 @@
+$ bin/vm-create sc --mode none && bin/vm-boot sc && bin/await sc shell 300
+id for bin/status and bin/await: bfb5a695-2931-4fd8-a0da-482718d0dc74
+await: 2026-10-24T05:36:38-04:00 shell ok
+rc=0
+$ bin/screen sc
+/home/sqs/scripts/Windows-install-via-Linux/run/shots/sc-live.png  (2s old)
+rc=0
+$ served binary (access.log):
+127.0.0.1 2026-10-24T05:36:38-04:00 1792834598.720 "GET /tools/pdt-screen.exe HTTP/1.1" 200 40960 0.000
+$ bin/shell sc "certutil -hashfile X:\pdt\pdt-screen.exe SHA256"
+operable program or batch file.
+deleted VM sc (and machines/bfb5a695-2931-4fd8-a0da-482718d0dc74.cfg, its boot override and command files)

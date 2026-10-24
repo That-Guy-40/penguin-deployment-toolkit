@@ -21,7 +21,8 @@ What is checked:
   programs       every program a WinPE script runs exists in boot.wim's
                  System32 or is injected by boot.ipxe
   sequences      every step a ts/*.seq lists exists; no step file is orphaned
-  line endings   files Windows executes are CRLF
+  line endings   every file .gitattributes marks eol=crlf under http/ (what
+                 Windows executes or reads: steps, role files, .ps1) is CRLF
   machines/*.cfg models/*.cfg (and the defaults in env.cmd): only known keys,
                  no inline comments; MODE has a sequence; STOP_* name a step of
                  it; a model file cannot set MODE; image present with a
@@ -62,7 +63,25 @@ RUNTIME_VARS = CFG_KEYS + ("ID", "MODEL", "RUN")
 INBOX = {"cmd.exe"}
 # Files in X:\pdt that deploy.cmd writes itself rather than fetches.
 GENERATED = {"run.cmd", "model.cmd"}
-CRLF_GLOBS = ("ts/*.cmd", "ts/*.ini", "ts/steps/*.cmd", "ts/diskpart/*.txt", "post/*.cmd")
+
+
+def crlf_globs(root=None):
+    """The http/ patterns .gitattributes marks "eol=crlf": the files nginx serves to Windows
+    as they are in the working tree. Read from the file every time, so lint checks exactly
+    what git promises and the two cannot drift apart."""
+    path = os.path.join(root or _pdt.ROOT, ".gitattributes")
+    globs = []
+    if os.path.isfile(path):
+        for line in open(path):
+            line = line.split("#")[0].strip()
+            if not line:
+                continue
+            pattern, *attrs = line.split()
+            if "eol=crlf" in attrs and pattern.startswith("http/"):
+                globs.append(pattern[len("http/"):])
+    return globs
+
+
 SLUG_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 # cmd's internal commands: no program file behind them.
 BUILTINS = set("""assoc break call cd chdir cls color copy date del dir echo else endlocal erase exit for ftype goto
@@ -369,7 +388,10 @@ def lint_tree(http, deep=False, programs=None):
             R.fail(f"ts/steps/{name}.cmd", "is not listed in any ts/*.seq, so it never runs")
 
     # --- line endings ------------------------------------------------------
-    for pattern in CRLF_GLOBS:
+    globs = crlf_globs()
+    if not globs:
+        R.fail(".gitattributes line endings", "no http/ pattern with eol=crlf: nothing says which files Windows must see as CRLF")
+    for pattern in globs:
         for f in sorted(glob.glob(os.path.join(http, pattern))):
             data = open(f, "rb").read()
             bare = len(re.findall(rb"(?<!\r)\n", data))
@@ -769,7 +791,9 @@ def selftest():
         def sub_text(d, f, old, new):
             p = os.path.join(d, f)
             text = read(p)
-            assert old in text
+            if "\r\n" in text:   # a CRLF file (the .gitattributes eol=crlf ones): keep its endings
+                old, new = old.replace("\n", "\r\n"), new.replace("\n", "\r\n")
+            assert old in text, (f, old)
             open(p, "w", newline="").write(text.replace(old, new))
 
         def drop_line(d, f, needle):
@@ -791,6 +815,8 @@ def selftest():
             ("a sequence lists a step that does not exist", lambda d: open(os.path.join(d, "ts", "deploy.seq"), "a").write("99-ghost\n"), "99-ghost"),
             ("a step file is in no sequence", lambda d: open(os.path.join(d, "ts", "steps", "55-orphan.cmd"), "w", newline="").write("@echo off\r\n"), "55-orphan"),
             ("a step saved with LF line endings", lambda d: to_lf(os.path.join(d, "ts", "steps", "20-disk.cmd")), "20-disk.cmd line endings"),
+            ("a role.cfg saved with LF line endings", lambda d: to_lf(os.path.join(d, "roles", "lab-apps", "role.cfg")), "role.cfg line endings"),
+            ("a post .ps1 saved with LF line endings", lambda d: to_lf(os.path.join(d, "post", "ssh.ps1")), "ssh.ps1 line endings"),
             ("STOP_BEFORE names no step", lambda d: cfg(d, "MODE=deploy\nSTOP_BEFORE=77\n"), "STOP_BEFORE=77"),
             ("a model file tries to set MODE", lambda d: open(os.path.join(d, "models", "lab-vm.cfg"), "w").write("MODE=deploy\n"), "a model file cannot set MODE"),
             ("a model file is not named by a slug", lambda d: open(os.path.join(d, "models", "Lab VM.cfg"), "w").write("DRIVERS=x\n"), "not a model slug"),

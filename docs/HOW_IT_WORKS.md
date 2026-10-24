@@ -97,7 +97,7 @@ tests its own endpoints every time it starts.
 
 **`bin/lint`.** Reads `boot.ipxe`, the task sequence and every machine cfg and
 checks that each file they refer to exists, that images match their sidecars,
-that files Windows runs have CRLF line endings, that `ipxe.efi` still matches
+that every file `.gitattributes` marks `eol=crlf` (what Windows runs or reads) is CRLF in the tree, that `ipxe.efi` still matches
 `config.sh`. A typo that would be a 404 three minutes into a boot is a `FAIL`
 row before anything boots. Each run also breaks a scratch copy in eleven known
 ways and requires all eleven to be reported, so a green result means the

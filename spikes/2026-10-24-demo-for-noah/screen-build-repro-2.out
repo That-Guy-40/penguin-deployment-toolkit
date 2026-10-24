@@ -1,0 +1,10 @@
+# SOURCE_DATE_EPOCH=0, two builds
+257745e4da0aeaabd0a6f59b30bd078cf8329711ffc305ad74609b4717aeba5f  sde-1.exe
+257745e4da0aeaabd0a6f59b30bd078cf8329711ffc305ad74609b4717aeba5f  sde-2.exe
+# -Wl,--no-insert-timestamp, two builds
+257745e4da0aeaabd0a6f59b30bd078cf8329711ffc305ad74609b4717aeba5f  nts-1.exe
+257745e4da0aeaabd0a6f59b30bd078cf8329711ffc305ad74609b4717aeba5f  nts-2.exe
+# where do host-1 and host-2 differ (byte offsets):
+2
+  137 126 127
+  217 300 301

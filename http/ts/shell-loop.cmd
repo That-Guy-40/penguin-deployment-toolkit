@@ -19,7 +19,7 @@ call %PDT%\env.cmd
 set N=1
 set TICK=0
 if not defined PDT_SCREEN_EVERY set PDT_SCREEN_EVERY=5
-rem The screen pusher is optional: built by bin/build-tools (mingw-w64) and
+rem The screen pusher is optional: built by bin/build-tools (mingw-w64, pinned) and
 rem served from tools/; without it this loop is just the shell.
 set SCREEN=%PDT%\pdt-screen.exe
 if not exist "%SCREEN%" %CURL% -f -o "%SCREEN%" "%SRV%/tools/pdt-screen.exe" >nul 2>&1 & rem [optional]

@@ -1,0 +1,37 @@
+$ bin/build-tools host
+building pdt-screen.exe with this host's x86_64-w64-mingw32-gcc...
+http/tools/pdt-screen.exe: 43520 bytes, sha256 257745e4da0aeaab…  built twice, identical; x86_64-w64-mingw32-gcc (GCC) 13-win32; recorded in http/tools/built.json
+rc=0
+
+$ PDT_LDFLAGS_REPRO= bin/build-tools host   (negative control: without the flag the guard must refuse)
+building pdt-screen.exe with this host's x86_64-w64-mingw32-gcc...
+ERROR: two builds of the same source differ (2 byte(s)): the build is not reproducible, nothing recorded
+rc=1
+
+$ bin/build-tools check   (the host build is still what is recorded)
+ok       pdt-screen.exe  43520 bytes, built 2026-10-24T05:35:54-0400 by host, x86_64-w64-mingw32-gcc (GCC) 13-win32
+rc=0
+
+$ bin/build-tools   (canonical: pinned container)
+building pdt-screen.exe in docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 with gcc-mingw-w64-x86-64=14.2.0-17+27 (podman)...
+http/tools/pdt-screen.exe: 40960 bytes, sha256 31f25d2816b819d2…  built twice, identical; x86_64-w64-mingw32-gcc (GCC) 14-win32; recorded in http/tools/built.json
+rc=0
+
+$ bin/build-tools check
+ok       pdt-screen.exe  40960 bytes, built 2026-10-24T05:36:06-0400 by container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27, x86_64-w64-mingw32-gcc (GCC) 14-win32
+rc=0
+
+$ cat http/tools/built.json
+{
+  "pdt-screen.exe": {
+    "source": "pdt-screen.c",
+    "source_sha256": "fe8062c50c68aaa88d9d9facdac5f5c2660f2d9409797067a97b8af686395d0d",
+    "sha256": "31f25d2816b819d21abf011519f7fa7cd2dd37fd8efc0e84ee3085c70225c61d",
+    "size": 40960,
+    "built": "2026-10-24T05:36:06-0400",
+    "cc": "x86_64-w64-mingw32-gcc (GCC) 14-win32",
+    "builder": "container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27"
+  }
+}
+$ sha256sum http/tools/pdt-screen.exe
+31f25d2816b819d21abf011519f7fa7cd2dd37fd8efc0e84ee3085c70225c61d  http/tools/pdt-screen.exe

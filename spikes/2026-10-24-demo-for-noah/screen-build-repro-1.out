@@ -1,0 +1,11 @@
+# host build x86_64-w64-mingw32-gcc (GCC) 13-win32
+92ed07c1de91701dd29f761bc11c027ab44691bed9deea642abfeb7fafb02ca6  /tmp/claude-1000/-home-sqs-scripts-Windows-install-via-Linux/db333f61-18fb-420a-8c91-36dad1f2e3d0/scratchpad/screen/host-1.exe
+7d77e62f7a687ca69734e15b9e60572467d20dc6f7e05d3e54ab5bfc3d94940c  /tmp/claude-1000/-home-sqs-scripts-Windows-install-via-Linux/db333f61-18fb-420a-8c91-36dad1f2e3d0/scratchpad/screen/host-2.exe
+# container build (debian:trixie, gcc-mingw-w64-x86-64 from Debian)
+x86_64-w64-mingw32-gcc (GCC) 14-win32
+02d769cbc38ba7f8ff468276fc2ae28ddbe1cc2466eeb69815fd277f25ebe09d  /w/container.exe
+# compare with the served binary
+769014a87252e79602e8705604d7cf90e5c883a8d0f443a90651228ba87f4115  http/tools/pdt-screen.exe
+-rwxr-xr-x 1 sqs sqs 40960 Oct 24 05:29 /tmp/claude-1000/-home-sqs-scripts-Windows-install-via-Linux/db333f61-18fb-420a-8c91-36dad1f2e3d0/scratchpad/screen/container.exe
+-rwxrwxr-x 1 sqs sqs 43520 Oct 24 05:28 /tmp/claude-1000/-home-sqs-scripts-Windows-install-via-Linux/db333f61-18fb-420a-8c91-36dad1f2e3d0/scratchpad/screen/host-1.exe
+-rwxrwxr-x 1 sqs sqs 43520 Oct 24 05:28 /tmp/claude-1000/-home-sqs-scripts-Windows-install-via-Linux/db333f61-18fb-420a-8c91-36dad1f2e3d0/scratchpad/screen/host-2.exe

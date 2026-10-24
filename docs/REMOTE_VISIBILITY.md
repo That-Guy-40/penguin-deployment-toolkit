@@ -38,7 +38,9 @@ logon, by design. There, use RDP (below).
 
 `tools-src/pdt-screen.c` (62 lines of plain Win32: BitBlt the virtual
 screen into a DIB, write a BMP, temp-name-and-rename so no half file is ever
-uploaded) is built on the host by `bin/build-tools` with mingw-w64, hashed and
+uploaded) is built by `bin/build-tools` with mingw-w64 in a pinned Debian
+container (reproducibly: the PE timestamp is left out and two builds must be
+identical, verified 2026-10-24), hashed and
 recorded in `tools/built.json`, and served from `tools/`. The shell loop
 fetches it if it exists and then uploads `screen.bmp` every 5 s;
 `bin/screen <machine>` converts the latest to PNG (`run/shots/<name>-live.png`)
@@ -56,9 +58,10 @@ Why not something cleverer: the installed OS could do this in PowerShell,
 but WinPE (the Setup `boot.wim`) has no PowerShell and no .NET, so a tiny
 native program is the honest minimum; it has no network code of its own
 (curl uploads it), and it is optional (`[optional]` in the loop; `lint`
-reports it as such until built). It needs `gcc-mingw-w64-x86-64` on the host
-(`bin/build-tools` says so if it is missing; `bin/build-tools check` tells a
-stale binary from a current one by the source hash).
+reports it as such until built). It needs podman or docker (or, for
+`bin/build-tools host`, `gcc-mingw-w64-x86-64`; the script says so if they are
+missing; `bin/build-tools check` tells a stale binary from a current one by
+the source hash, and names the compiler and builder that made it).
 
 ### What you get with both
 

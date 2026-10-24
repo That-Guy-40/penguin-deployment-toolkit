@@ -1,29 +1,49 @@
 #!/bin/bash
 # build-tools - build the toolkit's own Windows programs from tools-src/ with
-# mingw-w64, into http/tools/, and record what was built.
+# mingw-w64 into http/tools/, reproducibly, and record what was built.
 #
-#   build-tools            build everything (today: pdt-screen.exe)
+#   build-tools            the canonical build: in a pinned Debian container
+#                          (podman or docker, rootless), compiler pinned too
+#   build-tools host       the same build with this host's x86_64-w64-mingw32-gcc
+#                          (needs gcc-mingw-w64-x86-64; a different GCC gives a
+#                          different, equally valid, binary)
 #   build-tools check      verify http/tools/ against the record (no compiler)
 #
-# Needs: gcc-mingw-w64-x86-64 (apt). The record http/tools/built.json carries
-# the SHA-256 of each source and of each result, so "check" tells a stale
-# binary from a current one; bin/lint reads it too.
+# Reproducible: two builds of the same source with the same compiler differed in
+# exactly two bytes, the PE header timestamp (2026-10-24); -Wl,--no-insert-timestamp
+# removes it, and every build here compiles twice and refuses to record a result
+# that does not equal itself. The record http/tools/built.json carries the
+# SHA-256 of each source and each binary, the compiler and the builder (host, or
+# the container image digest), so "check" tells a stale binary from a current one
+# and bin/lint can read it too. A binary copied in from elsewhere is accepted only
+# if it is the one the record names.
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
-need sha256sum python3
+need sha256sum python3 cmp
+
+# The canonical toolchain. Both pins are identities, not version strings: the
+# image by digest, the package by its exact Debian version (apt fails loudly
+# when that version is gone from the mirror; bump it here and rebuild, and the
+# recorded hash changes with it).
+IMAGE="docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16"   # trixie-slim, 2026-10-24
+MINGW_PKG="gcc-mingw-w64-x86-64=14.2.0-17+27"
 
 CC=x86_64-w64-mingw32-gcc
+CFLAGS="-O2 -s -static -Wall -Wextra"
+# Overridable only for the negative control in the spike: without it two builds differ.
+LDFLAGS_REPRO="${PDT_LDFLAGS_REPRO--Wl,--no-insert-timestamp}"
 SRC="$PDT_ROOT/tools-src"
 OUT="$HTTP_DIR/tools"
 RECORD="$OUT/built.json"
 
-record() {  # record <name> <source> <binary>: add/replace an entry
+record() {  # record <name> <source> <binary> <cc-version> <builder>: add/replace an entry
     python3 - "$RECORD" "$@" <<'PY'
 import hashlib, json, os, sys, time
-rec, name, src, bin = sys.argv[1:5]
+rec, name, src, bin, cc, builder = sys.argv[1:7]
 h = lambda p: hashlib.sha256(open(p, "rb").read()).hexdigest()
 d = json.load(open(rec)) if os.path.exists(rec) else {}
 d[name] = {"source": os.path.basename(src), "source_sha256": h(src), "sha256": h(bin),
-           "size": os.path.getsize(bin), "built": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
+           "size": os.path.getsize(bin), "built": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+           "cc": cc, "builder": builder}
 json.dump(d, open(rec, "w"), indent=2)
 PY
 }
@@ -41,29 +61,65 @@ for name, e in json.load(open(rec)).items():
     if not os.path.isfile(b):
         print(f"MISSING  {name}"); bad += 1
     elif h(b) != e["sha256"]:
-        print(f"CHANGED  {name}: not the binary that was recorded"); bad += 1
+        print(f"CHANGED  {name}: not the binary that was recorded ({e['sha256'][:16]}…)"); bad += 1
     elif not os.path.isfile(s) or h(s) != e["source_sha256"]:
         print(f"STALE    {name}: {e['source']} changed since it was built"); bad += 1
     else:
-        print(f"ok       {name}  {e['size']} bytes, built {e['built']}")
+        print(f"ok       {name}  {e['size']} bytes, built {e['built']} by {e.get('builder', '?')}, {e.get('cc', '?')}")
 sys.exit(1 if bad else 0)
 PY
 }
 
-build() {
-    command -v "$CC" >/dev/null || die "$CC not found: sudo apt install gcc-mingw-w64-x86-64"
-    mkdir -p "$OUT"
-    local src="$SRC/pdt-screen.c" bin="$OUT/pdt-screen.exe"
-    info "building pdt-screen.exe..."
-    "$CC" -O2 -s -static -Wall -Wextra -o "$bin" "$src" -lgdi32 || die "compile failed"
-    chmod 0644 "$bin"
-    record pdt-screen.exe "$src" "$bin"
-    info "http/tools/pdt-screen.exe: $(stat -c%s "$bin") bytes, sha256 $(sha256sum "$bin" | cut -c1-16)…  (recorded in tools/built.json)"
+# compile_twice <compile-command...>: run it into two temp files, demand equality,
+# leave the result in $BUILT. The command gets the output path as its last word.
+compile_twice() {
+    local tmp; tmp="$(mktemp -d)"
+    "$@" "$tmp/a.exe" || die "compile failed"
+    "$@" "$tmp/b.exe" || die "compile failed (second pass)"
+    cmp -s "$tmp/a.exe" "$tmp/b.exe" || die "two builds of the same source differ ($(cmp -l "$tmp/a.exe" "$tmp/b.exe" | wc -l) byte(s)): the build is not reproducible, nothing recorded"
+    BUILT="$tmp/a.exe"
 }
 
-case "${1:-build}" in
-    build) build ;;
-    check) check ;;
-    -h|--help) sed -n '2,10p' "$0" ;;
+host_cc() {   # host_cc <src> <out>
+    "$CC" $CFLAGS $LDFLAGS_REPRO -o "$2" "$1" -lgdi32
+}
+
+container_cc() {   # container_cc <src> <out>: the same compile inside the pinned image
+    local src="$1" out="$2"
+    "$RUNTIME" run --rm -v "$(dirname "$src"):/src:ro" -v "$(dirname "$out"):/out" "$IMAGE" bash -ec "
+        apt-get -qq update >/dev/null
+        apt-get -qq install -y --no-install-recommends '$MINGW_PKG' >/dev/null 2>&1 || { echo 'ERROR: $MINGW_PKG is not in the mirror any more: bump MINGW_PKG in bin/build-tools (and expect a new hash)' >&2; exit 1; }
+        $CC $CFLAGS $LDFLAGS_REPRO -o /out/$(basename "$out") /src/$(basename "$src") -lgdi32
+        $CC --version | head -1 > /out/cc-version.txt"
+}
+
+build() {   # build host|container
+    local how="$1" src="$SRC/pdt-screen.c" bin="$OUT/pdt-screen.exe" ccver builder
+    mkdir -p "$OUT"
+    case "$how" in
+        host)
+            command -v "$CC" >/dev/null || die "$CC not found: sudo apt install gcc-mingw-w64-x86-64, or run bin/build-tools (container)"
+            info "building pdt-screen.exe with this host's $CC..."
+            compile_twice host_cc "$src"
+            ccver="$("$CC" --version | head -1)"; builder="host"
+            ;;
+        container)
+            RUNTIME="$(command -v podman || command -v docker)" || die "neither podman nor docker found: install one, or run bin/build-tools host"
+            info "building pdt-screen.exe in $IMAGE with $MINGW_PKG ($(basename "$RUNTIME"))..."
+            compile_twice container_cc "$src"
+            ccver="$(cat "$(dirname "$BUILT")/cc-version.txt")"; builder="container $IMAGE $MINGW_PKG"
+            ;;
+    esac
+    install -m 0644 "$BUILT" "$bin"
+    rm -rf "$(dirname "$BUILT")"
+    record pdt-screen.exe "$src" "$bin" "$ccver" "$builder"
+    info "http/tools/pdt-screen.exe: $(stat -c%s "$bin") bytes, sha256 $(sha256sum "$bin" | cut -c1-16)…  built twice, identical; $ccver; recorded in http/tools/built.json"
+}
+
+case "${1:-container}" in
+    container) build container ;;
+    host)      build host ;;
+    check)     check ;;
+    -h|--help) sed -n '2,19p' "$0" ;;
     *) die "unknown argument: $1" ;;
 esac

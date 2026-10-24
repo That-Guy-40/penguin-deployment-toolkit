@@ -12,7 +12,7 @@ Prerequisites: `config.sh` from `config.sh.example` (ISO path, a free port),
 
 ## 0. The checker itself
 
-- [ ] `bin/lint --selftest` says `35/35 injected defects were reported as FAIL`.
+- [ ] `bin/lint --selftest` says `47/47 injected defects were reported as FAIL`.
 - [ ] Control: `echo 'MODE=wipe' > http/machines/00000000-0000-0000-0000-000000000000.cfg; bin/lint; rm http/machines/00000000-*.cfg`
       → one `FAIL … MODE=wipe`, exit 1.
 
@@ -65,7 +65,7 @@ Prerequisites: `config.sh` from `config.sh.example` (ISO path, a free port),
       every 20 s) and `bin/status --watch` shows the step as `busy`.
 - [ ] `bin/shell t1 'dir W:\'` during `30-apply` lists the half-applied
       volume; `bin/screen t1` shows the WinPE console (requires
-      `bin/build-tools` once, mingw-w64).
+      `bin/build-tools` once, podman or docker).
 - [ ] Control: `bin/shell t1 'nosuchprogram'` → "not recognized", exit 1.
 
 ## 4. A role: apps, accounts, skel, policy, removal
