@@ -1,0 +1,9 @@
+Failed to add the host to the list of known hosts (spikes/2026-10-21-local-diskguard-ssh/s4-known_hosts).
+
+[32;1mhost           : [0mWIN-SVRNT4JC81C
+[32;1muser           : [0madmin
+[32;1mps             : [0m7.6.7
+[32;1mpid            : [0m4228
+[32;1mPSComputerName : [0m127.0.0.1
+[32;1mRunspaceId     : [0mde5a3e74-c0da-45f8-bd70-f583c5bab26a
+

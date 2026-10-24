@@ -13,13 +13,22 @@ echo PDT: ${manufacturer} ${product}  uuid ${uuid}  mac ${netX/mac}
 
 # What to boot: boot/<uuid>.ipxe for this machine, else boot/default.ipxe,
 # else Windows PE. Both snippets are optional and one line: "set pdt_boot
-# collector" (bin/netboot writes them). The collector is a small Linux that
-# runs from RAM, inventories the machine, takes commands and SSH, and can
-# point the next boot back here (bin/build-collector, docs/COLLECTOR.md).
+# collector|local|winpe" (bin/netboot writes them). The collector is a small
+# Linux that runs from RAM, inventories the machine, takes commands and SSH,
+# and can point the next boot back here (bin/build-collector, docs/COLLECTOR.md).
+# "local" hands the machine back to its firmware: iPXE exits, the firmware
+# goes on to the next entry in its boot order, which after a deploy is the
+# disk. That is how a machine whose firmware boots the network first stays
+# deployed instead of re-imaging itself (bin/netboot <m> local). It needs an
+# ipxe.efi whose embedded chainloader exits after its chain line (bin/build-ipxe
+# since 2026-10-22; lint checks the binary): "exit" here ends this script with
+# status 0, and the chainloader must then end too (with an error, so the firmware
+# moves on rather than showing its boot menu), not fall into its failure path.
 set pdt_boot winpe
 chain --autofree boot/${uuid}.ipxe ||
 iseq ${pdt_boot} winpe && chain --autofree boot/default.ipxe ||
 iseq ${pdt_boot} collector && goto collector ||
+iseq ${pdt_boot} local && echo PDT: local boot requested - back to the firmware && exit ||
 
 :winpe
 kernel winpe/wimboot                                              || goto failed

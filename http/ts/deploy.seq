@@ -1,6 +1,7 @@
 # deploy.seq - the steps of MODE=deploy, in order. One step name per line;
 # each is ts/steps/<name>.cmd. deploy.cmd fetches and runs them.
 15-preflight
+17-diskguard
 20-disk
 25-download
 30-apply

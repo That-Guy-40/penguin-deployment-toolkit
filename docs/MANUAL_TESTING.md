@@ -38,6 +38,26 @@ Prerequisites: `config.sh` from `config.sh.example` (ISO path, a free port),
       `bin/vm-boot t1 --pxe`: `15-preflight fail … missing: images/nope.wim`,
       `bin/await t1 deployed 60` exits 1, the disk is untouched (the old
       Windows still boots with `bin/vm-boot t1`). Restore the cfg.
+- [ ] Disk guard: in t1's timeline, `17-diskguard ok msg=disk 0:QEMU HARDDISK
+      64GiB of 1 (the only fixed disk)` precedes `20-disk`. Controls:
+      `bin/vm-create t1b --second-disk 64G && bin/vm-boot t1b` →
+      `17-diskguard fail rc=1`, `bin/logs t1b --cat ts.log` ends with
+      "2 fixed disks (…): set DISK=<n> in the machine or model cfg", and
+      `bin/shell t1b 'echo list disk>X:\ld.txt& diskpart /s X:\ld.txt'`
+      shows both disks with all their space free. `bin/vm-create t1c
+      --usb-disk 8G && bin/vm-boot t1c` deploys (the stick is listed as
+      "not eligible: removable media", disk 0 is "the only fixed disk").
+      Then `DISK=1` in t1b's cfg and `bin/shell t1b 'start "" cmd /c
+      %SystemRoot%\System32\deploy.cmd'`: `17-diskguard ok msg=disk 1:… (DISK=1)`
+      and after `20-disk ok` the volumes are on disk 1, disk 0 still blank.
+- [ ] Local-boot handoff (a PXE-first machine): `bin/vm-create t1d && bin/vm-boot t1d --pxe`,
+      and during the deploy `bin/netboot t1d local`. After `ts-done`, the
+      next boot shows `ipxe ok` then `specialize`/`firstlogon` from the
+      disk, no second `ts-start`; `vms/t1d/serial.log` has "PDT: local boot
+      requested - back to the firmware". Control: `bin/netboot t1d winpe`,
+      `bin/vm-stop t1d`, `bin/vm-boot t1d --pxe` → `ts-start` again (WinPE;
+      stop it before `20-disk` with `STOP_BEFORE=20-disk` if you want to
+      keep the install). `bin/netboot` with no arguments lists the overrides.
 
 ## 3. Watching
 
@@ -66,6 +86,18 @@ Prerequisites: `config.sh` from `config.sh.example` (ISO path, a free port),
       /p:<admin's line in bin/logs t2 --cat users.txt> /cert:ignore /auth-only`
       exits 0; with a wrong password it does not. Control: a VM without the
       key answers nothing on its forwarded 3389.
+- [ ] SSH (the role has `SSH=on`; `bin/fetch-tools openssh` once, which also
+      writes the role's `authorized_keys` from your `~/.ssh/id_*.pub`; boot
+      t2 with `--fwd 2223:22,3390:3389`): `ssh ok port=22 shell=pwsh keys=1
+      listening=yes` in the timeline; `ssh -p 2223 -o StrictHostKeyChecking=no
+      admin@127.0.0.1 hostname` prints the machine's name; the host key
+      fingerprint `ssh-keyscan -p 2223 127.0.0.1` shows matches `bin/logs t2
+      --cat ssh.txt`. Remoting: `pwsh -c 'Invoke-Command -HostName 127.0.0.1
+      -Port 2223 -UserName admin -ScriptBlock { $PSVersionTable.PSVersion }'`.
+      Controls: `ssh -p 2223 -o PubkeyAuthentication=no admin@127.0.0.1 true`
+      → `Permission denied (publickey)` with no password prompt; `alice`
+      (group Users) is refused with the same key; a VM without the key
+      answers nothing on its forwarded 22.
 - [ ] Power cycle: `bin/vm-stop t2` returns in seconds (fast startup is off
       for this role); `bin/vm-boot t2` → `boot ok trigger=onstart` within a
       minute.

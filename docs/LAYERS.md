@@ -33,9 +33,11 @@ is the pinned build.
 
 **What it does.** One static script with relative URLs. First `boot/<uuid>.ipxe`,
 then `boot/default.ipxe` (both optional one-liners written by `bin/netboot`:
-`set pdt_boot collector`), then either the collector (`collector/vmlinuz` +
-`initrd.img`, with `pdt.server=` and `pdt.id=` on the command line) or
-Windows PE: `wimboot` with the pristine `boot.wim` and the files it injects
+`set pdt_boot collector|local|winpe`), then one of: the collector
+(`collector/vmlinuz` + `initrd.img`, with `pdt.server=` and `pdt.id=` on the
+command line); `local` (iPXE exits, the firmware carries on with its boot
+order, i.e. the disk: a PXE-first machine stays on what it was deployed with
+until `netboot <m> winpe` re-images it); or Windows PE: `wimboot` with the pristine `boot.wim` and the files it injects
 into `X:\Windows\System32` (`winpeshl.ini`, `deploy.cmd`, `id.cmd`,
 `curl.exe`), plus the optional WinPE driver snippet for this NIC or model.
 
@@ -172,7 +174,10 @@ probe (two scheduled tasks → `boot ok trigger=…` after every boot) and, with
 own scheduled task, as `boot-probe.cmd` does (`schtasks /create /sc onstart
 /ru SYSTEM …`), with the script left under `C:\pdt\` by the role's `FILES=`.
 Remote access to the installed OS is Windows' own RDP, which a role switches
-on with `RDP=on` (NLA, the firewall group, the role's accounts allowed).
+on with `RDP=on` (NLA, the firewall group, the role's accounts allowed), or
+SSH with `SSH=on` + `SSHKEYS=<authorized_keys>` (Win32-OpenSSH from
+`post/openssh/`, key-only, for the Administrators; PowerShell 7 among the
+apps adds the `powershell` subsystem for remoting over SSH).
 
 ## 8. The collector: `tools-src/collector/`, `bin/build-collector`
 

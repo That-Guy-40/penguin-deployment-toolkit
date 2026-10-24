@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
 """netboot - what a machine boots next time it PXE-boots: Windows PE (the
-default) or the collector (a Linux that inventories it and takes commands).
+default), the collector (a Linux that inventories it and takes commands), or
+its own disk ("local": iPXE exits and the firmware boots its next entry).
 
-  netboot <id|vm-name|default> collector|winpe
+  netboot <id|vm-name|default> collector|local|winpe
   netboot                                  show the overrides in place
 
 Writes (or removes) boot/<uuid>.ipxe, one line, which boot.ipxe chains before
 deciding. "default" is what unlisted and un-overridden machines get
 (boot/default.ipxe). Nothing here touches a disk: the collector never writes
 to one, and Windows PE only does what machines/<uuid>.cfg says.
+
+"local" is for a machine whose firmware boots the network first: after its
+deploy, "netboot <m> local" keeps it on its disk with nobody at F12;
+"netboot <m> winpe" and the next boot re-images it (if its cfg says deploy).
+It needs a bootable disk to fall through to; with none, the firmware ends
+where it would have without PXE (its own menu or error).
 """
 import argparse
 import glob
@@ -22,7 +29,7 @@ import _pdt
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("machine", nargs="?")
-    ap.add_argument("what", nargs="?", choices=["collector", "winpe"])
+    ap.add_argument("what", nargs="?", choices=["collector", "local", "winpe"])
     a = ap.parse_args()
     boot = os.path.join(_pdt.paths()["HTTP_DIR"], "boot")
     names = _pdt.vm_names()
@@ -32,7 +39,7 @@ def main():
             print(f"{mid}  {names.get(mid, '')}\t{open(f).read().strip()}")
         return 0
     if not a.what:
-        ap.error("say what: collector or winpe")
+        ap.error("say what: collector, local or winpe")
     mid = "default" if a.machine == "default" else _pdt.resolve_id(a.machine)
     path = os.path.join(boot, f"{mid}.ipxe")
     if a.what == "winpe":
@@ -42,9 +49,10 @@ def main():
         return 0
     os.makedirs(boot, exist_ok=True)
     with open(path + ".part", "w", newline="\n") as f:
-        f.write("#!ipxe\nset pdt_boot collector\n")
+        f.write(f"#!ipxe\nset pdt_boot {a.what}\n")
     os.rename(path + ".part", path)
-    print(f"{a.machine}: collector on the next PXE boot ({os.path.relpath(path)})")
+    what = "collector" if a.what == "collector" else "local disk (iPXE exits to the firmware)"
+    print(f"{a.machine}: {what} on the next PXE boot ({os.path.relpath(path)})")
     return 0
 
 

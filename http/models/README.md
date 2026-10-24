@@ -24,7 +24,7 @@ run, `--sha256` on the next), unpacks it and makes `http/drivers/<name>.wim`
 with a sidecar that records where it came from. Dell lists its packs per
 model at https://www.dell.com/support/kbdoc/en-us/000109893.
 
-Allowed keys: `IMAGE`, `UNATTEND`, `DISKPART`, `DRIVERS`, `UPDATES`, `POST` (see
+Allowed keys: `IMAGE`, `UNATTEND`, `DISKPART`, `DISK`, `DRIVERS`, `UPDATES`, `POST`, `ROLE` (see
 `../machines/README.md`). A machine's own `machines/<uuid>.cfg` overrides them.
 
 **A model file cannot set `MODE`** (or `STOP_*`, `REFERENCE`): `ts/env.cmd` ignores those

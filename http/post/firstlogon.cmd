@@ -51,6 +51,8 @@ set SKEL=
 set SKELREG=
 set DEPLOY=
 set RDP=
+set SSH=
+set SSHKEYS=
 if exist "%~dp0role\role.cfg" for /f "usebackq eol=# tokens=1,* delims==" %%a in ("%~dp0role\role.cfg") do (
   if /i "%%a"=="APPS" set "APPS=%~dp0role\%%b"
   if /i "%%a"=="POST" set "ROLE_POST=%~dp0role\%%b"
@@ -60,6 +62,8 @@ if exist "%~dp0role\role.cfg" for /f "usebackq eol=# tokens=1,* delims==" %%a in
   if /i "%%a"=="SKELREG" set "SKELREG=%~dp0role\%%b"
   if /i "%%a"=="DEPLOY" set "DEPLOY=%%b"
   if /i "%%a"=="RDP" set "RDP=%%b"
+  if /i "%%a"=="SSH" set "SSH=%%b"
+  if /i "%%a"=="SSHKEYS" set "SSHKEYS=%~dp0role\%%b"
 )
 rem SKEL: files for every account created from now on (C:\Users\Default is
 rem Windows' /etc/skel: copied into each new profile at that user's first logon).
@@ -127,6 +131,22 @@ if /i "%RDP%"=="on" (
   set RDP_LISTEN=no
   for /f %%l in ('powershell -NoProfile -Command "(Get-NetTCPConnection -LocalPort 3389 -State Listen -ErrorAction SilentlyContinue | Measure-Object).Count"') do if not "%%l"=="0" set RDP_LISTEN=yes
   call "%~dp0beacon.cmd" rdp !RDP_V! "listening=!RDP_LISTEN!"
+)
+
+rem SSH=on: OpenSSH Server (Win32-OpenSSH from post/openssh/, fetched by
+rem 60-unattend into C:\pdt\openssh), key-only, the role's SSHKEYS file for
+rem Administrators, PowerShell as the shell and, with PowerShell 7 among the
+rem apps, the subsystem PowerShell remoting over SSH needs. post/ssh.ps1 does
+rem it; its report goes to the uploads as ssh.txt (host key fingerprints).
+if /i "%SSH%"=="on" (
+  set SSH_RESULT=
+  for /f "delims=" %%r in ('powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0ssh.ps1" "%~dp0openssh\OpenSSH-Win64.msi" "%SSHKEYS%" "%~dp0sshd_config" "%~dp0ssh.txt"') do set "SSH_RESULT=%%r"
+  if not defined SSH_RESULT set "SSH_RESULT="failed=ssh.ps1_produced_no_result""
+  set SSH_V=ok
+  echo !SSH_RESULT! | find "failed=" >nul && set SSH_V=fail
+  echo !SSH_RESULT! | find "listening=no" >nul && set SSH_V=fail
+  call "%~dp0beacon.cmd" ssh !SSH_V! !SSH_RESULT!
+  if exist "%~dp0ssh.txt" curl.exe -sS -T "%~dp0ssh.txt" "%SRV%/uploads/%ID%/%RUN%/ssh.txt" -o nul --max-time 60
 )
 
 rem --- the every-boot probe: a "boot" beacon after each real boot or resume -----

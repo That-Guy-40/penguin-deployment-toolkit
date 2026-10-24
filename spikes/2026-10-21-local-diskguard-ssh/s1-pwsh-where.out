@@ -1,0 +1,8 @@
+is correct and try again.
+At line:1 char:1
++ winget list --id Microsoft.PowerShell --accept-source-agreements 2>&1 ...
++ ~~~~~~
+    + CategoryInfo          : ObjectNotFound: (winget:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+C:\Program Files\WindowsPowerShell

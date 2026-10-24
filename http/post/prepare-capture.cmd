@@ -36,6 +36,14 @@ rem other such package makes sysprep fail the same way, and its log names it.
 >> "%OUT%" echo === per-user Appx packages that are not provisioned (sysprep refuses these)
 powershell -NoProfile -Command "$p = (Get-AppxProvisionedPackage -Online).DisplayName; Get-AppxPackage | Where-Object { $_.SignatureKind -ne 'System' -and -not $_.IsFramework -and $p -notcontains $_.Name } | ForEach-Object { $_.PackageFullName }" >> "%OUT%" 2>&1
 powershell -NoProfile -Command "Get-AppxPackage Microsoft.Winget.Source | Remove-AppxPackage" >> "%OUT%" 2>&1
+rem SSH=on: sysprep leaves sshd's host keys alone, so every machine deployed from
+rem this image would present the same ones. Remove them; ssh.ps1 (or the service
+rem itself) makes new ones at the next start.
+if exist "%ProgramData%\ssh\ssh_host_ed25519_key" (
+  net stop sshd >nul 2>&1
+  del /f /q "%ProgramData%\ssh\ssh_host_*" >> "%OUT%" 2>&1
+  >> "%OUT%" echo removed sshd host keys from %ProgramData%\ssh
+)
 rem Never capture generated passwords (firstlogon removes the file; be sure).
 if exist "%~dp0users-out.txt" del /f /q "%~dp0users-out.txt"
 del "%SPDIR%\Sysprep_succeeded.tag" 2>nul

@@ -29,7 +29,14 @@ if defined ROLE (
   mkdir W:\pdt\role
   copy /y %PDT%\role.cfg W:\pdt\role\role.cfg >nul || exit /b !errorlevel!
   for /f "usebackq eol=# tokens=1,* delims==" %%a in ("%PDT%\role.cfg") do (
-    for %%k in (APPS POST USERS SKEL SKELREG) do if /i "%%a"=="%%k" (%CURL% -f -o "W:\pdt\role\%%b" "%SRV%/roles/%ROLE%/%%b" || exit /b !errorlevel!)
+    for %%k in (APPS POST USERS SKEL SKELREG SSHKEYS) do if /i "%%a"=="%%k" (%CURL% -f -o "W:\pdt\role\%%b" "%SRV%/roles/%ROLE%/%%b" || exit /b !errorlevel!)
+    rem SSH=on: the installer (post/openssh/, listed in files.txt), the script and the config.
+    if /i "%%a"=="SSH" (
+      mkdir W:\pdt\openssh
+      %CURL% -f -o W:\pdt\openssh\files.txt "%SRV%/post/openssh/files.txt" || exit /b !errorlevel!
+      for /f "usebackq eol=# delims=" %%f in ("W:\pdt\openssh\files.txt") do (%CURL% -f -o "W:\pdt\openssh\%%f" "%SRV%/post/openssh/%%f" || exit /b !errorlevel!)
+      for %%f in (ssh.ps1 sshd_config) do (%CURL% -f -o "W:\pdt\%%f" "%SRV%/post/%%f" || exit /b !errorlevel!)
+    )
     if /i "%%a"=="DEPLOY" (%CURL% -f -o W:\pdt\remove-deploy.cmd "%SRV%/post/remove-deploy.cmd" || exit /b !errorlevel!)
     rem SKEL: the files its manifest lists, into role\skel\ with their paths.
     if /i "%%a"=="SKEL" for /f "usebackq eol=# delims=" %%l in ("W:\pdt\role\%%b") do (

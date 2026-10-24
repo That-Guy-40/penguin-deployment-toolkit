@@ -1,0 +1,4 @@
+WIN-SVRNT4JC81C
+win-svrnt4jc81c\admin
+7.6.7
+Subsystem powershell c:/progra~1/powershell/7/pwsh.exe -sshs -nologo

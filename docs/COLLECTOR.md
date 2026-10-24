@@ -47,7 +47,9 @@ for Linux, a package from Dell) is the fallback, not included here.
 
 `boot.ipxe` decides what a machine boots: `boot/<uuid>.ipxe` for this
 machine, else `boot/default.ipxe`, else Windows PE. Both snippets are one
-line (`set pdt_boot collector`) written by `bin/netboot`. The collector is a
+line (`set pdt_boot collector`, or `local`: iPXE exits and the firmware
+boots the disk, for machines whose firmware tries the network first)
+written by `bin/netboot`. The collector is a
 sensible default for unlisted machines: an unknown machine then boots
 something that cannot wipe it, says what it is, and waits for orders;
 Windows PE's `MODE=shell` prompt did the same but with less to say and no

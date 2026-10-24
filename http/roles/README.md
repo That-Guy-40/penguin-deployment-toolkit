@@ -6,7 +6,7 @@ files; `role.cfg` names the rest:
 
 | key | file | meaning |
 |---|---|---|
-| `APPS` | one winget package id per line, `#` comments | installed at first logon with `winget install --id <id> -e --silent` (`post/winget.cmd`). winget itself is bootstrapped first from `post/winget/`, the release pinned by `bin/fetch-tools winget`: an image built from install media has no App Installer at first logon |
+| `APPS` | one winget package id per line, optionally followed by winget options (`Microsoft.PowerShell --installer-type wix`: the MSI; the manifest's type names are winget's, `wix` for a WiX-built MSI), `#` comments | installed at first logon with `winget install --id <id> -e --silent --scope machine` (`post/winget.cmd`; a package with no machine-wide installer is installed for the deploy account instead, and the transcript says so: a per-user install vanishes with that profile under `DEPLOY=remove`). winget itself is bootstrapped first from `post/winget/`, the release pinned by `bin/fetch-tools winget`: an image built from install media has no App Installer at first logon |
 | `POST` | a batch file | runs at first logon after the apps, elevated, from `C:\pdt\role\`; `..\id.cmd` and `..\beacon.cmd` are next to it |
 | `UNATTEND` | an unattend.xml | replaces the cfg's `UNATTEND=` from `http/unattend/` for this role |
 | `USERS` | `name\|group\|policy` per line | local accounts, created (or, if they exist, re-passworded) at first logon by `post/users.ps1`. Group `Administrators` or `Users`; policy `random` (a 32-character password from the OS generator) or `plain:<password>`. See "Accounts and passwords" |
@@ -14,6 +14,8 @@ files; `role.cfg` names the rest:
 | `SKELREG` | a `.reg` file (`reg export` format) of `HKEY_CURRENT_USER` keys | merged into the Default profile's hive (`C:\Users\Default\NTUSER.DAT`), so every profile created afterwards starts with those values: Explorer, locale and taskbar defaults are the usual use. `lint` refuses any other root |
 | `DEPLOY` | `remove` (or absent) | delete the toolkit's own `deploy` account. `post/remove-deploy.cmd` deletes the account at the end of first logon (Windows allows deleting the logged-on account; the session lives until the restart that follows), registers a one-shot SYSTEM task for the next boot that removes the profile directory, and restarts (`deploy-remove ok account=deleted`, then `deploy-removed ok` from the next boot). `lint` requires `USERS` to create another `Administrators` account first. Skipped on a reference machine (sysprep needs `deploy`; the captured image's unattend makes it again) |
 | `RDP` | `on` (or absent) | Windows' own Remote Desktop: enabled with NLA, the "Remote Desktop" firewall group opened, and every account of `USERS` added to Remote Desktop Users (Administrators may connect anyway). Beacon `rdp ok listening=yes`. From Linux: `xfreerdp /v:<machine> /u:<user> /p:<password>` (`/auth-only` to just check the credentials); in the lab, `bin/vm-boot <vm> --fwd 3390:3389` then `/v:127.0.0.1:3390` |
+| `SSH` | `on` (or absent) | OpenSSH Server (Win32-OpenSSH, the MSI served from `post/openssh/`, pinned by `bin/fetch-tools openssh`), installed at first logon by `post/ssh.ps1`: key-only (no passwords), the role's `SSHKEYS` for every Administrators account, PowerShell as the login shell, and when PowerShell 7 is among `APPS` (`Microsoft.PowerShell`) the `powershell` subsystem that PowerShell remoting over SSH needs. Beacon `ssh ok port=22 shell=pwsh keys=N listening=yes`; host key fingerprints in the uploads as `ssh.txt`. From Linux: `ssh -i <key> admin@<machine>`, `Enter-PSSession -HostName <machine> -UserName admin`; in the lab, `bin/vm-boot <vm> --fwd 2223:22`. A reference machine loses its host keys before sysprep, so machines from the image get their own |
+| `SSHKEYS` | an `authorized_keys` file | required with `SSH=on` (`lint`: a key-only server with no keys would lock everyone out). Public keys, served in clear like the rest of the role. Installed as `C:\ProgramData\ssh\administrators_authorized_keys` with the ACL sshd insists on; it serves every member of Administrators, so accounts in `Users` cannot log in over SSH. The lab role's file is written by `bin/fetch-tools openssh` from `~/.ssh/id_*.pub` (the same key the collector takes) and is not in git |
 | `FILES` | file names, space-separated | companions of the post script, fetched next to it |
 | `FASTSTARTUP` | `off` (or absent) | `off`: `powercfg /h off` at first logon, so every shutdown is a real shutdown and every power-on a real boot. Absent: Windows' default (fast startup on). See below |
 
@@ -25,7 +27,8 @@ and `firstlogon.cmd` works through them in this order:
 ```
 firstlogon ok  →  winre ok  →  skel ok files=N  →  skelreg ok  →  users ok created=… set=… failed=
   →  users-upload ok  →  winget ok version=…  →  apps ok installed=… failed=
-  →  faststartup ok state=off  →  rdp ok listening=yes  →  boot-tasks ok  →  role-post …  →  (POST script)
+  →  faststartup ok state=off  →  rdp ok listening=yes  →  ssh ok port=22 shell=pwsh keys=1 listening=yes
+  →  boot-tasks ok  →  role-post …  →  (POST script)
   →  deployed ok role=<name>   →  (REFERENCE=yes: prepare-capture)
   →  (DEPLOY=remove: deploy-remove ok account=deleted, restart, then deploy-removed ok from the next boot)
 ```

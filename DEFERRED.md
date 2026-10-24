@@ -151,8 +151,9 @@ second whenever `stage-image` is next touched.
 
 ### Remote access as role settings: `RDP=on`, and `SSH=on` from the same template
 
-*(2026-10-20: `RDP=on` is built and verified up to the credential check,
-`spikes/2026-10-12-ssh-rdp/`; what follows still applies to `SSH=on`.)*
+*(2026-10-22: both built. `RDP=on` with the credential check and `SSH=on`
+as designed below, the MSI source chosen (pinned, offline), evidence in
+`spikes/2026-10-21-local-diskguard-ssh/`. Kept as the design record.)*
 
 `docs/REMOTE_VISIBILITY.md` proposes `RDP=on` and calls it small. SSH is
 the same shape with one more file, and it is the access that works from

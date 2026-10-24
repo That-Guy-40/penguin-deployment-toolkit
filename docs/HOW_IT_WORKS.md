@@ -151,7 +151,8 @@ read what machines report; `teardown` stops it all. Every script answers
      | step | what it does |
      |---|---|
      | `15-preflight` | every file this install needs is on the server, *before* destroying anything |
-     | `20-disk` | `diskpart`: GPT with EFI, MSR, Windows and a 1 GB recovery partition |
+     | `17-diskguard` | which disk may be wiped: the only fixed one, or `DISK=<n>` from the cfg; several, none, removable or too small → the step fails and nothing is touched |
+     | `20-disk` | `diskpart` on that disk (`select disk @DISK@` filled in): GPT with EFI, MSR, Windows and a 1 GB recovery partition |
      | `25-download` | the image to the new Windows partition with `curl` |
      | `30-apply` | `dism /apply-image` |
      | `35-updates` | optional: an update pack, `dism /add-package` |

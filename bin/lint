@@ -49,8 +49,9 @@ import _pdt
 VIRTUAL = ("ts/id.cmd", "beacon", "health")
 VIRTUAL_PREFIX = ("uploads/",)
 # What a model file may set (models/<slug>.cfg) and what only a machine file may.
-MODEL_KEYS = ("IMAGE", "UNATTEND", "DISKPART", "DRIVERS", "UPDATES", "POST", "ROLE")
-ROLE_KEYS = ("UNATTEND", "APPS", "POST", "FASTSTARTUP", "USERS", "SKEL", "SKELREG", "FILES", "DEPLOY", "RDP")   # roles/<name>/role.cfg
+MODEL_KEYS = ("IMAGE", "UNATTEND", "DISKPART", "DISK", "DRIVERS", "UPDATES", "POST", "ROLE")
+ROLE_KEYS = ("UNATTEND", "APPS", "POST", "FASTSTARTUP", "USERS", "SKEL", "SKELREG", "FILES", "DEPLOY", "RDP", "SSH", "SSHKEYS")   # roles/<name>/role.cfg
+SSHKEY_RE = re.compile(r"^(ssh-|ecdsa-|sk-)\S+ \S+")
 USER_RE = re.compile(r"^[A-Za-z0-9._-]{1,20}$")
 ROLE_RE = re.compile(r"^[A-Za-z0-9_-]+$")
 MACHINE_ONLY_KEYS = ("MODE", "STOP_BEFORE", "STOP_AFTER", "REFERENCE")
@@ -241,10 +242,10 @@ def lint_tree(http, deep=False, programs=None):
                 # must be the one-liner boot.ipxe expects
                 for snip in sorted(glob.glob(os.path.join(http, "boot", "*.ipxe"))):
                     body = [l.strip() for l in read(snip).splitlines() if l.strip() and not l.startswith("#")]
-                    if body == ["set pdt_boot collector"] or body == ["set pdt_boot winpe"]:
+                    if body in (["set pdt_boot collector"], ["set pdt_boot local"], ["set pdt_boot winpe"]):
                         R.ok(f"boot/{os.path.basename(snip)}", body[0])
                     else:
-                        R.fail(f"boot/{os.path.basename(snip)}", "not a one-line 'set pdt_boot collector|winpe' (bin/netboot writes these)")
+                        R.fail(f"boot/{os.path.basename(snip)}", "not a one-line 'set pdt_boot collector|local|winpe' (bin/netboot writes these)")
                 if "${" not in path:
                     R.ok(f"boot.ipxe -> {path}", "optional override" + ("" if exists(path) else ", not present"))
             elif "://" in url or "${" in path:
@@ -290,8 +291,8 @@ def lint_tree(http, deep=False, programs=None):
                 var = re.search(r"[%!](\w+)(?::[^%!]*)?[%!]", path)   # %VAR% or %VAR:a=b%
                 if var and var.group(1).upper() in RUNTIME_VARS:
                     continue  # resolved per machine below
-                if path.startswith("post/winget/"):
-                    R.ok(where, "the files post/winget/files.txt lists; checked with the roles")
+                if path.startswith("post/winget/") or path.startswith("post/openssh/"):
+                    R.ok(where, f"the files {path.split('/')[1]}/files.txt lists; checked with the roles")
                     continue
                 R.unknown(where, "contains a variable lint does not resolve")
             elif exists(path):
@@ -356,6 +357,12 @@ def lint_tree(http, deep=False, programs=None):
                 R.ok(f"ts/{mode}.seq -> steps/{step}.cmd")
             else:
                 R.fail(f"ts/{mode}.seq -> steps/{step}.cmd", "the sequence lists a step that does not exist")
+        # 20-disk wipes the disk 17-diskguard chose; without the guard first it has nothing to go on.
+        if "20-disk" in steps:
+            if "17-diskguard" in steps and steps.index("17-diskguard") < steps.index("20-disk"):
+                R.ok(f"ts/{mode}.seq: 17-diskguard before 20-disk")
+            else:
+                R.fail(f"ts/{mode}.seq: 20-disk without 17-diskguard before it", "nothing would have chosen the disk to wipe (20-disk then refuses)")
     for f in sorted(glob.glob(os.path.join(http, "ts", "steps", "*.cmd"))):
         name = os.path.basename(f)[:-4]
         if name not in listed:
@@ -411,6 +418,11 @@ def lint_tree(http, deep=False, programs=None):
                     R.fail(f"{who} {key}={val}", f"names no step of ts/{mode}.seq; the sequence would never stop there")
                 elif val:
                     R.ok(f"{who} {key}={val}")
+        if v.get("DISK", ""):
+            if re.fullmatch(r"\d{1,2}", v["DISK"]):
+                R.ok(f"{who} DISK={v['DISK']}", "17-diskguard wipes only this disk, if it is fixed and big enough")
+            else:
+                R.fail(f"{who} DISK={v['DISK']}", "a disk number (diskpart's), such as DISK=0")
         for key, sub, ext, required in (("IMAGE", "images", "", True), ("UNATTEND", "unattend", "", True),
                                         ("DISKPART", "ts/diskpart", "", True), ("DRIVERS", "drivers", ".wim", False),
                                         ("UPDATES", "updates", ".wim", False), ("POST", "post", "", False)):
@@ -456,7 +468,7 @@ def lint_tree(http, deep=False, programs=None):
                 R.fail(f"{who}/role.cfg line {n}", f"{k}={val!r} has trailing spaces or an inline comment")
             vals[k.upper()] = val
         admins = []   # Administrators accounts the USERS list creates (for DEPLOY=remove)
-        for k in ("UNATTEND", "APPS", "POST", "USERS", "SKEL", "SKELREG", "FILES"):
+        for k in ("UNATTEND", "APPS", "POST", "USERS", "SKEL", "SKELREG", "FILES", "SSHKEYS"):
             if k not in vals:
                 continue
             if k == "FILES":
@@ -493,6 +505,16 @@ def lint_tree(http, deep=False, programs=None):
                 if not os.path.isfile(os.path.join(http, "post", "users.ps1")):
                     R.fail(f"{who} {k}={vals[k]}", "post/users.ps1 is missing")
                     continue
+            if k == "SSHKEYS":
+                keys = [l for l in read(f).splitlines() if SSHKEY_RE.match(l.strip())]
+                if not keys:
+                    R.fail(f"{who} {k}={vals[k]}", "no OpenSSH public key in it (ssh-ed25519 AAAA... user@host); for the lab role, bin/fetch-tools openssh writes one")
+                    continue
+                if "SSH" not in vals:
+                    R.fail(f"{who} {k}={vals[k]}", "SSHKEYS without SSH=on does nothing")
+                    continue
+                R.ok(f"{who} {k}={vals[k]}", f"{len(keys)} key(s)")
+                continue
             if k == "SKELREG":
                 # A .reg of HKEY_CURRENT_USER keys only: it is merged into the Default
                 # profile's hive, where any other root would be wrong or refused.
@@ -530,13 +552,14 @@ def lint_tree(http, deep=False, programs=None):
                     R.fail(f"{who} {k}={vals[k]}", f"not well-formed XML ({e})")
                     continue
             if k == "APPS":
+                # "<id> [winget options]": the id is checked, the options are passed to winget as they are.
                 ids = [l.strip() for l in read(f).splitlines() if l.strip() and not l.startswith("#")]
-                bad = [i for i in ids if not re.match(r"^[\w.+-]+$", i)]
+                bad = [i for i in ids if not re.match(r"^[\w.+-]+( --[a-z][a-z-]*( [\w.+-]+)?)*$", i)]
                 if not ids:
                     R.fail(f"{who} {k}={vals[k]}", "lists no package id")
                     continue
                 if bad:
-                    R.fail(f"{who} {k}={vals[k]}", f"not a winget package id: {', '.join(bad)}")
+                    R.fail(f"{who} {k}={vals[k]}", f"not a winget package id (optionally followed by --options): {', '.join(bad)}")
                     continue
                 if winget_ok is None:
                     winget_ok = winget_packages(http)
@@ -551,6 +574,22 @@ def lint_tree(http, deep=False, programs=None):
                 R.fail(f"{who} DEPLOY=remove", "USERS must create another Administrators account first, or nobody could log on afterwards")
             else:
                 R.ok(f"{who} DEPLOY=remove", f"Administrators afterwards: {', '.join(admins)}")
+        if "SSH" in vals:
+            if vals["SSH"].lower() != "on":
+                R.fail(f"{who} SSH={vals['SSH']}", "the only value is on (leave the key out for off)")
+            elif "SSHKEYS" not in vals:
+                R.fail(f"{who} SSH=on", "needs SSHKEYS=<authorized_keys file>: passwords are off, so a role without keys would lock everyone out")
+            else:
+                need = [p for p in ("post/ssh.ps1", "post/sshd_config", "post/openssh/files.txt") if not exists(p)]
+                if need:
+                    R.fail(f"{who} SSH=on", f"missing: {', '.join(need)}" + (" (run bin/fetch-tools openssh)" if "post/openssh/files.txt" in need else ""))
+                else:
+                    listed = [l.strip() for l in read(os.path.join(http, "post", "openssh", "files.txt")).splitlines() if l.strip() and not l.startswith("#")]
+                    gone = [l for l in listed if not exists(f"post/openssh/{l}")]
+                    if gone or not listed:
+                        R.fail(f"{who} SSH=on", f"post/openssh/files.txt lists {', '.join(gone) or 'nothing'}, not there (run bin/fetch-tools openssh)")
+                    else:
+                        R.ok(f"{who} SSH=on", "OpenSSH Server, key-only, for the Administrators of USERS; PowerShell remoting with pwsh among APPS")
         if "RDP" in vals:
             if vals["RDP"].lower() == "on":
                 R.ok(f"{who} RDP=on", "Remote Desktop with NLA; the USERS accounts may connect")
@@ -591,6 +630,15 @@ def check_asset(http, key, path, deep):
             xml.dom.minidom.parse(full)
         except Exception as e:  # noqa: BLE001 - any parse error is the finding
             return f"http/{path} is not well-formed XML ({e})"
+    if key == "DISKPART":
+        text = read(full)
+        literal = re.findall(r"(?im)^\s*select disk \d+\s*$", text)
+        if literal:
+            return f"http/{path} selects a disk by number ({literal[0].strip()}): only @DISK@ is allowed, 17-diskguard decides"
+        if not re.search(r"(?im)^\s*select disk @DISK@\s*$", text):
+            return f"http/{path} has no 'select disk @DISK@' line (20-disk fills the token in with 17-diskguard's choice)"
+        if "!" in text or "%" in text:
+            return f"http/{path} contains ! or %, which 20-disk's token substitution (cmd, delayed expansion) would eat"
     if key in ("IMAGE", "DRIVERS", "UPDATES"):
         sidecar = full[:-4] + ".json"
         if not os.path.isfile(sidecar):
@@ -637,6 +685,14 @@ def lint_host():
         R.ok("pxe/ipxe.efi chains to the server in config.sh", p["BASE_URL"])
     else:
         R.fail("pxe/ipxe.efi", f'does not chain to {p["BASE_URL"]}; config.sh changed since it was built (run bin/build-ipxe)')
+    if os.path.isfile(efi):
+        # The embedded chainloader must end with "exit" after its chain line: that is
+        # what returns a "netboot <m> local" machine to its firmware. Without it the
+        # chained boot.ipxe's exit (status 0) falls through into :failed and the shell.
+        if re.search(rb"\|\| goto failed\n(?:#[^\n]*\n)*exit 1\n:failed\n", open(efi, "rb").read()):
+            R.ok("pxe/ipxe.efi returns to the firmware when boot.ipxe exits", "netboot <m> local works")
+        else:
+            R.fail("pxe/ipxe.efi", "built before the chainloader learned to exit to the firmware (2026-10-22): netboot <m> local would drop to the iPXE shell (run bin/build-ipxe)")
 
     wim = os.path.join(http, "winpe", "boot.wim")
     if os.path.isfile(wim):
@@ -682,6 +738,14 @@ def selftest():
                 for n in ("dep.appx", "App.msixbundle", "License1.xml"):
                     open(os.path.join(wg, n), "w").write("x")
                 open(os.path.join(wg, "files.txt"), "w").write("dep.appx\nApp.msixbundle\n")
+            oss = os.path.join(d, "post", "openssh")   # ... nor fetch-tools openssh
+            if not os.path.isfile(os.path.join(oss, "files.txt")):
+                os.makedirs(oss, exist_ok=True)
+                open(os.path.join(oss, "OpenSSH-Win64.msi"), "w").write("x")
+                open(os.path.join(oss, "files.txt"), "w").write("OpenSSH-Win64.msi\n")
+            ak = os.path.join(d, "roles", "lab-apps", "authorized_keys")
+            if not os.path.isfile(ak):
+                open(ak, "w").write("ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKE lint@selftest\n")
             for sub in ("winpe", "tools", "images", "machines", "models", "drivers", "updates"):
                 os.makedirs(os.path.join(d, sub))
             for _cmd, url, _name, _o in ipxe_refs(read(os.path.join(d, "boot.ipxe"))):
@@ -751,6 +815,15 @@ def selftest():
             ("a skel.reg with a key outside HKEY_CURRENT_USER", lambda d: open(os.path.join(d, "roles", "lab-apps", "skel.reg"), "a", newline="").write("\r\n[HKEY_LOCAL_MACHINE\\SOFTWARE\\PDT]\r\n\"x\"=\"y\"\r\n"), "HKEY_CURRENT_USER"),
             ("a script a role needs for DEPLOY=remove is missing", lambda d: os.remove(os.path.join(d, "post", "remove-deploy.cmd")), "post/remove-deploy.cmd"),
             ("a role.cfg sets RDP to something that is not on", lambda d: open(os.path.join(d, "roles", "lab-apps", "role.cfg"), "a", newline="").write("RDP=yes\r\n"), "RDP=yes"),
+            ("a boot override is not one of the three one-liners", lambda d: (os.makedirs(os.path.join(d, "boot"), exist_ok=True), open(os.path.join(d, "boot", "default.ipxe"), "w").write("#!ipxe\nset pdt_boot usb\n")), "boot/default.ipxe"),
+            ("a cfg sets DISK to something that is not a number", lambda d: cfg(d, "MODE=deploy\nDISK=first\n"), "DISK=first"),
+            ("a diskpart script selects a disk by number instead of @DISK@", lambda d: sub_text(d, "ts/diskpart/uefi-gpt.txt", "select disk @DISK@", "select disk 0"), "select disk 0"),
+            ("a sequence runs 20-disk without 17-diskguard first", lambda d: sub_text(d, "ts/deploy.seq", "17-diskguard\n", ""), "20-disk without 17-diskguard"),
+            ("an apps.txt line is neither an id nor id plus --options", lambda d: open(os.path.join(d, "roles", "lab-apps", "apps.txt"), "a").write("Some.App msi\n"), "not a winget package id"),
+            ("a role.cfg sets SSH to something that is not on", lambda d: sub_text(d, "roles/lab-apps/role.cfg", "SSH=on", "SSH=yes"), "SSH=yes"),
+            ("SSH=on with no keys file", lambda d: sub_text(d, "roles/lab-apps/role.cfg", "SSHKEYS=authorized_keys\n", ""), "needs SSHKEYS"),
+            ("the keys file holds no public key", lambda d: open(os.path.join(d, "roles", "lab-apps", "authorized_keys"), "w").write("# empty\n"), "no OpenSSH public key"),
+            ("SSH=on but fetch-tools openssh never ran", lambda d: os.remove(os.path.join(d, "post", "openssh", "files.txt")), "fetch-tools openssh"),
         ]
 
         control = lint_tree(fresh(), programs=SELFTEST_PROGRAMS)

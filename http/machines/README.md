@@ -20,12 +20,13 @@ STOP_BEFORE=40-drivers
 
 | key | meaning | default |
 |---|---|---|
-| `MODE` | `deploy` = WIPE disk 0 and install (`ts/deploy.seq`); `capture` = capture the installed Windows, wipe nothing (`ts/capture.seq`); `shell` = do nothing | `shell` |
+| `MODE` | `deploy` = WIPE a disk and install (`ts/deploy.seq`; which disk: `DISK`); `capture` = capture the installed Windows, wipe nothing (`ts/capture.seq`); `shell` = do nothing | `shell` |
 | `IMAGE` | file under `http/images/` | `base.wim` |
 | `UNATTEND` | file under `http/unattend/` | `default.xml` |
 | `DRIVERS` | `http/drivers/<name>.wim` (`bin/pack-drivers`) | none |
 | `UPDATES` | `http/updates/<name>.wim` (`bin/pack-updates`) | none |
-| `DISKPART` | file under `http/ts/diskpart/` | `uefi-gpt.txt` |
+| `DISKPART` | file under `http/ts/diskpart/` (its `select disk @DISK@` is filled in at run time) | `uefi-gpt.txt` |
+| `DISK` | the number (diskpart's) of the disk to wipe. Needed only when the machine has several fixed disks: `17-diskguard` otherwise takes the only fixed, non-USB disk of at least 32 GiB, and refuses to guess among several. A `DISK=` that names a removable, USB, too-small or absent disk fails the step too | the only fixed disk |
 | `ROLE` | a directory `http/roles/<name>/`: what the machine becomes after Windows is on it (apps via winget, a post script, its own unattend, the fast-startup policy). See `http/roles/README.md` | none |
 | `POST` | a script under `http/post/` that the installed system runs, elevated, at first logon, after the role | none |
 | `REFERENCE` | `yes`: a reference machine. After first logon (and `POST`) it generalizes itself with sysprep and shuts down, ready to be captured with `bin/capture-image` (a VM) or `MODE=capture` (any machine) | no |

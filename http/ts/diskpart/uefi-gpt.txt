@@ -1,11 +1,12 @@
-rem uefi-gpt.txt - WIPE disk 0 and lay out GPT for UEFI, Microsoft's layout:
+rem uefi-gpt.txt - WIPE disk @DISK@ and lay out GPT for UEFI, Microsoft's layout:
 rem   1  EFI system  260 MB  FAT32  S:
 rem   2  MSR          16 MB
 rem   3  Windows      rest   NTFS   W:
 rem   4  Recovery      1 GB  NTFS   R:   (WinRE lives here; 45-winre fills it)
 rem The Windows partition is created over all remaining space and then shrunk
 rem by 1 GB so the recovery partition lands at the end of the disk.
-select disk 0
+rem @DISK@ is replaced by 20-disk with the number 17-diskguard chose.
+select disk @DISK@
 clean
 convert gpt
 create partition efi size=260

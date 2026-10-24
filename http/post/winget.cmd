@@ -54,11 +54,25 @@ if not exist "%APPS%" (
 )
 set INSTALLED=
 set FAILED=
-for /f "usebackq eol=# tokens=1" %%a in ("%APPS%") do (
-  >> "%OUT%" echo === winget install %%a
-  "%WG%" install --id %%a -e --silent --accept-package-agreements --accept-source-agreements --disable-interactivity >> "%OUT%" 2>&1
+rem Machine scope first: this runs as the toolkit's account, and a per-user
+rem install (an MSIX, say) would live in that account's profile, which
+rem DEPLOY=remove deletes (PowerShell 7 vanished that way: verified). A package
+rem with no machine-wide installer (-1978335216, 0x8A150010, "No applicable
+rem installer found": verified) is installed
+rem per user, and the transcript says so. Anything after the id on an apps.txt
+rem line is passed to winget as it is (e.g. --installer-type msi: PowerShell 7's
+rem default installer is an MSIX, which cannot serve as sshd's subsystem).
+for /f "usebackq eol=# tokens=1,*" %%a in ("%APPS%") do (
+  >> "%OUT%" echo === winget install %%a %%b --scope machine
+  "%WG%" install --id %%a -e --silent --scope machine %%b --accept-package-agreements --accept-source-agreements --disable-interactivity >> "%OUT%" 2>&1
   set RC=!errorlevel!
   >> "%OUT%" echo rc !RC!
+  if "!RC!"=="-1978335216" (
+    >> "%OUT%" echo === no machine-scope installer for %%a; winget install %%a for this user
+    "%WG%" install --id %%a -e --silent %%b --accept-package-agreements --accept-source-agreements --disable-interactivity >> "%OUT%" 2>&1
+    set RC=!errorlevel!
+    >> "%OUT%" echo rc !RC!
+  )
   rem 0: installed. -1978335189 (0x8A15002B): no newer version, already there.
   if "!RC!"=="0" (set "INSTALLED=!INSTALLED!,%%a") else if "!RC!"=="-1978335189" (set "INSTALLED=!INSTALLED!,%%a") else set "FAILED=!FAILED!,%%a(!RC!)"
 )

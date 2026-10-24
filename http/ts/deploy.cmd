@@ -46,7 +46,7 @@ set PDT_NET_UP=1
 :net_ok
 
 rem ------------------------------------------------------------------ toolkit
-for %%f in (env.cmd step.cmd beacon.cmd push.cmd pushloop.cmd shell-loop.cmd slug.js) do (
+for %%f in (env.cmd step.cmd beacon.cmd push.cmd pushloop.cmd shell-loop.cmd slug.js disks.js) do (
   curl.exe -sS -f -o %PDT%\%%f "%SRV%/ts/%%f" >>%LOG% 2>&1 || (echo [pdt] cannot fetch ts/%%f from the server.& exit /b 1)
 )
 rem One run token per boot; a resumed run continues the same run.

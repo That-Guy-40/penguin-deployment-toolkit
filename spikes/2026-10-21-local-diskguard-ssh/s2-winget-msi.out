@@ -1,0 +1,19 @@
+C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_1.29.380.0_x64__8wekyb3d8bbwe\winget.exe
+Program 'winget.exe' failed to run: Access is deniedAt line:1 char:152
++ ... inue | Select-Object -First 1).FullName; $wg; & $wg --version; & $wg  ...
++                                                   ~~~~~~~~~~~~~~~.
+At line:1 char:152
++ ... inue | Select-Object -First 1).FullName; $wg; & $wg --version; & $wg  ...
++                                                   ~~~~~~~~~~~~~~~
+    + CategoryInfo          : ResourceUnavailable: (:) [], ApplicationFailedException
+    + FullyQualifiedErrorId : NativeCommandFailed
+Program 'winget.exe' failed to run: Access is deniedAt line:1 char:169
++ ...  --version; & $wg install --id Microsoft.PowerShell -e --silent --sco ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~.
+At line:1 char:169
++ ...  --version; & $wg install --id Microsoft.PowerShell -e --silent --sco ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ResourceUnavailable: (:) [], ApplicationFailedException
+    + FullyQualifiedErrorId : NativeCommandFailed
+rc=
+False

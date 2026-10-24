@@ -1,0 +1,4 @@
+[pdt] ===== 17-diskguard
+0|Fixed hard disk media|IDE|63|QEMU HARDDISK|eligible
+1|Fixed hard disk media|IDE|31|QEMU HARDDISK|not eligible: 31 GiB, smaller than 32 GiB
+2|Removable Media|USB|7|QEMU QEMU HARDDISK USB Device|not eligible: removable media (Removable Media)

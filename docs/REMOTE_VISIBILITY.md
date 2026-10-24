@@ -126,9 +126,19 @@ screen pusher avoids. Plan B if a live interactive session is ever needed.
 (`fDenyTSConnections=0`, NLA on, the firewall group, the role's accounts in
 Remote Desktop Users) gives a full desktop from Linux (`xfreerdp`, Remmina)
 after first logon; `bin/vm-boot --fwd 3390:3389` reaches a lab VM's.
-Verification: `spikes/2026-10-12-ssh-rdp/`. `SSH=on` (Windows' OpenSSH
-server, PowerShell remoting over SSH) is written up from the same template
-in `DEFERRED.md`, "Remote access as role settings", not built.
+Verification: `spikes/2026-10-12-ssh-rdp/` (listener, NLA) and
+`spikes/2026-10-21-local-diskguard-ssh/` (credentials: right password
+accepted, wrong one and a removed account refused).
+
+**SSH into the installed Windows.** Also built in, from the same template:
+`SSH=on` + `SSHKEYS=<authorized_keys>` in the role installs Win32-OpenSSH
+(served pinned from `post/openssh/`, `bin/fetch-tools openssh`) at first
+logon, key-only, for the role's administrators, with PowerShell as the shell
+and, when PowerShell 7 is among the role's apps, the `powershell` subsystem
+that `Enter-PSSession -HostName` needs. This is the access that works from
+this Linux host with nothing but `ssh`: `bin/vm-boot <vm> --fwd 2223:22`,
+`ssh -p 2223 admin@127.0.0.1`. `http/roles/README.md` has the keys;
+`spikes/2026-10-21-local-diskguard-ssh/` the evidence.
 
 **A serial console, like Linux's?** Windows has one: EMS/SAC. `bcdedit
 /ems on` plus `/emssettings` on the BCD gives a text console over a COM port

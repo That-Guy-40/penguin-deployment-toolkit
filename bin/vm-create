@@ -19,13 +19,16 @@
 #                  logon (apps via winget, post script, fast-startup policy)
 #   --reference    a reference machine: after first logon it generalizes itself
 #                  (sysprep) and shuts down, ready to be captured (MODE=capture)
+#   --second-disk <size>  a second fixed (AHCI) disk, e.g. 32G: with no DISK= in
+#                  its cfg, 17-diskguard must then refuse to choose
+#   --usb-disk <size>     a USB stick (removable): 17-diskguard must never pick it
 #
 # Every VM gets its own SMBIOS UUID and MAC. QEMU's default UUID is all zeros,
 # which would make every VM the same machine to the server.
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 need qemu-img uuidgen ss
 
-NAME="" MODE="deploy" DRIVERS="" NET="user" IMAGE="base" REFERENCE=0 NIC="e1000e" DISK="ahci" VARS="" ROLE=""
+NAME="" MODE="deploy" DRIVERS="" NET="user" IMAGE="base" REFERENCE=0 NIC="e1000e" DISK="ahci" VARS="" ROLE="" DISK2="" USB=""
 while (( $# )); do
     case "$1" in
         --mode)    MODE="${2:?}"; shift 2 ;;
@@ -37,7 +40,9 @@ while (( $# )); do
         --disk)    DISK="${2:?}"; shift 2 ;;
         --vars)    VARS="${2:?}"; shift 2 ;;
         --net)     NET="${2:?}"; shift 2 ;;
-        -h|--help) sed -n '2,26p' "$0"; exit 0 ;;
+        --second-disk) DISK2="${2:?}"; shift 2 ;;
+        --usb-disk)    USB="${2:?}"; shift 2 ;;
+        -h|--help) sed -n '2,27p' "$0"; exit 0 ;;
         -*) die "unknown option: $1" ;;
         *)  [[ -z "$NAME" ]] || die "one VM name only"; NAME="$1"; shift ;;
     esac
@@ -65,6 +70,8 @@ done
 
 mkdir -p "$VM_DIR"
 qemu-img create -q -f qcow2 "$VM_DIR/disk.qcow2" "${VM_DISK_SIZE:-64G}"
+[[ -z "$DISK2" ]] || qemu-img create -q -f qcow2 "$VM_DIR/disk2.qcow2" "$DISK2"
+[[ -z "$USB" ]] || qemu-img create -q -f qcow2 "$VM_DIR/usb.qcow2" "$USB"
 cp "$VARS" "$VM_DIR/vars.fd"
 cat > "$VM_DIR/vm.conf" <<CONF
 # Lab VM "$NAME", created $(date -Is) by bin/vm-create.
@@ -95,5 +102,5 @@ fi
 
 info "created VM $NAME"
 info "  uuid $UUID   mac $MAC   monitor 127.0.0.1:$PORT"
-info "  disk ${VM_DISK_SIZE:-64G}   net $NET   machines entry: $([[ $MODE == none ]] && echo none || echo "MODE=$MODE")"
+info "  disk ${VM_DISK_SIZE:-64G}${DISK2:+ + second disk $DISK2}${USB:+ + USB stick $USB}   net $NET   machines entry: $([[ $MODE == none ]] && echo none || echo "MODE=$MODE")"
 info "next: bin/vm-boot $NAME"

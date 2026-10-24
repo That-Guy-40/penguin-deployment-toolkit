@@ -84,6 +84,16 @@ if (( ALLOC < 104857600 )) || (( PXE_FIRST )); then cp "$VARS_TEMPLATE" "$VM_DIR
 
 if (( PXE_FIRST )); then DISK_IDX=2 NET_IDX=1; else DISK_IDX=1 NET_IDX=2; fi
 
+# Extra disks from vm-create --second-disk / --usb-disk (for the disk guard's
+# negative controls): a second fixed disk on the AHCI bus, a removable USB stick.
+EXTRA_DISKS=()
+if [[ -f "$VM_DIR/disk2.qcow2" ]]; then
+    EXTRA_DISKS+=(-drive "file=$VM_DIR/disk2.qcow2,format=qcow2,if=none,id=hd1" -device "ide-hd,drive=hd1,bus=ide.1")
+fi
+if [[ -f "$VM_DIR/usb.qcow2" ]]; then
+    EXTRA_DISKS+=(-device qemu-xhci,id=xhci -drive "file=$VM_DIR/usb.qcow2,format=qcow2,if=none,id=usb0" -device "usb-storage,bus=xhci.0,drive=usb0,removable=on")
+fi
+
 QEMU=(
     qemu-system-x86_64
     -name "pdt-$NAME" -enable-kvm -cpu host
@@ -98,6 +108,7 @@ QEMU=(
     -drive "if=pflash,format=raw,unit=1,file=$VM_DIR/vars.fd"
     -drive "file=$VM_DIR/disk.qcow2,format=qcow2,if=none,id=hd0"
     -device "$DISK_DEV,bootindex=$DISK_IDX"
+    "${EXTRA_DISKS[@]}"
     -netdev "$NETDEV"
     -device "$NIC,netdev=net0,mac=$VM_MAC,romfile=$ROM,bootindex=$NET_IDX"
     -monitor "tcp:127.0.0.1:$VM_MONITOR_PORT,server,nowait"

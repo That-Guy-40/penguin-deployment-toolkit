@@ -1,0 +1,26 @@
+[pdt] ===== 17-diskguard
+0|Fixed hard disk media|IDE|64|QEMU HARDDISK|eligible
+1|Fixed hard disk media|IDE|64|QEMU HARDDISK|eligible
+2 fixed disks (0:QEMU HARDDISK 64GiB, 1:QEMU HARDDISK 64GiB): set DISK=<n> in the machine or model cfg
+--
+[pdt] ===== 17-diskguard
+0|Fixed hard disk media|IDE|64|QEMU HARDDISK|eligible
+1|Fixed hard disk media|IDE|64|QEMU HARDDISK|eligible
+2 fixed disks (0:QEMU HARDDISK 64GiB, 1:QEMU HARDDISK 64GiB): set DISK=<n> in the machine or model cfg
+--
+[pdt] ===== 17-diskguard
+usage: disks.js <min_gb> <DISK|-> <disk.txt> <step.msg>
+[pdt] shell: running cmd 2
+--
+[pdt] ===== 17-diskguard
+0|Fixed hard disk media|IDE|64|QEMU HARDDISK|eligible
+1|Fixed hard disk media|IDE|64|QEMU HARDDISK|eligible
+DISK=9 is not a disk this machine has (disks: 0:QEMU HARDDISK 64GiB, 1:QEMU HARDDISK 64GiB)
+--
+[pdt] ===== 17-diskguard
+0|Fixed hard disk media|IDE|64|QEMU HARDDISK|eligible
+1|Fixed hard disk media|IDE|64|QEMU HARDDISK|eligible
+--
+[pdt] ===== 17-diskguard
+0|Fixed hard disk media|IDE|64|QEMU HARDDISK|eligible
+1|Fixed hard disk media|IDE|64|QEMU HARDDISK|eligible

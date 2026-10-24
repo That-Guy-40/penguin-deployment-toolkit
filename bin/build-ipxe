@@ -37,6 +37,14 @@ sleep 3
 goto retry_dhcp
 :got_dhcp
 chain ${CHAIN}?uuid=\${uuid}&mac=\${netX/mac}&product=\${product:uristring}&mfr=\${manufacturer:uristring}&serial=\${serial:uristring}&nic=\${netX/busid}&chip=\${netX/chip}&bootsrv=\${next-server} || goto failed
+# boot.ipxe normally never returns (wimboot or the collector's kernel replaces
+# iPXE). When it does, it is "set pdt_boot local": its "exit" ends the chained
+# script with status 0, chain succeeds, and this script would otherwise fall
+# into :failed. Ending the embedded script is what makes ipxe.efi return to
+# the firmware; it must return an ERROR (exit 1): edk2's boot manager treats
+# a boot option that returns success as "booted" and shows its menu, and only
+# goes on to the next entry (the disk) when the option fails.
+exit 1
 :failed
 echo Could not chain to ${CHAIN} - dropping to the iPXE shell
 shell

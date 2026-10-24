@@ -6,35 +6,6 @@ parked are in `DEFERRED.md`, not here.
 
 ## Next
 
-- [ ] **Local-boot handoff** (`docs/REVIEW-2026-10-12.md`, finding 1). A
-  machine that is PXE-first in firmware redeploys itself after every
-  `90-reboot` (`bin/vm-boot --pxe` says so); disk-first needs a person at F12
-  for every re-image. Neither is "nobody at the keyboard". The collector
-  commit gave `boot.ipxe` per-machine overrides (`boot/<uuid>.ipxe` and
-  `boot/default.ipxe`, one-liners written by `bin/netboot`), `bin/enroll`,
-  and `pdt-pxe-next` (BootNext from Linux), so what is left is small: a
-  third `pdt_boot` value, `local`, one line in `boot.ipxe`
-  (`iseq ${pdt_boot} local && exit ||`: iPXE returns to the firmware, which
-  boots the next entry, Windows after `bcdboot`), `bin/netboot <m> local`,
-  and `lint` accepting the third one-liner. With that, PXE-first firmware
-  is safe: `netboot <m> local` after a deploy, `netboot <m> winpe` to
-  re-image, no keyboard. Verify on a VM booted `--pxe`: deploy, `netboot
-  local`, the next boot lands on the desktop (`boot ok`, no `ts-start`);
-  `netboot winpe` and it is back in WinPE. Still open after that: a
-  disk-first installed Windows has no agent to set BootNext, so re-imaging
-  one needs `bcdedit /set {fwbootmgr} bootsequence` over RDP or a hand at
-  F12; and a watcher that runs `netboot local` on a machine's `deployed`
-  beacon (the first use for the dispatcher parked in `DEFERRED.md`). Do the
-  `local` override before the Latitude's first deploy.
-- [ ] **Disk guard** (review, finding 2). `ts/diskpart/uefi-gpt.txt` says
-  `select disk 0` then `clean`. Build a step before `20-disk` that lists the
-  disks (`diskpart list disk` into a file), refuses to continue if the chosen
-  disk is removable or smaller than a minimum, and takes `DISK=<n>` from the
-  machine or model cfg (default: the only fixed disk; fail if there are
-  several and none is named). Write the number into the diskpart script with
-  a token (`select disk @DISK@`) at run time; `lint` learns the key and the
-  token. Negative control on a VM with two disks and no `DISK=`: the step
-  fails, nothing is wiped.
 - [ ] Phase 5: real hardware over the network via iPXE (the goal): `pxe-lan`
   on the real LAN, machine allow-list gating destructive steps, per-model driver
   packs, Secure Boot, measured PXE→desktop time; one physical model deployed
@@ -55,37 +26,36 @@ parked are in `DEFERRED.md`, not here.
 
 ## After that
 
-- [ ] **`SSH=on` as a role key** (`RDP=on` is built: `spikes/2026-10-12-ssh-rdp/`,
-  the lab role carries it), the access that works from this host with no
-  display: `ssh`, and PowerShell remoting over SSH. Written up in
-  `DEFERRED.md`, "Remote access as role settings": the same block as RDP
-  plus an `SSHKEYS` file and the host-key cleanup before capture. The
-  credential check for RDP (`xfreerdp /auth-only`) still needs a FreeRDP
-  client on this host (`freerdp3-x11`).
-- [ ] Phase 6: deployable by others as infrastructure: `INSTALL.md`,
-  `bin/preflight` (PASS/FAIL/UNKNOWN rows, with deliberate failing rows),
-  systemd units for `serve`/`pxe-lan`, pinned and verified inputs, and a
-  from-scratch run of `INSTALL.md` on a clean machine before tagging a release
-  (PLAN.md §3.1); `bin/test-deploy` (vm-create → vm-boot → `await` each step →
-  `vm-shot`) is that run; `INSTALL.md` gets a "watching an install" section.
-
-## Questions to explore through spikes
-
-Each gets a dated directory under `spikes/` with its scripts, evidence and a
-README stating the result. Answered ones are in `PLAN.md` §5.
-
-- [ ] **LAN throughput of a 3.5 GB WIM over HTTP versus SMB** (expected: no
-  difference that matters; measure once on the physical run).
-- [ ] **A text frame log of the WinPE console**, `pdt-console`: a sibling of
-  `pdt-screen` that attaches to the deploy window and dumps its console
-  buffer as text whenever it changes (kilobytes, diffable, greppable, a
-  thing `bin/await` can wait on), and types into it (`WriteConsoleInput`),
-  which `bin/shell` cannot do to a prompt the sequence is stuck at. Design
-  and the spike's checks in `DEFERRED.md`, "A text frame log of the WinPE
-  console". Pick up the first time a physical machine waits at such a prompt.
+- [ ] Per-user SSH keys for `Users` accounts (`SSH=on` serves the Administrators
+  through `administrators_authorized_keys` only), and the reference-image
+  check for `SSH=on`: two machines deployed from one captured image must show
+  different host keys (`prepare-capture.cmd` removes them before sysprep;
+  not yet exercised).
 
 ## Housekeeping
 
+- [ ] **A `DISK=<n>` install on a disk the firmware does not boot first re-images
+  itself** (seen 2026-10-24, demo for Noah): a two-disk lab VM deployed onto
+  disk 1 with disk 0 left blank; at `90-reboot` the firmware tried disk 0
+  (nothing), then the network, and the task sequence ran again, wiping disk 1
+  (`MODE=deploy` was still set, as it is after every deploy). `bin/netboot <m>
+  local` stops the loop, and the machine then boots from disk 1, but only after
+  the firmware has timed out every network entry (several minutes per boot on
+  OVMF). Options: have `90-reboot` or `50-boot` warn when the chosen disk is not
+  disk 0; document that a multi-disk machine needs its boot order set (or the
+  Windows disk made first) before `netboot local` is removed; or `bin/netboot
+  <m> local` automatically at `ts-done` for machines whose cfg says `DISK=`.
+  Not seen on real firmware yet [unknown]. Evidence: `spikes/2026-10-24-demo-for-noah/`.
+- [ ] **Lab VMs sometimes hang at a guest-initiated reboot** (QEMU 10.2 host):
+  twice on 2026-10-22, once after WinPE's `90-reboot` (PXE-first `r8`) and
+  once after Setup's specialize reboot (disk-first `s3`), out of about ten
+  reboots that day. Signature: no firmware output on the serial port, the
+  display never initialised, vCPUs busy at one address; a monitor
+  `system_reset` did not recover `r8`, `vm-stop --force` + `vm-boot` did and
+  the guest carried on. Not seen on the previous QEMU (Phase 3, 2026-10-02).
+  `spikes/2026-10-21-local-diskguard-ssh/` has both records. If it keeps
+  happening: bisect QEMU 10.2 / OVMF / `-machine q35,smm=on`; `bin/await`
+  cannot tell it from a slow boot, so a stuck VM looks like silence.
 - [ ] Real hardware has still seen none of this (Phase 5). In particular:
   enrolling the Secure Boot certificate in real firmware, and proxy-DHCP on a
   real switch next to a real router. (A bridge on the real host, and
@@ -103,6 +73,19 @@ README stating the result. Answered ones are in `PLAN.md` §5.
 
 ## Done
 
+- [x] **Local-boot handoff, disk guard, `SSH=on`, RDP credentials (2026-10-22).**
+  `bin/netboot <m> local` (iPXE exits, the firmware boots the disk; two
+  defects found and fixed in the embedded chainloader: it fell into `:failed`
+  after a chain that returned, and it must return an *error* or edk2 shows
+  its boot menu instead of trying the next entry; `lint` reads the binary for
+  it). `17-diskguard` + `DISK=<n>` + `select disk @DISK@` (refuses to guess
+  among several fixed disks, never picks USB or removable or < 32 GiB; verified
+  on one-, two- and three-disk VMs, nothing wiped on a refusal). `SSH=on` +
+  `SSHKEYS` (Win32-OpenSSH MSI pinned by `fetch-tools openssh`, key-only,
+  `ssh` from this host, host-key fingerprint reported). `xfreerdp /auth-only`:
+  right password accepted, wrong one, unknown and deleted accounts refused.
+  winget now installs machine-wide first (a per-user install vanished with
+  the `deploy` profile). Evidence: `spikes/2026-10-21-local-diskguard-ssh/`.
 - [x] **Phase 3 (2026-10-02): post-install roles.** `ROLE=` → `http/roles/<name>/`
   (winget apps from packages pinned and served by `fetch-tools winget`, a post
   script, an unattend, `FASTSTARTUP=off`), checked by preflight and `lint`;

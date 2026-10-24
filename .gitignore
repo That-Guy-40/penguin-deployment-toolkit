@@ -31,6 +31,8 @@ __pycache__/
 # Editor / agent settings
 .claude/
 http/post/winget/
+http/post/openssh/
+http/roles/lab-apps/authorized_keys
 http/cmd/
 http/boot/
 http/collector/

@@ -1,3 +1,7 @@
 # winget package ids, one per line (winget search <name> shows them).
 7zip.7zip
 Notepad++.Notepad++
+# PowerShell 7: SSH=on gives sshd a 'powershell' subsystem when it is here (remoting over SSH).
+# The MSI (winget's manifest calls its type wix), not the default MSIX: a packaged
+# pwsh cannot be sshd's subsystem, and "--installer-type msi" finds nothing (verified).
+Microsoft.PowerShell --installer-type wix

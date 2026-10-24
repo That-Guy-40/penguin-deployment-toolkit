@@ -25,6 +25,8 @@ for %%k in (SystemManufacturer SystemProductName) do (
 )
 set "PRODUCT=%SystemProductName%"
 
+rem DISK=<n>: the disk 20-disk may wipe, when the machine has several fixed ones
+rem (17-diskguard refuses to guess). Absent: the only fixed disk.
 rem Drive letters the steps rely on; assigned by ts\diskpart\*.txt.
 rem   S: EFI system partition   W: Windows   R: recovery
 
@@ -33,6 +35,7 @@ set MODE=shell
 set IMAGE=base.wim
 set UNATTEND=default.xml
 set DISKPART=uefi-gpt.txt
+set DISK=
 set DRIVERS=
 set UPDATES=
 set POST=
@@ -44,10 +47,10 @@ set REFERENCE=
 rem Model defaults (models/<slug>.cfg). Deliberately NOT allowed here: MODE and
 rem STOP_*. A model file must never be able to get a machine wiped.
 if exist %PDT%\model.cfg for /f "usebackq eol=# tokens=1,* delims==" %%a in ("%PDT%\model.cfg") do (
-  for %%k in (IMAGE UNATTEND DISKPART DRIVERS UPDATES POST ROLE) do if /i "%%a"=="%%k" set "%%k=%%b"
+  for %%k in (IMAGE UNATTEND DISKPART DISK DRIVERS UPDATES POST ROLE) do if /i "%%a"=="%%k" set "%%k=%%b"
 )
 rem This machine (machines/<id>.cfg): the only place MODE can come from.
 if exist %PDT%\machine.cfg for /f "usebackq eol=# tokens=1,* delims==" %%a in ("%PDT%\machine.cfg") do (
-  for %%k in (MODE IMAGE UNATTEND DISKPART DRIVERS UPDATES POST ROLE STOP_BEFORE STOP_AFTER REFERENCE) do if /i "%%a"=="%%k" set "%%k=%%b"
+  for %%k in (MODE IMAGE UNATTEND DISKPART DISK DRIVERS UPDATES POST ROLE STOP_BEFORE STOP_AFTER REFERENCE) do if /i "%%a"=="%%k" set "%%k=%%b"
 )
 exit /b 0

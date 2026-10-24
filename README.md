@@ -27,7 +27,8 @@ firmware PXE ─TFTP→ pxe/ipxe.efi            the one binary we build; embeds 
                  machines/<uuid>.cfg says MODE=deploy?  no → report, stop at a prompt
                  then the steps listed in ts/deploy.seq, one file each:
                  15-preflight  everything this install needs is on the server
-                 20-disk       diskpart (GPT: ESP, MSR, Windows, Recovery)
+                 17-diskguard  which disk: the only fixed one, or DISK=<n>; else refuse
+                 20-disk       diskpart on that disk (GPT: ESP, MSR, Windows, Recovery)
                  25-download   images/base.wim over HTTP
                  30-apply      dism /apply-image
                  35-updates    optional update pack → dism /add-package
@@ -68,6 +69,7 @@ cp config.sh.example config.sh     # set ISO_PATH; pick a free HTTP_PORT
 bin/fetch-iso                      # only if you have no ISO: builds one via UUP dump (4-6 GB)
 bin/fetch-tools                    # wimboot, curl.exe, wimlib for Windows (pinned by hash)
 bin/fetch-tools winget             # if roles install apps: winget + dependencies, served to first logon
+bin/fetch-tools openssh            # if roles say SSH=on: Win32-OpenSSH (MSI), and the lab role's authorized_keys from ~/.ssh
 bin/stage-winpe                    # boot.wim + boot files out of the ISO (7z, no sudo)
 bin/stage-image                    # install.wim -> http/images/base.wim + sidecar
 bin/build-ipxe                     # pxe/ipxe.efi, chaining to HTTP_HOST:HTTP_PORT
@@ -131,7 +133,7 @@ Raw data, if you prefer `tail -f`: `run/beacons.log` (one line per event),
 | `config.sh.example` | template for `config.sh`, the only place host-specific values live |
 | `bin/lib.sh`, `bin/_pdt.py` | shared by every script: loads `config.sh`, paths, helpers (bash and python) |
 | `bin/fetch-iso` | optional: build a Windows 11 ISO from Microsoft's update servers via UUP dump, into `iso/` with a sidecar (base build only: no cumulative updates on Linux) |
-| `bin/fetch-tools` | third-party binaries, pinned by SHA-256, into `http/winpe/` and `http/tools/`; `fetch-tools virtio` builds a virtio driver pack; `fetch-tools winget` serves winget and its dependencies from `http/post/winget/` |
+| `bin/fetch-tools` | third-party binaries, pinned by SHA-256, into `http/winpe/` and `http/tools/`; `fetch-tools virtio` builds a virtio driver pack; `fetch-tools winget` serves winget and its dependencies from `http/post/winget/`; `fetch-tools openssh` serves the Win32-OpenSSH installer from `http/post/openssh/` and writes the lab role's `authorized_keys` |
 | `bin/stage-winpe` | `boot.wim`, `bootmgfw.efi`, `BCD`, `boot.sdi` from the ISO, unmodified |
 | `bin/stage-image` | the ISO's install image → `http/images/base.wim` + `base.json` + `base.winre.wim`; `--from-upload <vm>` publishes an image captured by `MODE=capture` |
 | `bin/capture-image` | capture a role image from a switched-off, generalized lab VM's disk on Linux (wimlib), publish it |
@@ -337,8 +339,18 @@ Later the same day, with root supplied from another shell:
 | `ssh -p 2222 -i ~/.ssh/id_ed25519 root@127.0.0.1` into a collector VM | logs in (hostname, uid, kernel, boot entries); password methods and a wrong key: `Permission denied (publickey)` |
 | Role key `RDP=on` | `rdp ok listening=yes`; the RDP listener selects CredSSP (NLA) in the first protocol exchange; a VM without the key answers nothing on 3389. Credentials over RDP not yet exercised (no `xfreerdp` on this host) |
 
+**Local boot, disk guard, SSH, RDP credentials, 2026-10-22** (evidence: `spikes/2026-10-21-local-diskguard-ssh/`):
+
+| what | result |
+|---|---|
+| `xfreerdp … /auth-only` against a `RDP=on` machine | `admin` and `alice` with their generated passwords: exit 0 (authenticated); a wrong password, an unknown account and the deleted `deploy`: `ERRCONNECT_LOGON_FAILURE` |
+| `bin/netboot <vm> local` on a PXE-first VM | iPXE prints "local boot requested", exits with an error, the firmware walks its remaining network entries and starts the disk: `firstlogon ok` from the installed Windows, no `ts-start`. Control: `netboot <vm> winpe` → `ts-start`, WinPE again. Two chainloader defects found and fixed on the way (a returned chain fell into `:failed`; edk2 shows its boot menu when the option returns success, so it must `exit 1`) |
+| `17-diskguard` | one disk: "the only fixed disk"; a 32 G disk and an 8 G USB stick beside it: both "not eligible", disk 0 deployed; two 64 G disks and no `DISK=`: `17-diskguard fail`, both disks left blank; `DISK=9`: refused; `DISK=1`: the partitions on disk 1, disk 0 still blank |
+| Role key `SSH=on` + `SSHKEYS` | `ssh ok port=22 keys=1 listening=yes`; `ssh -i ~/.ssh/id_ed25519 admin@…` logs in, host-key fingerprint equals the uploaded `ssh.txt`; no key, `alice` (group Users) and the deleted `deploy`: `Permission denied (publickey)`, no password prompt. With PowerShell 7 among the apps (`Microsoft.PowerShell --installer-type wix`: the MSI, not the MSIX winget picks by default), `shell=pwsh` and `Invoke-Command -HostName … -Port 2223` from this host's `pwsh` runs a script block on the machine |
+
 Still not verified: anything on physical hardware, including enrolling a
-Secure Boot certificate in real firmware.
+Secure Boot certificate in real firmware; `SSH=on` on a captured image
+(distinct host keys per machine).
 
 ## Documents
 
