@@ -11,6 +11,14 @@ rediscovers them as surprises. Each says what would make it worth picking up.
   and read on the target and the space for it. Spike first: time it against
   download-then-`dism` on the same VM. Pick up if it is faster or a target has
   too small a disk.
+- **Several sites from one origin (`REMOTE_SITES.md` §5).** A site appliance
+  that proxies the text control plane from a central server over a tunnel and
+  mirrors the images locally, with one `status` across sites. Pick up after
+  the second managed site, when hand-syncing is the main pain; probably
+  together with the dispatcher below, which is the thing that would know
+  which site a machine is at. Multicast and BITS were assessed in the same
+  file (§8, §9) and are not parked but closed, pending a measurement of
+  physical-LAN throughput (`PLAN.md` §5 item 4).
 - **A small dispatcher.** A Python service that renders `boot.ipxe` and
   `deploy.cmd` per machine instead of static `machines/` and `models/`
   directories. Pick up when hand-editing those directories is the main pain.

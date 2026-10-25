@@ -26,6 +26,11 @@ parked are in `DEFERRED.md`, not here.
 
 ## After that
 
+- [ ] The two-site spike of `REMOTE_SITES.md` §6: two `bin/lab-netns` sites,
+  a WireGuard tunnel to the host as origin, one image synced and `lint`ed per
+  site, one deploy per site, with the tunnel-down and stale-mirror controls.
+  Output: `spikes/<date>-two-sites/` and a `docs/SITE_APPLIANCE.md` runbook
+  (Tier A, zero code).
 - [ ] Per-user SSH keys for `Users` accounts (`SSH=on` serves the Administrators
   through `administrators_authorized_keys` only), and the reference-image
   check for `SSH=on`: two machines deployed from one captured image must show
