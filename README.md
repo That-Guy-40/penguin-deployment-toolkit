@@ -373,6 +373,10 @@ Secure Boot certificate in real firmware; `SSH=on` on a captured image
 - `TODO.md`: ordered next steps and open questions to spike.
 - `DEFERRED.md`: ideas deliberately parked, with the reason, so they are not
   rediscovered as gaps.
+- `REMOTE_SITES.md`: running the toolkit for sites you never visit, over
+  Tailscale or a VPN: what must stay on the LAN, the appliance-per-site design
+  in two tiers, how to prove it with two `lab-netns` sites, and why multicast
+  and BITS are not the answer.
 - `docs/HOW_IT_WORKS.md`: a ground-up tour for newcomers.
 - `docs/CONTROL_POINTS.md`: every point where an admin controls what a
   machine gets (image, scripts, users, apps), the file that carries it, and
