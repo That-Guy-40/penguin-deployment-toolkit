@@ -1,15 +1,17 @@
 @echo off
 rem 40-drivers - optional: inject a driver pack into the applied image.
 rem DRIVERS=<name> (usually from models/<slug>.cfg) names
-rem http/drivers/<name>.wim, made by bin/pack-drivers.
+rem http/drivers/<name>.wim, made by bin/pack-drivers; verified against its
+rem sidecar before DISM sees it (ts/verified.cmd).
 setlocal EnableExtensions EnableDelayedExpansion
 call X:\pdt\env.cmd
 if not defined DRIVERS (>%PDT%\step.msg echo skipped: no DRIVERS set& exit /b 0)
-%CURL% -f -o W:\drivers.wim "%SRV%/drivers/%DRIVERS%.wim" || exit /b !errorlevel!
+call %PDT%\verified.cmd drivers/%DRIVERS%.wim drivers/%DRIVERS%.json W:\drivers.wim || exit /b !errorlevel!
 if not exist W:\Drivers mkdir W:\Drivers
 dism /apply-image /imagefile:W:\drivers.wim /index:1 /applydir:W:\Drivers /scratchdir:W:\Scratch /logpath:%DISMLOG% || exit /b !errorlevel!
 dism /image:W:\ /add-driver /driver:W:\Drivers /recurse /scratchdir:W:\Scratch /logpath:%DISMLOG%
 set RC=!errorlevel!
+if "!RC!"=="0" copy /y %PDT%\verified.msg %PDT%\step.msg >nul
 rmdir /s /q W:\Drivers
 del W:\drivers.wim
 exit /b %RC%

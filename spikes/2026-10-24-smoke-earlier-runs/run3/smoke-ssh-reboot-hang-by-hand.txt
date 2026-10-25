@@ -1,0 +1,41 @@
+CPU#0?
+RIP=000000007bfe35d3 RFL=00000093 [--S-A-C] CPL=0 II=0 A20=1 SMM=0 HLT=0?
+CPU#1?
+RIP=000000007bfeb951 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1?
+CPU#2?
+RIP=000000007bfeb951 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1?
+CPU#3?
+RIP=000000007bfeb951 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1?
+--- 2 s later
+CPU#0?
+RIP=000000007bfe35d3 RFL=00000093 [--S-A-C] CPL=0 II=0 A20=1 SMM=0 HLT=0?
+CPU#1?
+RIP=000000007bfeb951 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1?
+CPU#2?
+RIP=000000007bfeb951 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1?
+CPU#3?
+RIP=000000007bfeb951 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1?
+--- usb
+  Device 0.1, Port 1, Speed 5000 Mb/s, Product QEMU USB MSD?
+--- pci xhci
+      dev: qemu-xhci, id "xhci"?
+        msi = "off"?
+        msix = "auto"?
+        conditional-intr-mapping = false?
+--
+        bus: xhci.0?
+          type usb-bus?
+          dev: usb-storage, id ""?
+            drive = ""?
+            backend_defaults = "auto"?
+            logical_block_size = 0 (0 B)?
+0x7bfe35c0: Asm output not supported on this arch?
+  000000007c000000-000000007fffffff (prio 1, i/o): tseg-blackhole?
+$ system_reset at 21:17:30: no serial output, disk unchanged 20 s later; display:
+VM smoke-ssh stopped
+VM smoke-ssh running: pid 178510, nic e1000e, boot disk then network, monitor 127.0.0.1:7001
+id for bin/status and bin/await: c4c52b1d-4098-4ae2-81ea-587674977cf1
+$ bin/await smoke-ssh deployed 900   (after vm-stop --force + vm-boot at 21:17:43)
+await: 2026-10-24T21:19:24-04:00 deployed ok
+rc=0
+released the driver at 21:19:24

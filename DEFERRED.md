@@ -65,7 +65,16 @@ Each of these is designed far enough to start the day it is needed. Written
 2026-10-19; nothing below has run. Tags as in `docs/REMOTE_VISIBILITY.md`:
 **[read]** from documentation or source, **[unknown]** nobody has checked.
 
-### A text frame log of the WinPE console: `pdt-console` (spike)
+### ~~A text frame log of the WinPE console: `pdt-console` (spike)~~ **Done 2026-10-24**
+
+*(Built as designed below, with three differences found on the way: WinPE
+titles the window `Administrator:  pdt-deploy`, so the tool matches a
+substring, not a prefix; a frame is taken on every pass of `shell-loop.cmd`
+(2 s), and uploaded only when it changed; and the frame shows the runner's
+lines, not a step's output, which goes to `ts.log`, so DISM's percentage is
+in `bin/logs`, not in the frame. `bin/keys` rides on `bin/shell` with the
+text as hex instead of a second channel. Evidence: `spikes/2026-10-24-verified-packs-console-bootorder/`;
+`docs/REMOTE_VISIBILITY.md` §4. The design record:)*
 
 **The gap.** `bin/screen` is a picture of the machine, 3 MB of BMP every
 5 s. It answers "what is on the screen" but not "what did it say ten
@@ -193,7 +202,7 @@ gets `RDP=on` so it stays verified.
 | key | file | meaning |
 |---|---|---|
 | `SSH` | `on` (or absent) | OpenSSH Server at first logon, key-only, with PowerShell as the login shell and the `powershell` subsystem for remoting. Beacon `ssh ok port=22 shell=pwsh keys=N` |
-| `SSHKEYS` | an `authorized_keys` file | required when `SSH=on` (`lint`: passwords are off, so a role with no keys would lock everyone out). Public keys, so serving them in clear is fine. Installed as `C:\ProgramData\ssh\administrators_authorized_keys` with the ACL `sshd` insists on: `icacls … /inheritance:r /grant "Administrators:F" /grant "SYSTEM:F"`. Any `USERS` administrator can then log in; per-user keys for `Users` accounts come later with `users.ps1` |
+| `SSHKEYS` | an `authorized_keys` file | required when `SSH=on` (`lint`: passwords are off, so a role with no keys would lock everyone out). Public keys, so serving them in clear is fine. Installed as `C:\ProgramData\ssh\administrators_authorized_keys` with the ACL `sshd` insists on: `icacls … /inheritance:r /grant "Administrators:F" /grant "SYSTEM:F"`. Any `USERS` administrator can then log in; per-user keys for `Users` accounts: `keys=<file>` in `users.txt`, done 2026-10-24 |
 
 What the block does, in order **[read: Microsoft's OpenSSH server pages and
 the Win32-OpenSSH wiki]**:
@@ -224,7 +233,9 @@ the Win32-OpenSSH wiki]**:
    Negative control: the same `ssh` with no key is refused, and a password
    is never asked for.
 
-**The reference-image trap**, the one part that is not just a template
+**The reference-image trap** *(verified 2026-10-24: two machines from one
+captured image, three different host keys counting the reference's;
+`spikes/2026-10-24-verified-packs-console-bootorder/`)*, the one part that is not just a template
 copy: a `REFERENCE=yes` machine with `SSH=on` has host keys under
 `C:\ProgramData\ssh\ssh_host_*`, and sysprep does not touch them, so every
 machine from the image would share them. `prepare-capture.cmd` deletes them

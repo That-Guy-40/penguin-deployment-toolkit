@@ -1,0 +1,2 @@
+PASS     lint self-test: 59/59 injected defects were reported as FAIL
+205 PASS, 0 FAIL, 0 UNKNOWN   (-v lists every row)

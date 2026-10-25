@@ -1,0 +1,24 @@
+20:43:40 +    0s  smoke: output in /home/sqs/scripts/Windows-install-via-Linux/spikes/2026-10-24-smoke
+20:43:41 +    1s  preflight: build-tools check, lint, lab keys
+20:43:41 +    1s  PASS  [tools] every served binary is the one built-tools recorded (pdt-sha256, pdt-screen, pdt-console, openssl)  (build-tools-check.out)
+20:43:41 +    1s  PASS  [roles] lab keys written into every role with SSH=on (fetch-tools keys)  (keys.out)
+20:43:44 +    4s  PASS  [lint] bin/lint passes with the two demo roles and no lab VMs  (227 PASS, 0 FAIL, 0 UNKNOWN   (-v lists every row))
+20:43:44 +    4s  create: smoke-ssh (demo-ssh, AHCI disk + USB stick, STOP_AFTER=25-download) and smoke-rdp (demo-rdp, virtio disk + SD card, UPDATES=lcu)
+20:43:44 +    4s  media: formatting the USB stick and the SD card, writing the markers
+20:43:45 +    5s  PASS  [media] marker files written to the USB stick and the SD card images before boot  (media-prep.out)
+20:43:45 +    5s  boot: smoke-ssh (host 2224 -> 22, 3392 -> 3389), smoke-rdp (host 3391 -> 3389, 2225 -> 22)
+20:44:30 +   50s  shot: shots/smoke-ssh-204430-pxe-winpe.png
+20:44:30 +   50s  shot: shots/smoke-rdp-204430-pxe-winpe.png
+20:44:30 +   50s  waiting for smoke-ssh to stop after 25-download
+20:44:40 +   60s  PASS  [sequence] smoke-ssh stopped at the WinPE prompt after 25-download (STOP_AFTER)  (  2026-10-24T20:44:40-04:00  +   46.7s  (+   0.2s)  stop        ok    after=25-download)
+20:44:40 +   60s  shot: shots/smoke-ssh-204440-stopped-prompt.png
+20:44:40 +   60s  pushed screen of smoke-ssh saved (stopped-prompt)
+20:44:40 +   60s  shot: shots/smoke-rdp-204440-while-A-stopped.png
+20:44:41 +   61s  PASS  [console] the deploy window's text frame shows the stop (pdt-console.exe dump, bin/console)  (smoke-ssh-console-at-stop.txt)
+20:44:41 +   61s  PASS  [verify] 25-download on smoke-ssh: the image's SHA-256 matches images/base.json (pdt-sha256 on the machine)  (sha256 0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279 matches images/base.json)
+20:44:41 +   61s  on smoke-ssh: hashes by hand (bin/shell)
+20:44:45 +   65s  PASS  [tools] pdt-sha256.exe on smoke-ssh hashes itself to the hash built-tools recorded  (cd0965834efb92c03499bc327ca7e6ed72c6e10176c53bea13a411bda1356aa0)
+20:44:47 +   67s  PASS  [tools] curl on smoke-ssh fetched openssl.exe and pdt-sha256 gives the recorded hash  (5384210784f5a4182192316bba6d2b0a0381f65ed8e0e6ea6067c889354f687c)
+20:44:58 +   78s  PASS  [verify] openssl dgst -sha256 on smoke-ssh agrees with the sidecar for the 3.5 GB image (the second opinion)  (0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279)
+20:45:10 +   90s  PASS  [verify] pdt-sha256 --check on smoke-ssh: image against the sidecar 25-download saved  (exit 0 = matches)
+20:45:15 +   95s  PASS  [verify] verified.cmd on smoke-ssh with a truthful sidecar: exit 0, the file kept  (rc=0 kept=0)

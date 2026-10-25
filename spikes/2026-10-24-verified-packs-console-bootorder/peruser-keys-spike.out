@@ -1,0 +1,37 @@
+alice's lab key: ssh-ed25519 alice@lab
+### control before: alice with her key, nothing deployed for her yet
+alice@127.0.0.1: Permission denied (publickey).
+rc=255
+### on vf as admin: a central per-user keys file for alice and the AuthorizedKeysFile line
+C:\ProgramData\ssh\users\alice\authorized_keys WIN-8SIRS736369\alice:(R)
+                                               NT AUTHORITY\SYSTEM:(F)
+                                               BUILTIN\Administrators:(F)
+
+Successfully processed 1 files; Failed processing 0 files
+AuthorizedKeysFile .ssh/authorized_keys __PROGRAMDATA__/ssh/users/%u/authorized_keys
+       AuthorizedKeysFile __PROGRAMDATA__/ssh/administrators_authorized_keys
+sshd restarted
+rc=0
+### alice with her key
+win-8sirs736369\alice
+c:\program files\powershell\7\pwsh.exe
+rc=0
+### control: alice with the admins' key
+alice@127.0.0.1: Permission denied (publickey).
+rc=255
+### control: admin with alice's key
+admin@127.0.0.1: Permission denied (publickey).
+rc=255
+### control: a user that does not exist, with alice's key
+bob@127.0.0.1: Permission denied (publickey).
+rc=255
+### admin still works
+win-8sirs736369\admin
+rc=0
+### what sshd logged for alice (if the log exists)
+sshd-session: Accepted publickey for admin from 10.0.2.2 port 41098 ssh2: ED25519 SHA256:hRehewhyaZ4wy6d6L/jmEgKkWpGRugs/KlBjHNQl3NU
+sshd-session: Accepted publickey for admin from 10.0.2.2 port 41082 ssh2: ED25519 SHA256:hRehewhyaZ4wy6d6L/jmEgKkWpGRugs/KlBjHNQl3NU
+sshd-session: user: alice: Connection closed by authenticating user alice 10.0.2.2 port 41052 [preauth]
+sshd-session: user: alice: Disconnected from 10.0.2.2 port 41044 [postauth]
+sshd-session: user: alice: Received disconnect from 10.0.2.2 port 41044:11: disconnected by user [postauth]
+sshd-session: Accepted publickey for alice from 10.0.2.2 port 41044 ssh2: ED25519 SHA256:wFxfxf7a+v6R4hfaWC65IT7wuwBoJtcm5IyXy7g3HZg

@@ -1,0 +1,5 @@
+# name|group|policy[|keys=<file>]  (../README.md). authorized_keys and carol.pub
+# are written by bin/fetch-tools keys and are not in git.
+deploy|Administrators|random
+ops|Administrators|random
+carol|Users|random|keys=carol.pub

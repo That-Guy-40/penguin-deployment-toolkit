@@ -1,0 +1,79 @@
+
+$ media_read /home/sqs/scripts/Windows-install-via-Linux/vms/smoke-ssh/usb.qcow2
+pdt smoke marker: smoke-ssh usb stick 2026-10-24T21:32:53-04:00
+rc=0
+
+$ media_read /home/sqs/scripts/Windows-install-via-Linux/vms/smoke-rdp/sd.qcow2
+pdt smoke marker: smoke-rdp sd card 2026-10-24T21:32:53-04:00
+rc=0
+
+$ sh -c qemu-img info '/home/sqs/scripts/Windows-install-via-Linux/vms/smoke-ssh/usb.qcow2'; qemu-img info '/home/sqs/scripts/Windows-install-via-Linux/vms/smoke-rdp/sd.qcow2'; qemu-img info '/home/sqs/scripts/Windows-install-via-Linux/vms/smoke-ssh/disk.qcow2'; qemu-img info '/home/sqs/scripts/Windows-install-via-Linux/vms/smoke-rdp/disk.qcow2'
+image: /home/sqs/scripts/Windows-install-via-Linux/vms/smoke-ssh/usb.qcow2
+file format: qcow2
+virtual size: 8 GiB (8589934592 bytes)
+disk size: 584 KiB
+cluster_size: 65536
+Format specific information:
+    compat: 1.1
+    compression type: zlib
+    lazy refcounts: false
+    refcount bits: 16
+    corrupt: false
+    extended l2: false
+Child node '/file':
+    filename: /home/sqs/scripts/Windows-install-via-Linux/vms/smoke-ssh/usb.qcow2
+    protocol type: file
+    file length: 640 KiB (655360 bytes)
+    disk size: 584 KiB
+image: /home/sqs/scripts/Windows-install-via-Linux/vms/smoke-rdp/sd.qcow2
+file format: qcow2
+virtual size: 8 GiB (8589934592 bytes)
+disk size: 584 KiB
+cluster_size: 65536
+Format specific information:
+    compat: 1.1
+    compression type: zlib
+    lazy refcounts: false
+    refcount bits: 16
+    corrupt: false
+    extended l2: false
+Child node '/file':
+    filename: /home/sqs/scripts/Windows-install-via-Linux/vms/smoke-rdp/sd.qcow2
+    protocol type: file
+    file length: 640 KiB (655360 bytes)
+    disk size: 584 KiB
+image: /home/sqs/scripts/Windows-install-via-Linux/vms/smoke-ssh/disk.qcow2
+file format: qcow2
+virtual size: 64 GiB (68719476736 bytes)
+disk size: 38.8 GiB
+cluster_size: 65536
+Format specific information:
+    compat: 1.1
+    compression type: zlib
+    lazy refcounts: false
+    refcount bits: 16
+    corrupt: false
+    extended l2: false
+Child node '/file':
+    filename: /home/sqs/scripts/Windows-install-via-Linux/vms/smoke-ssh/disk.qcow2
+    protocol type: file
+    file length: 38.8 GiB (41648193536 bytes)
+    disk size: 38.8 GiB
+image: /home/sqs/scripts/Windows-install-via-Linux/vms/smoke-rdp/disk.qcow2
+file format: qcow2
+virtual size: 64 GiB (68719476736 bytes)
+disk size: 37.7 GiB
+cluster_size: 65536
+Format specific information:
+    compat: 1.1
+    compression type: zlib
+    lazy refcounts: false
+    refcount bits: 16
+    corrupt: false
+    extended l2: false
+Child node '/file':
+    filename: /home/sqs/scripts/Windows-install-via-Linux/vms/smoke-rdp/disk.qcow2
+    protocol type: file
+    file length: 37.7 GiB (40473853952 bytes)
+    disk size: 37.7 GiB
+rc=0

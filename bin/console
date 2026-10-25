@@ -1,0 +1,101 @@
+#!/usr/bin/env python3
+"""console - the text frames a machine's deploy window pushed (ts/shell-loop.cmd +
+tools/pdt-console.exe: one frame per change, every 2 s at most).
+
+  console <id|vm-name>                     the latest frame
+  console <id|vm-name> --watch             print each new frame as it arrives
+  console <id|vm-name> --frames            list the frames of the run, with times
+  console <id|vm-name> --diff              consecutive frames as unified diffs
+  console <id|vm-name> --await TEXT [--timeout N]
+                                           wait until the latest frame contains TEXT
+                                           (exit 0), or N seconds pass (exit 2, default 300)
+
+What bin/screen is as a picture, this is as text: diffable, greppable, and
+something a script can wait on. The frame's first line says the buffer size,
+the cursor and the window title (cmd appends the running command to it).
+Exit 1 if the machine has pushed no frame in its current run.
+"""
+import argparse
+import difflib
+import glob
+import os
+import re
+import sys
+import time
+
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
+import _pdt
+
+
+def frame_no(path):
+    m = re.search(r"console-(\d+)\.txt$", path)
+    return int(m.group(1)) if m else 0
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("machine")
+    ap.add_argument("--watch", action="store_true")
+    ap.add_argument("--frames", action="store_true")
+    ap.add_argument("--diff", action="store_true")
+    ap.add_argument("--await", dest="await_text", metavar="TEXT")
+    ap.add_argument("--timeout", type=float, default=300)
+    a = ap.parse_args()
+    p = _pdt.paths()
+    events = _pdt.all_events()
+    mid = _pdt.resolve_id(a.machine, events)
+    runs = [e["run"] for e in events if e["id"] == mid and e.get("run")]
+    if not runs:
+        _pdt.die(f"{mid}: no run known", 1)
+    d = os.path.join(p["HTTP_DIR"], "uploads", mid, runs[-1])
+    latest = os.path.join(d, "console.txt")
+    name = _pdt.vm_names().get(mid, mid[:8])
+    hint = f"{name}: no console frame in run {runs[-1]} (is the machine in WinPE with tools/pdt-console.exe built?)"
+
+    if a.frames or a.diff:
+        frames = sorted(glob.glob(os.path.join(d, "console-*.txt")), key=frame_no)
+        if not frames:
+            _pdt.die(hint, 1)
+        prev = None
+        for f in frames:
+            t = time.strftime("%H:%M:%S", time.localtime(os.path.getmtime(f)))
+            if a.frames:
+                head = open(f, errors="replace").readline().strip()
+                print(f"{frame_no(f):4d}  {t}  {os.path.getsize(f):6d} B  {head}")
+            else:
+                cur = open(f, errors="replace").read().splitlines()
+                if prev is not None:
+                    sys.stdout.writelines(l + "\n" for l in difflib.unified_diff(prev, cur, f"frame {frame_no(f) - 1}", f"frame {frame_no(f)} {t}", lineterm="", n=1))
+                else:
+                    print(f"--- frame {frame_no(f)} {t}")
+                    print("\n".join(cur))
+                prev = cur
+        return 0
+
+    deadline = time.time() + a.timeout
+    last = None
+    while True:
+        if os.path.exists(latest):
+            st = os.stat(latest)
+            if st.st_mtime != last:
+                body = open(latest, errors="replace").read()
+                last = st.st_mtime
+                if a.await_text:
+                    if a.await_text in body:
+                        print(f"{name}: frame of {time.strftime('%H:%M:%S', time.localtime(st.st_mtime))} contains {a.await_text!r}")
+                        return 0
+                else:
+                    print(f"=== {name}  {_pdt.age(time.time() - st.st_mtime)} old")
+                    sys.stdout.write(body)
+                    sys.stdout.flush()
+        elif not a.watch and not a.await_text:
+            _pdt.die(hint, 1)
+        if not a.watch and not a.await_text:
+            return 0
+        if a.await_text and time.time() > deadline:
+            print(f"timeout after {a.timeout:.0f} s: no frame of {name} contains {a.await_text!r}", file=sys.stderr)
+            return 2
+        time.sleep(1)
+
+
+sys.exit(main())

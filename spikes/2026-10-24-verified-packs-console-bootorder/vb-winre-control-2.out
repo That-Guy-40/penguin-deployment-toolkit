@@ -1,0 +1,12 @@
+### vb: refetch step.cmd (the wrapper fix), then the winre control again
+
+---------- X:\PDT\STEP.CMD
+cmd /v:on /c "%PDT%\steps\%STEP%.cmd & exit !errorlevel!" >>%LOG% 2>&1
+[pdt] 45-winre ...
+[pdt] step 45-winre FAILED (rc=1). images/lab-apps.winre.wim does not match the sha256 in images/lab-apps.winre.json: download deleted
+[pdt] log: X:\pdt\ts.log   re-run it visibly: X:\pdt\steps\45-winre.cmd
+step rc=0
+R:\Recovery\WindowsRE\Winre.wim not there
+restored: 1f9ee125ccc278ad…
+  2026-10-24T18:37:05-04:00  +  806.3s  (+ 456.0s)  45-winre    start 
+  2026-10-24T18:37:09-04:00  +  810.9s  (+   4.6s)  45-winre    fail  rc=1 msg=images/lab-apps.winre.wim does not match the sha256 in images/lab-apps.winre.json: download deleted

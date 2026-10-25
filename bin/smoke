@@ -1,0 +1,477 @@
+#!/bin/bash
+# smoke - the whole toolkit end to end, on two lab VMs at once, with the
+# evidence kept: a functional test of every layer, and a demo.
+#
+#   smoke [--out <dir>] [--keep] [--no-updates]
+#
+# Two VMs are created, booted within seconds of each other, and deployed side
+# by side; everything they report, push and show is checked and kept:
+#
+#   smoke-ssh  role demo-ssh (key-only SSH: ops with the lab key, carol with her
+#              own; no RDP), one 64 GB AHCI disk, an 8 GB USB stick carrying a
+#              marker file, STOP_AFTER=25-download: it waits at the WinPE prompt
+#              while the hashes are checked on the machine by hand (pdt-sha256,
+#              openssl, curl, verified.cmd with a lying sidecar as the control),
+#              then bin/keys types "deploy 30" into its window
+#   smoke-rdp  role demo-rdp (Remote Desktop for helpdesk and bob, 7-Zip from
+#              winget, the deploy account removed; no SSH), a virtio disk and NIC
+#              with the virtio-w11 driver pack, an 8 GB SD card carrying a marker
+#              file; runs straight through
+# Both get the update pack (UPDATES=lcu): two DISM update passes at once.
+#
+# Checked, each as a PASS/FAIL row (controls are rows that must FAIL to pass):
+# lint and the built tools; the disk guard listing the removable media and
+# choosing the one fixed disk; every large download verified against its
+# sidecar (image, updates, drivers, winre); the console frames and typed keys;
+# the role layers (users, keys, RDP, SSH, apps, fast startup, deploy removal);
+# SSH logins (and refusals) from this host; RDP credentials (and refusals)
+# with xfreerdp; the markers on the USB stick and SD card untouched; the
+# installed build when updates were applied. Screenshots (QEMU screendumps
+# and the screens the machines pushed), console frames, timelines and every
+# upload land in the output directory with report.md.
+#
+#   --out <dir>    where the evidence goes (default spikes/<date>-smoke)
+#   --keep         leave the two VMs in place (default: purged at the end)
+#   --no-updates   no UPDATES= on either machine (saves ~13 minutes)
+#
+# A guest that hangs at its reboot out of WinPE (TODO.md: a QEMU 10.2 / OVMF
+# hang seen a few times, one vCPU spinning just below TSEG, no serial output)
+# is detected (no specialize within 5 minutes of ts-done), its registers
+# recorded, and it is force-stopped and booted again from its disk; the row
+# is a FAIL (the hang is real) and the rest of the run goes on.
+#
+# Exit 0 only if every row passed AND at least one control fired; an all-PASS
+# run in which no control fired is indistinguishable from one that checks
+# nothing, and exits 1. Takes 25-35 minutes on this host with the updates.
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+# lib.sh sets -e; this script records failures (and expects the controls to
+# fail) instead of dying on them. Found the hard way: the first full run died
+# silently at the first control, bin/shell returning the 1 it was meant to.
+set +e
+need qemu-img sfdisk mkfs.vfat mcopy mtype xfreerdp ssh ssh-keyscan ssh-keygen sha256sum python3 timeout socat ss
+
+BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+A=smoke-ssh B=smoke-rdp
+A_SSH=2224 A_RDP=3392 B_RDP=3391 B_SSH=2225
+UPDATES=lcu DRIVERS=virtio-w11
+OUT="" KEEP=0
+while (( $# )); do
+    case "$1" in
+        --out)   OUT="${2:?}"; shift 2 ;;
+        --keep)  KEEP=1; shift ;;
+        --no-updates) UPDATES=""; shift ;;
+        -h|--help) sed -n '2,38p' "$0"; exit 0 ;;
+        *) die "unknown argument: $1 (try --help)" ;;
+    esac
+done
+OUT="${OUT:-$PDT_ROOT/spikes/$(date +%F)-smoke}"
+[[ "$OUT" == /* ]] || OUT="$PWD/$OUT"
+[[ ! -e "$OUT" ]] || [[ -z "$(ls -A "$OUT")" ]] || die "$OUT exists and is not empty: the evidence files are appended to, so a second run would mix with the first (--out <dir>)"
+mkdir -p "$OUT/shots" "$OUT/uploads"
+
+# ---------------------------------------------------------------- bookkeeping
+T0=$(date +%s)
+stamp() { printf '%s +%5ds' "$(date +%T)" $(( $(date +%s) - T0 )); }
+log() { echo "$(stamp)  $*" | tee -a "$OUT/smoke.log"; }
+# run <file> <cmd...>: run a command, append "$ cmd", its output and rc to $OUT/<file>; return its rc.
+run() {
+    local f="$OUT/$1" rc; shift
+    { echo; echo "\$ $*"; } >>"$f"
+    "$@" >>"$f" 2>&1; rc=$?
+    echo "rc=$rc" >>"$f"
+    return $rc
+}
+ROWS=() NPASS=0 NFAIL=0 NCTRL=0 NUNK=0
+row() { ROWS+=("| $1 | $2 | $3 | $4 |"); log "$1  [$2] $3  ($4)"; }
+# check <layer> <what> ok|fail <rc> <evidence>: ok = the rc must be 0; fail = a control, the rc must NOT be 0.
+check() {
+    local layer="$1" what="$2" expect="$3" rc="$4" ev="$5"
+    if [[ "$expect" == ok ]]; then
+        if (( rc == 0 )); then row PASS "$layer" "$what" "$ev"; NPASS=$((NPASS + 1))
+        else row FAIL "$layer" "$what" "rc=$rc; $ev"; NFAIL=$((NFAIL + 1)); fi
+    else
+        if (( rc != 0 )); then row "PASS (control fired, rc=$rc)" "$layer" "$what" "$ev"; NCTRL=$((NCTRL + 1))
+        else row "FAIL (control did not fire)" "$layer" "$what" "$ev"; NFAIL=$((NFAIL + 1)); fi
+    fi
+}
+unknown() { row UNKNOWN "$1" "$2" "$3"; NUNK=$((NUNK + 1)); }
+shot() {   # shot <vm> <label>: a QEMU screendump into shots/
+    local f="$OUT/shots/$1-$(date +%H%M%S)-$2.png"
+    if "$BIN/vm-shot" "$1" "$f" >/dev/null 2>&1; then log "shot: ${f#$OUT/}"; else log "shot of $1 ($2) failed"; fi
+}
+pushed() {   # pushed <vm> <label>: the screen the machine itself pushed (tools/pdt-screen.exe), as png
+    local p
+    p="$("$BIN/screen" "$1" 2>/dev/null | awk '{ print $1 }')"
+    if [[ -n "$p" && -f "$p" ]]; then cp "$p" "$OUT/shots/$1-$(date +%H%M%S)-$2-pushed.png"; log "pushed screen of $1 saved ($2)"; else log "no pushed screen from $1 ($2)"; fi
+}
+# msg_of <vm> <step> [ev]: the msg= of the latest such event in the machine's timeline.
+msg_of() { "$BIN/status" "$1" 2>/dev/null | awk -v s="$2" -v e="${3:-ok}" '$0 ~ ("  " s " +" e " ") { l = $0 } END { if (l) { i = index(l, "msg="); if (i) print substr(l, i + 4) } }'; }
+# event_line <vm> <step> [ev]: the whole latest line of that event.
+event_line() { "$BIN/status" "$1" 2>/dev/null | awk -v s="$2" -v e="${3:-ok}" '$0 ~ ("  " s " +" e " ") { l = $0 } END { print l }'; }
+json_field() { python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))[sys.argv[2]])' "$1" "$2"; }
+vm_uuid() { ( vm_load "$1"; echo "$VM_UUID" ); }
+SSH_OPTS=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o LogLevel=ERROR)
+MON_PID=""
+cleanup() {
+    [[ -z "$MON_PID" ]] || kill "$MON_PID" 2>/dev/null
+    rm -rf "$HTTP_DIR/cmd/smoke"
+}
+trap cleanup EXIT
+
+log "smoke: output in $OUT"
+
+# ------------------------------------------------------------------ preflight
+for v in "$A" "$B"; do
+    [[ ! -e "$VMS_DIR/$v" ]] || die "VM $v already exists: bin/teardown --purge-vm $v --yes first"
+done
+for port in $A_SSH $A_RDP $B_RDP $B_SSH; do
+    ! ss -tln | grep -q ":$port " || die "host port $port is in use"
+done
+"$BIN/serve" status >/dev/null 2>&1 || die "nginx is not running: bin/serve start"
+for f in images/base.wim images/base.json images/base.winre.wim images/base.winre.json drivers/$DRIVERS.wim drivers/$DRIVERS.json tools/pdt-sha256.exe tools/openssl.exe tools/pdt-screen.exe tools/pdt-console.exe tools/built.json post/openssh/OpenSSH-Win64.msi post/winget/files.txt; do
+    [[ -f "$HTTP_DIR/$f" ]] || die "http/$f is missing (bin/stage-image, bin/build-tools, bin/fetch-tools ...)"
+done
+[[ -z "$UPDATES" || -f "$HTTP_DIR/updates/$UPDATES.wim" ]] || die "http/updates/$UPDATES.wim is missing (bin/pack-updates, or --no-updates)"
+[[ -d "$HTTP_DIR/winpe-drivers/virtio" ]] || die "http/winpe-drivers/virtio is missing (bin/fetch-tools virtio): smoke-rdp boots from a virtio disk"
+LAB_KEY=""
+for k in ~/.ssh/id_ed25519 ~/.ssh/id_ecdsa ~/.ssh/id_rsa; do [[ -f "$k" && -f "$k.pub" ]] && { LAB_KEY="$k"; break; }; done
+[[ -n "$LAB_KEY" ]] || die "no ~/.ssh/id_* key pair: SSH=on roles take its public half"
+
+log "preflight: build-tools check, lint, lab keys"
+run build-tools-check.out "$BIN/build-tools" check; check tools "every served binary is the one built-tools recorded (pdt-sha256, pdt-screen, pdt-console, openssl)" ok $? "build-tools-check.out"
+run keys.out "$BIN/fetch-tools" keys; check roles "lab keys written into every role with SSH=on (fetch-tools keys)" ok $? "keys.out"
+run lint.out "$BIN/lint"; check lint "bin/lint passes with the two demo roles and no lab VMs" ok $? "$(grep -E '^[0-9]+ PASS' "$OUT/lint.out" | tail -1)"
+[[ -f "$BUILD_DIR/lab-carol" ]] || die "build/lab-carol missing after fetch-tools keys"
+
+# Control sidecars for verified.cmd, served from http/cmd/smoke/ (git-ignored, removed at the end):
+# good.json describes tools/pdt-screen.exe truthfully, bad.json lies about its hash.
+SCREEN_SHA="$(sha256sum "$HTTP_DIR/tools/pdt-screen.exe" | cut -c1-64)"
+mkdir -p "$HTTP_DIR/cmd/smoke"
+printf '{"file": "pdt-screen.exe", "size": %s, "sha256": "%s"}\n' "$(stat -c %s "$HTTP_DIR/tools/pdt-screen.exe")" "$SCREEN_SHA" > "$HTTP_DIR/cmd/smoke/good.json"
+printf '{"file": "pdt-screen.exe", "size": %s, "sha256": "%s"}\n' "$(stat -c %s "$HTTP_DIR/tools/pdt-screen.exe")" "$(tr '0-9a-f' '1-9a-f0' <<<"$SCREEN_SHA")" > "$HTTP_DIR/cmd/smoke/bad.json"
+built_sha() { python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))[sys.argv[2]]["sha256"])' "$HTTP_DIR/tools/built.json" "$1"; }
+HASHER_SHA="$(built_sha pdt-sha256.exe)"
+OPENSSL_SHA="$(built_sha openssl.exe)"
+IMAGE_SHA="$(json_field "$HTTP_DIR/images/base.json" sha256)"
+WINRE_SHA="$(json_field "$HTTP_DIR/images/base.winre.json" sha256)"
+DRIVERS_SHA="$(json_field "$HTTP_DIR/drivers/$DRIVERS.json" sha256)"
+UPDATES_SHA=""; UPDATES_BUILD=""
+if [[ -n "$UPDATES" ]]; then UPDATES_SHA="$(json_field "$HTTP_DIR/updates/$UPDATES.json" sha256)"; UPDATES_BUILD="$(json_field "$HTTP_DIR/updates/$UPDATES.json" expect)"; fi
+
+# --------------------------------------------------------------------- create
+log "create: $A (demo-ssh, AHCI disk + USB stick, STOP_AFTER=25-download) and $B (demo-rdp, virtio disk + SD card)${UPDATES:+, both UPDATES=$UPDATES}"
+run create.out "$BIN/vm-create" "$A" --role demo-ssh --usb-disk 8G || die "vm-create $A failed (create.out)"
+run create.out "$BIN/vm-create" "$B" --role demo-rdp --sd-card 8G --disk virtio --nic virtio-net-pci --drivers "$DRIVERS" || die "vm-create $B failed (create.out)"
+A_ID="$(vm_uuid "$A")"; B_ID="$(vm_uuid "$B")"
+echo "STOP_AFTER=25-download" >> "$HTTP_DIR/machines/$A_ID.cfg"
+[[ -z "$UPDATES" ]] || for id in "$A_ID" "$B_ID"; do echo "UPDATES=$UPDATES" >> "$HTTP_DIR/machines/$id.cfg"; done
+{ echo; echo "# machines/$A_ID.cfg"; cat "$HTTP_DIR/machines/$A_ID.cfg"; echo; echo "# machines/$B_ID.cfg"; cat "$HTTP_DIR/machines/$B_ID.cfg"; } >> "$OUT/create.out"
+
+# The removable media: an MBR, one FAT32 partition from sector 2048, one marker
+# file each; built as a raw image with sfdisk, mkfs.vfat and mtools (no root,
+# no libguestfs appliance: this host's kernel is not readable by users, see
+# spikes/2026-10-20-libguestfs-hivex), converted into the qcow2 vm-create made.
+# Read back at the end the same way, after a qcow2 -> raw conversion.
+A_MARK="pdt smoke marker: $A usb stick $(date -Is)"
+B_MARK="pdt smoke marker: $B sd card $(date -Is)"
+TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"; cleanup' EXIT
+media_prep() {   # media_prep <qcow2> <marker text> <label>
+    local raw="$TMP/$(basename "$1" .qcow2).raw" size
+    size="$(qemu-img info --output=json "$1" | python3 -I -c 'import json,sys; print(json.load(sys.stdin)["virtual-size"])')"
+    rm -f "$raw"; truncate -s "$size" "$raw"
+    printf 'label: dos\nstart=2048, type=c\n' | sfdisk --quiet "$raw" || return 1
+    mkfs.vfat -F 32 -n "$3" --offset 2048 "$raw" || return 1
+    printf '%s\n' "$2" > "$TMP/marker.txt"
+    mcopy -i "$raw@@1048576" "$TMP/marker.txt" ::PDT-MARKER.txt || return 1
+    mtype -i "$raw@@1048576" ::PDT-MARKER.txt || return 1
+    qemu-img convert -f raw -O qcow2 "$raw" "$1" || return 1
+    rm -f "$raw"
+    qemu-img info "$1"
+}
+media_read() {   # media_read <qcow2>: the marker's text
+    local raw="$TMP/readback.raw"
+    qemu-img convert -f qcow2 -O raw "$1" "$raw" || return 1
+    mtype -i "$raw@@1048576" ::PDT-MARKER.txt | tr -d '\r'
+    rm -f "$raw"
+}
+log "media: formatting the USB stick and the SD card, writing the markers"
+run media-prep.out media_prep "$VMS_DIR/$A/usb.qcow2" "$A_MARK" PDTUSB || die "could not prepare the USB stick image (media-prep.out); the VMs are left for inspection: bin/teardown --purge-vm $A --yes, likewise $B"
+run media-prep.out media_prep "$VMS_DIR/$B/sd.qcow2" "$B_MARK" PDTSD || die "could not prepare the SD card image (media-prep.out); the VMs are left: bin/teardown --purge-vm $A --yes, likewise $B"
+run media-prep.out media_read "$VMS_DIR/$A/usb.qcow2"
+run media-prep.out media_read "$VMS_DIR/$B/sd.qcow2"
+[[ "$(media_read "$VMS_DIR/$A/usb.qcow2")" == "$A_MARK" && "$(media_read "$VMS_DIR/$B/sd.qcow2")" == "$B_MARK" ]]
+check media "marker files written to the USB stick and the SD card images before boot" ok $? "media-prep.out"
+
+# ----------------------------------------------------------------------- boot
+log "boot: $A (host $A_SSH -> 22, $A_RDP -> 3389), $B (host $B_RDP -> 3389, $B_SSH -> 22)"
+run boot.out "$BIN/vm-boot" "$A" --fwd "$A_SSH:22,$A_RDP:3389" || die "vm-boot $A failed (boot.out)"
+run boot.out "$BIN/vm-boot" "$B" --fwd "$B_RDP:3389,$B_SSH:22" || die "vm-boot $B failed (boot.out)"
+BOOT_T=$(date +%s)
+# The monitor: bin/status every 20 s into status.log, for as long as this runs.
+( while :; do { echo "=== $(date -Is)"; "$BIN/status" 2>&1; } >> "$OUT/status.log"; sleep 20; done ) &
+MON_PID=$!
+sleep 45; shot "$A" pxe-winpe; shot "$B" pxe-winpe
+
+# ------------------------------------------------------------- WinPE, by hand
+log "waiting for $A to stop after 25-download"
+run await.out "$BIN/await" "$A" stop 900; rc=$?
+check sequence "$A stopped at the WinPE prompt after 25-download (STOP_AFTER)" ok $rc "$(event_line "$A" stop)"
+(( rc == 0 )) || die "$A did not stop as configured; see await.out and bin/status $A"
+shot "$A" stopped-prompt; pushed "$A" stopped-prompt; shot "$B" while-A-stopped
+# The frame follows the beacon by a loop pass and an upload (2-4 s): wait for it.
+"$BIN/console" "$A" --await "stopped after 25-download" --timeout 60 > /dev/null 2>&1; rc=$?
+"$BIN/console" "$A" > "$OUT/$A-console-at-stop.txt" 2>&1
+check console "the deploy window's text frame shows the stop within 60 s of the beacon (pdt-console.exe dump, bin/console --await)" ok $rc "$A-console-at-stop.txt"
+grep -q "sha256 $IMAGE_SHA matches images/base.json" <<<"$(msg_of "$A" 25-download)"; check verify "25-download on $A: the image's SHA-256 matches images/base.json (pdt-sha256 on the machine)" ok $? "$(msg_of "$A" 25-download)"
+
+H="hash-on-machine.out"
+log "on $A: hashes by hand (bin/shell)"
+run $H "$BIN/shell" "$A" 'type X:\pdt\verified.msg & type X:\pdt\image.verified & dir W:\'
+run $H "$BIN/shell" "$A" 'X:\pdt\pdt-sha256.exe X:\pdt\pdt-sha256.exe'
+grep -q "^$HASHER_SHA  X:" "$OUT/$H"; check tools "pdt-sha256.exe on $A hashes itself to the hash built-tools recorded" ok $? "$HASHER_SHA"
+run $H "$BIN/shell" "$A" '%CURL% -f -o %PDT%\openssl.exe "%SRV%/tools/openssl.exe" && X:\pdt\pdt-sha256.exe X:\pdt\openssl.exe' --timeout 120
+grep -q "^$OPENSSL_SHA  X:" "$OUT/$H"; check tools "curl on $A fetched openssl.exe and pdt-sha256 gives the recorded hash" ok $? "$OPENSSL_SHA"
+run $H "$BIN/shell" "$A" 'X:\pdt\openssl.exe version -a'
+run $H "$BIN/shell" "$A" 'X:\pdt\openssl.exe dgst -sha256 W:\image.wim' --timeout 180
+grep -qi "SHA2-256(W:\\\\image.wim)= $IMAGE_SHA" "$OUT/$H"; check verify "openssl dgst -sha256 on $A agrees with the sidecar for the 3.5 GB image (the second opinion)" ok $? "$IMAGE_SHA"
+run $H "$BIN/shell" "$A" 'X:\pdt\pdt-sha256.exe --check X:\pdt\images-base.json W:\image.wim' --timeout 180; check verify "pdt-sha256 --check on $A: image against the sidecar 25-download saved" ok $? "exit 0 = matches"
+run $H "$BIN/shell" "$A" 'cmd /v:on /c "call X:\pdt\verified.cmd tools/pdt-screen.exe cmd/smoke/good.json X:\pdt\ctl-good.exe & exit !errorlevel!"' --timeout 120; rc=$?
+run $H "$BIN/shell" "$A" 'if exist X:\pdt\ctl-good.exe (echo ctl-good.exe kept& exit /b 0) else (echo ctl-good.exe MISSING& exit /b 1)'; rc2=$?
+check verify "verified.cmd on $A with a truthful sidecar: exit 0, the file kept" ok $(( rc == 0 && rc2 == 0 ? 0 : 1 )) "rc=$rc kept=$rc2"
+run $H "$BIN/shell" "$A" 'cmd /v:on /c "call X:\pdt\verified.cmd tools/pdt-screen.exe cmd/smoke/bad.json X:\pdt\ctl-bad.exe & exit !errorlevel!"' --timeout 120; rc=$?
+run $H "$BIN/shell" "$A" 'type X:\pdt\step.msg & if exist X:\pdt\ctl-bad.exe (echo ctl-bad.exe STILL THERE& exit /b 1) else (echo ctl-bad.exe deleted& exit /b 0)'; rc2=$?
+check verify "CONTROL: verified.cmd on $A with a lying sidecar must fail and delete the download" fail $(( rc != 0 && rc2 == 0 ? 1 : 0 )) "verified.cmd rc=$rc, deleted=$([[ $rc2 == 0 ]] && echo yes || echo NO); $(tail -3 "$OUT/$H" | grep -m1 'does not match' || echo 'no step.msg line')"
+run $H "$BIN/shell" "$A" 'type X:\pdt\ts.log | find "|"'
+A_GUARD="$(msg_of "$A" 17-diskguard)"
+# disks.js gives the first reason that applies: a stick is "removable media" before it is "on USB".
+grep -qE "not eligible: (removable media|on USB)" "$OUT/$H" && [[ "$A_GUARD" == "disk 0:"*"of 2 (the only fixed disk)" ]]
+check diskguard "17-diskguard on $A listed the USB stick as not eligible (removable media / on USB) and chose the one fixed disk" ok $? "$A_GUARD; $(grep -m1 -E 'not eligible' "$OUT/$H")"
+shot "$A" after-hand-checks
+
+log "typing 'deploy 30' into $A's deploy window (bin/keys)"
+run keys-typed.out "$BIN/keys" "$A" 'deploy 30{enter}'; rc=$?
+run keys-typed.out "$BIN/console" "$A" --await "30-apply" --timeout 180; rc2=$?
+check console "bin/keys resumed $A (deploy 30) and the next frame shows 30-apply" ok $(( rc == 0 && rc2 == 0 ? 0 : 1 )) "keys rc=$rc, console --await rc=$rc2"
+sleep 20; shot "$A" applying; shot "$B" applying; pushed "$B" applying
+
+# ----------------------------------------------------------- the two deploys
+# deploy_watch <vm> <seconds> <fwd>: wait for deployed, but notice a guest that
+# never comes back from its reboot out of WinPE (ts-done, then no specialize
+# within 5 min): record QEMU's view of it, force-stop it, boot it again from
+# its disk (the install is on it; vars.fd is kept once the disk has data) and
+# keep waiting. Exit: 0 deployed, 1 a step failed, 2 timeout; writes
+# <vm>-reboot-hang.txt when it had to recover one.
+deploy_watch() {
+    local v="$1" end=$(( $(date +%s) + $2 )) fwd="$3" rc f="$OUT/$1-reboot-hang.txt"
+    "$BIN/await" "$v" ts-done "$2" >> "$OUT/await.out" 2>&1 || return $?
+    if ! "$BIN/await" "$v" specialize 300 >> "$OUT/await.out" 2>&1; then
+        {
+            echo "ts-done at $(event_line "$v" ts-done | awk '{ print $1 }'), no specialize within 300 s; QEMU at $(date -Is):"
+            vm_monitor "$v" "info status"; vm_monitor "$v" "info registers -a" | grep -aE "^CPU|RIP"
+            echo "serial.log: $(stat -c '%y %s bytes' "$VMS_DIR/$v/serial.log")  disk.qcow2: $(stat -c '%y' "$VMS_DIR/$v/disk.qcow2")"
+            echo "recovering: vm-stop --force, vm-boot --fwd $fwd"
+            "$BIN/vm-stop" "$v" --force; "$BIN/vm-boot" "$v" --fwd "$fwd"
+        } > "$f" 2>&1
+        shot "$v" reboot-hang-recovered
+        log "REBOOT HANG on $v: no specialize 300 s after ts-done; force-stopped and booted again ($(basename "$f"))"
+    fi
+    # Setup's own reboot after specialize is the second one that can hang (run 4: no
+    # firstlogon 31 min after specialize, display never initialised, CPU#0 busy in
+    # the firmware region, no serial output). Same test, same recovery.
+    if ! "$BIN/await" "$v" firstlogon 420 >> "$OUT/await.out" 2>&1; then
+        {
+            echo "specialize at $(event_line "$v" specialize | awk '{ print $1 }'), no firstlogon within 420 s; QEMU at $(date -Is):"
+            vm_monitor "$v" "info status"; vm_monitor "$v" "info registers -a" | grep -aE "^CPU|RIP"
+            echo "serial.log: $(stat -c '%y %s bytes' "$VMS_DIR/$v/serial.log")  disk.qcow2: $(stat -c '%y' "$VMS_DIR/$v/disk.qcow2")"
+            echo "recovering: vm-stop --force, vm-boot --fwd $fwd"
+            "$BIN/vm-stop" "$v" --force; "$BIN/vm-boot" "$v" --fwd "$fwd"
+        } >> "$f" 2>&1
+        shot "$v" reboot-hang-2-recovered
+        log "REBOOT HANG on $v: no firstlogon 420 s after specialize; force-stopped and booted again ($(basename "$f"))"
+    fi
+    "$BIN/await" "$v" deployed $(( end - $(date +%s) )) >> "$OUT/await.out" 2>&1
+}
+log "waiting for both to reach 'deployed' (first logon, roles)"
+( "$BIN/await" "$A" firstlogon 2700 >/dev/null 2>&1; sleep 15; shot "$A" firstlogon ) & SHOT_A=$!
+( "$BIN/await" "$B" firstlogon 2700 >/dev/null 2>&1; sleep 15; shot "$B" firstlogon ) & SHOT_B=$!
+deploy_watch "$A" 2700 "$A_SSH:22,$A_RDP:3389" & PA=$!
+deploy_watch "$B" 2700 "$B_RDP:3389,$B_SSH:22" & PB=$!
+wait $PA; rc=$?; check deploy "$A deployed (PXE -> WinPE -> apply -> first logon -> role) in $(( $(date +%s) - BOOT_T )) s wall" ok $rc "$(event_line "$A" deployed)"
+shot "$A" deployed
+wait $PB; rc=$?; check deploy "$B deployed, with the driver pack, in $(( $(date +%s) - BOOT_T )) s wall" ok $rc "$(event_line "$B" deployed)"
+shot "$B" deployed
+wait $SHOT_A $SHOT_B   # the firstlogon shots (never a bare wait: the status monitor loop is a child too)
+for v in "$A" "$B"; do
+    if [[ -f "$OUT/$v-reboot-hang.txt" ]]; then
+        row FAIL firmware "$v hung at a guest-initiated reboot (out of WinPE, or Setup's after specialize); recovered by a force stop and a boot from its disk; TODO.md's QEMU 10.2 / OVMF item" "$v-reboot-hang.txt"; NFAIL=$((NFAIL + 1))
+    else
+        row PASS firmware "$v came through both reboots (WinPE -> Setup, specialize -> first logon) on its own" "$(event_line "$v" firstlogon)"; NPASS=$((NPASS + 1))
+    fi
+done
+
+# What the two timelines say about each layer.
+"$BIN/status" "$A" > "$OUT/$A-timeline.txt" 2>&1
+"$BIN/status" "$B" > "$OUT/$B-timeline.txt" 2>&1
+tl() { grep -qE "$2" "$OUT/$1-timeline.txt"; }
+tl "$B" "25-download +ok +msg=sha256 $IMAGE_SHA matches images/base.json"; check verify "25-download on $B: the image verified" ok $? "$(msg_of "$B" 25-download)"
+for v in "$A" "$B"; do
+    if [[ -n "$UPDATES" ]]; then
+        tl "$v" "35-updates +ok +msg=.*sha256 $UPDATES_SHA matches updates/$UPDATES.json"; check verify "35-updates on $v: the update pack verified against updates/$UPDATES.json before DISM added it" ok $? "$(msg_of "$v" 35-updates)"
+    else
+        tl "$v" "35-updates +ok +msg=skipped"; check verify "35-updates on $v skipped (--no-updates)" ok $? "$(msg_of "$v" 35-updates)"
+    fi
+done
+tl "$B" "40-drivers +ok +msg=.*sha256 $DRIVERS_SHA matches drivers/$DRIVERS.json"; check verify "40-drivers on $B: the driver pack verified against drivers/$DRIVERS.json" ok $? "$(msg_of "$B" 40-drivers)"
+for v in "$A" "$B"; do
+    tl "$v" "45-winre +ok +msg=(Winre.wim from the image itself|.*sha256 $WINRE_SHA matches images/base.winre.json)"; check verify "45-winre on $v: Winre.wim from the image itself (base.wim carries one), or the server's verified against its sidecar" ok $? "$(msg_of "$v" 45-winre)"
+    tl "$v" "50-boot +ok +msg=.*boots Windows Boot Manager first"; check boot "50-boot on $v: the firmware's first entry is Windows Boot Manager" ok $? "$(msg_of "$v" 50-boot)"
+    tl "$v" "faststartup +ok +state=off"; check roles "FASTSTARTUP=off applied on $v" ok $? "$(event_line "$v" faststartup)"
+done
+B_GUARD="$(msg_of "$B" 17-diskguard)"
+[[ "$B_GUARD" == "disk "?":Red Hat VirtIO"*"(the only fixed disk)" ]]; check diskguard "17-diskguard on $B chose the one fixed (virtio) disk, whatever its number" ok $? "$B_GUARD"
+B_SD="$("$BIN/logs" "$B" --cat ts.log 2>/dev/null | grep -m1 -E "^[0-9]+\|Removable Media\|.*SD Card")"
+if [[ -n "$B_SD" ]]; then
+    row PASS diskguard "WinPE on $B saw the SD card as a disk and the guard rejected it as removable media" "$B_SD"; NPASS=$((NPASS + 1))
+else
+    unknown diskguard "WinPE on $B did not list the SD card at all; whether the installed Windows sees it is the role-post row" "$B_GUARD"
+fi
+tl "$A" "users +ok +.*keys=carol"; check roles "users on $A: ops and carol created, carol's key installed" ok $? "$(event_line "$A" users)"
+tl "$A" "ssh +ok +.*listening=yes"; check roles "SSH=on on $A: OpenSSH Server installed, listening" ok $? "$(event_line "$A" ssh)"
+! tl "$A" " rdp +ok"; check roles "no rdp beacon from $A (the role has no RDP=on)" ok $? "demo-ssh/role.cfg"
+tl "$B" "users +ok +created=.*helpdesk.*bob"; check roles "users on $B: helpdesk and bob created with generated passwords" ok $? "$(event_line "$B" users)"
+tl "$B" "rdp +ok +listening=yes"; check roles "RDP=on on $B: Remote Desktop listening" ok $? "$(event_line "$B" rdp)"
+tl "$B" "apps +ok +installed=7zip.7zip"; check roles "APPS on $B: 7-Zip installed by winget at first logon" ok $? "$(event_line "$B" apps)"
+! tl "$B" " ssh +ok"; check roles "no ssh beacon from $B (the role has no SSH=on)" ok $? "demo-rdp/role.cfg"
+for v in "$A" "$B"; do
+    tl "$v" "role-post +ok +.*markers=1"; check media "post.cmd on $v: the installed Windows sees the removable medium and reads its marker (disks.txt)" ok $? "$(event_line "$v" role-post)"
+done
+for v in "$A" "$B"; do
+    if [[ -n "$UPDATES" ]]; then
+        tl "$v" "firstlogon +ok +.*build=$UPDATES_BUILD"; check updates "$v runs build $UPDATES_BUILD, the one the update pack expects (firstlogon beacon)" ok $? "$(event_line "$v" firstlogon)"
+    else
+        tl "$v" "firstlogon +ok +.*build=26100.1 "; check updates "$v, no updates, runs the image's build 26100.1" ok $? "$(event_line "$v" firstlogon)"
+    fi
+done
+
+# ------------------------------------------------------------- SSH into smoke-ssh
+log "SSH into $A as ops and carol, with controls"
+S="ssh.out"
+ssh_a() { ssh "${SSH_OPTS[@]}" -p "$A_SSH" "$@"; }
+rc=1
+for _ in $(seq 1 18); do run $S ssh_a -i "$LAB_KEY" ops@127.0.0.1 hostname && { rc=0; break; }; sleep 10; done
+check ssh "ops (Administrators, SSHKEYS) logs in to $A with the lab key" ok $rc "$S"
+run $S ssh_a -i "$BUILD_DIR/lab-carol" carol@127.0.0.1 whoami; rc=$?
+grep -qE $'\\\\carol\r?$' "$OUT/$S"; check ssh "carol (Users, keys=carol.pub) logs in to $A with her own key, whoami says carol" ok $(( rc == 0 && $? == 0 ? 0 : 1 )) "$S"
+run $S ssh_a -i "$LAB_KEY" carol@127.0.0.1 true; check ssh "CONTROL: carol with the administrators' key is refused" fail $? "$S"
+run $S ssh_a -o PubkeyAuthentication=no -i "$LAB_KEY" ops@127.0.0.1 true; check ssh "CONTROL: ops without a key is refused (passwords are off)" fail $? "$S"
+run $S ssh_a -i "$BUILD_DIR/lab-alice" carol@127.0.0.1 true; check ssh "CONTROL: carol with another lab user's key (alice's) is refused" fail $? "$S"
+run $S ssh_a -i "$LAB_KEY" ops@127.0.0.1 'Get-Disk | Sort-Object Number | Format-Table -AutoSize Number,FriendlyName,BusType,Size,PartitionStyle; Get-Volume | Where-Object DriveLetter | Sort-Object DriveLetter | Format-Table -AutoSize DriveLetter,FileSystemLabel,FileSystemType,Size; Get-ChildItem C:\ProgramData\ssh\users -Recurse | Select-Object -ExpandProperty FullName; (Get-CimInstance Win32_OperatingSystem).Version; Get-Service sshd,TermService | Format-Table -AutoSize Name,Status,StartType'
+grep -qE "USB +[0-9]+" "$OUT/$S"; check media "the installed Windows on $A lists the USB stick (Get-Disk BusType USB) over SSH" ok $? "$S"
+run $S sh -c "ssh-keyscan -t ed25519 -p $A_SSH 127.0.0.1 2>/dev/null | ssh-keygen -lf -"
+run $S "$BIN/logs" "$A" --cat ssh.txt
+FP_SEEN="$(ssh-keyscan -t ed25519 -p "$A_SSH" 127.0.0.1 2>/dev/null | ssh-keygen -lf - | awk '{ print $2 }')"
+grep -q "hostkey 256 $FP_SEEN " <<<"$("$BIN/logs" "$A" --cat ssh.txt 2>/dev/null)"; check ssh "the host key fingerprint offered to this host is the one $A reported in ssh.txt" ok $? "$FP_SEEN"
+run $S timeout 30 xfreerdp "/v:127.0.0.1:$A_RDP" /u:ops /p:not-a-password /cert:ignore /auth-only; check rdp "CONTROL: RDP to $A (no RDP=on) fails (QEMU's port forward accepts the TCP connection, the guest has no listener: xfreerdp hangs and the 30 s timeout ends it, rc 124)" fail $? "$S"
+
+# ------------------------------------------------------- RDP into smoke-rdp
+log "waiting for $B to remove the deploy account and come back (DEPLOY=remove)"
+run await.out "$BIN/await" "$B" deploy-removed 600 --run latest; check roles "DEPLOY=remove on $B: deploy account deleted, restart, profile gone" ok $? "$(event_line "$B" deploy-removed)"
+"$BIN/status" "$B" > "$OUT/$B-timeline.txt" 2>&1
+sleep 20; shot "$B" login-screen
+R="rdp.out"
+# The generated passwords, as the machine uploaded them (name<TAB>password per line).
+pw_of() { "$BIN/logs" "$2" --cat users.txt 2>/dev/null | tr -d '\r' | awk -F'\t' -v u="$1" '$1 == u { print $2; exit }'; }
+PW_HELPDESK="$(pw_of helpdesk "$B")"; PW_BOB="$(pw_of bob "$B")"; PW_DEPLOY_B="$(pw_of deploy "$B")"
+PW_OPS="$(pw_of ops "$A")"; PW_CAROL="$(pw_of carol "$A")"; PW_DEPLOY_A="$(pw_of deploy "$A")"
+[[ -n "$PW_HELPDESK" && -n "$PW_BOB" && -n "$PW_DEPLOY_B" && -n "$PW_OPS" && -n "$PW_CAROL" ]]; check roles "generated passwords for every account were uploaded as users.txt by both machines" ok $? "bin/logs <vm> --cat users.txt (masked in this directory)"
+rdp_b() { timeout 60 xfreerdp "/v:127.0.0.1:$B_RDP" "/u:$1" "/p:$2" /cert:ignore /auth-only; }
+rc=1
+for _ in $(seq 1 18); do run $R rdp_b helpdesk "$PW_HELPDESK" && { rc=0; break; }; sleep 10; done
+check rdp "helpdesk (Administrators) authenticates over RDP to $B with the generated password (xfreerdp /auth-only)" ok $rc "$R"
+run $R rdp_b bob "$PW_BOB"; check rdp "bob (Users, Remote Desktop Users) authenticates over RDP to $B" ok $? "$R"
+run $R rdp_b bob "wrong-$PW_BOB"; check rdp "CONTROL: bob with a wrong password is refused" fail $? "$R"
+run $R rdp_b deploy "$PW_DEPLOY_B"; check rdp "CONTROL: the deleted deploy account is refused" fail $? "$R"
+run $R ssh "${SSH_OPTS[@]}" -p "$B_SSH" -i "$LAB_KEY" helpdesk@127.0.0.1 true; check ssh "CONTROL: SSH to $B (no SSH=on) is refused" fail $? "$R"
+
+# --------------------------------------------------------------- the uploads
+log "collecting uploads, console frames, screens"
+for v in "$A" "$B"; do
+    id="$(vm_uuid "$v")"
+    for rd in "$HTTP_DIR/uploads/$id"/*/; do
+        [[ -d "$rd" ]] || continue
+        r="$(basename "$rd")"; d="$OUT/uploads/$v/$r"; mkdir -p "$d"
+        for f in "$rd"*; do
+            case "$(basename "$f")" in
+                console-*.txt) ;;   # one frame per change: hundreds; console.txt (the last) and the listing are kept
+                screen.bmp) python3 -I -c 'import sys; from PIL import Image; Image.open(sys.argv[1]).save(sys.argv[2])' "$f" "$d/screen-last-pushed.png" 2>/dev/null ;;
+                *) cp "$f" "$d/" ;;
+            esac
+        done
+        # Setup's own logs run to tens of MB (panther-setupact.log, dism.log, ts.log with
+        # DISM's progress lines): kept, compressed, so a spike directory stays small.
+        find "$d" -type f -size +1M ! -name "*.png" ! -name "*.gz" -exec gzip -9 {} +
+    done
+    "$BIN/console" "$v" --frames > "$OUT/$v-console-frames.txt" 2>&1
+    "$BIN/logs" "$v" > "$OUT/$v-uploads.txt" 2>&1
+done
+"$BIN/status" > "$OUT/status-final.txt" 2>&1
+cp "$STATE_DIR/beacons.log" "$OUT/beacons.log"
+
+# ------------------------------------------------------------ shut down, read back
+log "shutting both down (a real shutdown: fast startup is off), reading the markers back"
+run shutdown.out ssh_a -i "$LAB_KEY" ops@127.0.0.1 'shutdown /s /t 0'
+run shutdown.out "$BIN/vm-stop" "$B"; rc=$?
+! grep -q "did not power down" "$OUT/shutdown.out"; check shutdown "$B at its login screen powers down on the ACPI button within 60 s (vm-stop); run 3 needed the forced stop" ok $(( rc == 0 && $? == 0 ? 0 : 1 )) "shutdown.out"
+for _ in $(seq 1 30); do vm_pid "$A" >/dev/null 2>&1 || break; sleep 3; done
+vm_pid "$A" >/dev/null 2>&1 && run shutdown.out "$BIN/vm-stop" "$A" --force
+vm_pid "$B" >/dev/null 2>&1 && run shutdown.out "$BIN/vm-stop" "$B" --force
+run media-readback.out media_read "$VMS_DIR/$A/usb.qcow2"
+[[ "$(media_read "$VMS_DIR/$A/usb.qcow2" 2>/dev/null)" == "$A_MARK" ]]; check media "the USB stick's marker survived the install on $A (read back with mtools)" ok $? "media-readback.out"
+run media-readback.out media_read "$VMS_DIR/$B/sd.qcow2"
+[[ "$(media_read "$VMS_DIR/$B/sd.qcow2" 2>/dev/null)" == "$B_MARK" ]]; check media "the SD card's marker survived the install on $B" ok $? "media-readback.out"
+run media-readback.out sh -c "qemu-img info '$VMS_DIR/$A/usb.qcow2'; qemu-img info '$VMS_DIR/$B/sd.qcow2'; qemu-img info '$VMS_DIR/$A/disk.qcow2'; qemu-img info '$VMS_DIR/$B/disk.qcow2'"
+
+if (( ! KEEP )); then
+    log "purging $A and $B"
+    run teardown.out "$BIN/teardown" --purge-vm "$A" --yes
+    run teardown.out "$BIN/teardown" --purge-vm "$B" --yes
+fi
+
+# ----------------------------------------------------------------- the report
+# Generated passwords must not land in the spike: mask each one everywhere in $OUT.
+python3 -I - "$OUT" "$PW_HELPDESK" "$PW_BOB" "$PW_DEPLOY_B" "$PW_OPS" "$PW_CAROL" "$PW_DEPLOY_A" <<'PYEOF'
+import os, sys
+out, pws = sys.argv[1], [p for p in sys.argv[2:] if len(p) >= 8]
+for dp, _, fns in os.walk(out):
+    for fn in fns:
+        p = os.path.join(dp, fn)
+        if fn.endswith((".png", ".bmp")):
+            continue
+        try:
+            b = open(p, "rb").read()
+        except OSError:
+            continue
+        n = b
+        for pw in pws:
+            n = n.replace(pw.encode(), b"<password masked>")
+        if n != b:
+            open(p, "wb").write(n)
+PYEOF
+TOTAL=$((NPASS + NCTRL + NFAIL + NUNK))
+{
+    echo "# smoke: two concurrent installs, every layer checked ($(date -I))"
+    echo
+    echo "Host: $(lsb_release -ds 2>/dev/null || uname -sr); $(qemu-system-x86_64 --version | head -1). Started $(date -d @$T0 -Is), took $(( ($(date +%s) - T0) / 60 )) min."
+    echo "VMs: \`$A\` (demo-ssh, AHCI disk + 8 GB USB stick, STOP_AFTER=25-download) and \`$B\` (demo-rdp, virtio disk/NIC + $DRIVERS, 8 GB SD card), ${UPDATES:+both UPDATES=$UPDATES, }booted $(date -d @$BOOT_T +%T) within one second of each other.$( (( KEEP )) && echo " Kept (--keep)." || echo " Both purged afterwards.")"
+    echo
+    echo "**$NPASS PASS, $NCTRL controls fired, $NFAIL FAIL, $NUNK UNKNOWN** of $TOTAL rows."
+    (( NCTRL > 0 )) || echo "**No control fired: this run proves nothing.**"
+    echo
+    echo "| verdict | layer | what | evidence |"
+    echo "|---|---|---|---|"
+    printf '%s\n' "${ROWS[@]}"
+    echo
+    echo "Files: \`smoke.log\` (the run), \`status.log\` (bin/status every 20 s), \`*-timeline.txt\` (bin/status <vm>), \`hash-on-machine.out\` (the hashes by hand in WinPE), \`ssh.out\`, \`rdp.out\`, \`uploads/<vm>/<run>/\` (everything the machines pushed: ts.log, dism.log and Setup's panther logs gzipped when over 1 MB, users.txt masked, ssh.txt, disks.txt, console.txt, the last pushed screen), \`shots/\` (QEMU screendumps at each stage; \`*-pushed.png\` are the screens the machines pushed themselves), \`media-prep.out\`/\`media-readback.out\` (sfdisk, mkfs.vfat, mtools), \`*-reboot-hang.txt\` (only when a guest hung at its reboot: QEMU's registers, the recovery), \`create.out\`, \`boot.out\`, \`lint.out\`, \`build-tools-check.out\`."
+} > "$OUT/report.md"
+log "report: $OUT/report.md  ($NPASS PASS, $NCTRL controls fired, $NFAIL FAIL, $NUNK UNKNOWN)"
+(( NFAIL == 0 && NCTRL > 0 ))

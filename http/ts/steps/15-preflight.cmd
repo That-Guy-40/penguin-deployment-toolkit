@@ -10,7 +10,7 @@ if /i not "%IMAGE:~-4%"==".wim" set "MISSING=!MISSING! IMAGE=%IMAGE% (must end i
 for %%u in ("ts/diskpart/%DISKPART%" "images/%IMAGE%" "images/%IMAGE:.wim=.json%" "tools/pdt-sha256.exe" "unattend/%UNATTEND%" "ts/beacon.cmd" "post/firstlogon.cmd" "post/boot-probe.cmd") do (
   %CURL% -f -I -o nul "%SRV%/%%~u" || set "MISSING=!MISSING! %%~u"
 )
-if defined DRIVERS (%CURL% -f -I -o nul "%SRV%/drivers/%DRIVERS%.wim" || set "MISSING=!MISSING! drivers/%DRIVERS%.wim")
+if defined DRIVERS for %%u in ("drivers/%DRIVERS%.wim" "drivers/%DRIVERS%.json") do (%CURL% -f -I -o nul "%SRV%/%%~u" || set "MISSING=!MISSING! %%~u")
 if /i "%REFERENCE%"=="yes" (%CURL% -f -I -o nul "%SRV%/post/prepare-capture.cmd" || set "MISSING=!MISSING! post/prepare-capture.cmd")
 if defined POST (%CURL% -f -I -o nul "%SRV%/post/%POST%" || set "MISSING=!MISSING! post/%POST%")
 rem A role is a directory roles/<ROLE>/ with a role.cfg naming its files.
@@ -29,13 +29,23 @@ if defined ROLE (
         %CURL% -f -I -o nul "%SRV%/roles/%ROLE%/skel/%%l" || set "MISSING=!MISSING! roles/%ROLE%/skel/%%l"
       )
     )
-    if /i "%%a"=="USERS" (%CURL% -f -I -o nul "%SRV%/post/users.ps1" || set "MISSING=!MISSING! post/users.ps1")
+    if /i "%%a"=="USERS" (
+      %CURL% -f -I -o nul "%SRV%/post/users.ps1" || set "MISSING=!MISSING! post/users.ps1"
+      rem keys=<file> in a line's fourth field: that account's SSH public keys, served from the role directory.
+      %CURL% -f -o %PDT%\users.txt "%SRV%/roles/%ROLE%/%%b" && for /f "usebackq eol=# tokens=4 delims=|" %%k in ("%PDT%\users.txt") do if not "%%k"=="" (
+        set "KF=%%k"
+        if /i "!KF:~0,5!"=="keys=" (%CURL% -f -I -o nul "%SRV%/roles/%ROLE%/!KF:~5!" || set "MISSING=!MISSING! roles/%ROLE%/!KF:~5!")
+      )
+    )
     if /i "%%a"=="FILES" for %%f in (%%b) do (%CURL% -f -I -o nul "%SRV%/roles/%ROLE%/%%f" || set "MISSING=!MISSING! roles/%ROLE%/%%f")
     if /i "%%a"=="APPS" (%CURL% -f -I -o nul "%SRV%/post/winget/files.txt" || set "MISSING=!MISSING! post/winget/files.txt (run bin/fetch-tools winget)")
   )
   if exist %PDT%\role.cfg (%CURL% -f -I -o nul "%SRV%/post/winget.cmd" || set "MISSING=!MISSING! post/winget.cmd")
 )
-if defined UPDATES (%CURL% -f -I -o nul "%SRV%/updates/%UPDATES%.wim" || set "MISSING=!MISSING! updates/%UPDATES%.wim")
+if defined UPDATES for %%u in ("updates/%UPDATES%.wim" "updates/%UPDATES%.json") do (%CURL% -f -I -o nul "%SRV%/%%~u" || set "MISSING=!MISSING! %%~u")
+rem The recovery image an image without Winre.wim falls back to (45-winre): when the
+rem server has it, it needs its sidecar too, or the fetch would be refused.
+%CURL% -f -I -o nul "%SRV%/images/%IMAGE:.wim=%.winre.wim" && (%CURL% -f -I -o nul "%SRV%/images/%IMAGE:.wim=%.winre.json" || set "MISSING=!MISSING! images/%IMAGE:.wim=%.winre.json (bin/stage-image --sidecars)")
 if not defined MISSING exit /b 0
 echo not on the server:!MISSING!
 >%PDT%\step.msg echo missing:!MISSING!

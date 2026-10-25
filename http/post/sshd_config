@@ -1,12 +1,14 @@
 # sshd_config - written to C:\ProgramData\ssh\sshd_config by post/ssh.ps1 for a
 # role with SSH=on. Key-only: no passwords, no keyboard-interactive. Members of
 # Administrators authenticate against the one file the role supplies (SSHKEYS);
-# other accounts would need %USERPROFILE%\.ssh\authorized_keys (not deployed).
+# other accounts against C:\ProgramData\ssh\users\<name>\authorized_keys, which
+# post/users.ps1 writes from a "keys=<file>" fourth field in the role's users.txt
+# (their own %USERPROFILE%\.ssh\authorized_keys works too, once the profile exists).
 Port 22
 PubkeyAuthentication yes
 PasswordAuthentication no
 KbdInteractiveAuthentication no
-AuthorizedKeysFile .ssh/authorized_keys
+AuthorizedKeysFile .ssh/authorized_keys __PROGRAMDATA__/ssh/users/%u/authorized_keys
 Subsystem sftp sftp-server.exe
 @PWSH_SUBSYSTEM@
 Match Group administrators

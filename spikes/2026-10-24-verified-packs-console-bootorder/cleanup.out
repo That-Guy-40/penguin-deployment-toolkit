@@ -1,0 +1,42 @@
+VM va stopped
+deleted VM va (and machines/0a7fe60c-bb82-4e34-b61c-da16c2e74538.cfg, its boot override and command files)
+VM vb stopped
+deleted VM vb (and machines/46f9301b-5ab3-4412-a294-00acdccf8e54.cfg, its boot override and command files)
+VM vc is not running
+deleted VM vc (and machines/28bf2ac7-6d07-4cdf-87e4-975562b78508.cfg, its boot override and command files)
+VM vd stopped
+deleted VM vd (and machines/3626e3ec-c381-484f-9fae-17754411089c.cfg, its boot override and command files)
+VM ve is not running
+deleted VM ve (and machines/afebecc1-9889-42ac-98d5-e836152b5075.cfg, its boot override and command files)
+VM vf stopped
+deleted VM vf (and machines/f91273ff-75c3-4ecb-ae48-052d5b58ab28.cfg, its boot override and command files)
+VM vg stopped
+deleted VM vg (and machines/aec0d584-6344-4e6d-a127-3d8d31db2084.cfg, its boot override and command files)
+vh
+65cd65ca-10c9-4b89-bbc0-121e105cfd35.cfg
+README.md
+VM vh stopped
+deleted VM vh (and machines/65cd65ca-10c9-4b89-bbc0-121e105cfd35.cfg, its boot override and command files)
+### the lab image made for the host-key check, removed again (lab-apps.wim already serves that purpose)
+-rw-rw-r-- 1 sqs sqs        931 Oct 24 18:43 http/images/lab-ssh.json
+-rw-r--r-- 1 sqs sqs 3608839925 Oct 24 18:42 http/images/lab-ssh.wim
+-rw-r--r-- 1 sqs sqs        236 Oct 24 18:43 http/images/lab-ssh.winre.json
+-rw-r--r-- 1 sqs sqs  480562488 Oct 24 18:43 http/images/lab-ssh.winre.wim
+### kept: http/updates/lcu.wim + lcu.json (the update pack built today), http/images/*.winre.json, the rehashed driver sidecars, build/lab-alice
+http/boot:
+
+http/cmd:
+
+http/machines:
+README.md
+
+vms:
+### final lint, lab purged
+lint rc=0
+205 PASS, 0 FAIL, 0 UNKNOWN   (-v lists every row)
+205 PASS, 0 FAIL, 0 UNKNOWN   (-v lists every row)
+PASS     lint self-test: 59/59 injected defects were reported as FAIL
+PASS tools/pdt-screen.exe: 40960 bytes, built 2026-10-24T18:37:20-0400 by container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27, x86_64-w64-mingw32-gcc (GCC) 14-win32
+PASS tools/pdt-sha256.exe: 45056 bytes, built 2026-10-24T18:37:20-0400 by container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27, x86_64-w64-mingw32-gcc (GCC) 14-win32
+PASS tools/openssl.exe: 7268352 bytes, built 2026-10-24T14:10:19-0400 by container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27 make=4.4.1-2 perl=5.40.1-6+deb13u1, x86_64-w64-mingw32-gcc (GCC) 14-win32
+PASS tools/pdt-console.exe: 45056 bytes, built 2026-10-24T18:37:21-0400 by container docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 gcc-mingw-w64-x86-64=14.2.0-17+27, x86_64-w64-mingw32-gcc (GCC) 14-win32

@@ -1,0 +1,13 @@
+### vb cfg now:
+# lab VM vb (bin/vm-create, 2026-10-24)
+MODE=deploy
+IMAGE=lab-apps.wim
+UNATTEND=default.xml
+DRIVERS=virtio-w11
+### vb: resume at 35 (the deploy window predates the title, so via a new cmd)  18:40:29
+### va / ve status
+0a7fe60c-bb82-4e34-b61c-da16c2e74538  va  specialize ok          11s          deploy  326427000   lab-vm   lab-vm
+afebecc1-9889-42ac-98d5-e836152b5075  ve  prepare-capture start  5m           deploy  107219505   lab-vm   lab-vm
+28bf2ac7-6d07-4cdf-87e4-975562b78508  vc  deployed ok            12m          deploy  3263829020  lab-vm   lab-vm
+### stopping vc (its evidence is in the log)
+VM vc stopped

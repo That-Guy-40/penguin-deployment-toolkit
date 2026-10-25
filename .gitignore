@@ -32,7 +32,12 @@ __pycache__/
 .claude/
 http/post/winget/
 http/post/openssh/
-http/roles/lab-apps/authorized_keys
+# lab SSH keys, written by bin/fetch-tools openssh (or keys) into every role that wants them
+http/roles/*/authorized_keys
+http/roles/*/*.pub
 http/cmd/
 http/boot/
 http/collector/
+
+# Evidence kept in spikes/ is tracked even when it is a log
+!spikes/**/*.log

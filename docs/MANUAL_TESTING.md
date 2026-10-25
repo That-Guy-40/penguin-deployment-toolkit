@@ -11,6 +11,18 @@ Prerequisites: `config.sh` from `config.sh.example` (ISO path, a free port),
 `bin/build-tools` (podman or docker; `25-download` needs `tools/pdt-sha256.exe`),
 `bin/serve`. Then `bin/lint` must end in `0 FAIL`; if it does not, stop here.
 
+## 0a. The automated version of most of this
+
+`bin/smoke` runs sections 0 to 4 on two VMs at once (roles `demo-ssh` and
+`demo-rdp`, a USB stick and an SD card beside the one fixed disk, the hashes
+by hand in WinPE, `bin/keys` resuming a stopped sequence, SSH and RDP from
+this host with their refusals as controls) and leaves `report.md`,
+screenshots, console frames, timelines and every upload in
+`spikes/<date>-smoke/`. 25-35 minutes with the update pack, `--no-updates`
+without; exit 0 only if nothing failed and at least one control fired. Read
+`report.md`: a FAIL row is a finding, an UNKNOWN row is something it could
+not check on this host. The sections below are what it does, by hand.
+
 ## 0. The checker itself
 
 - [ ] `bin/lint --selftest` says `50/50 injected defects were reported as FAIL`.
@@ -51,6 +63,10 @@ Prerequisites: `config.sh` from `config.sh.example` (ISO path, a free port),
       Then `DISK=1` in t1b's cfg and `bin/shell t1b 'start "" cmd /c
       %SystemRoot%\System32\deploy.cmd'`: `17-diskguard ok msg=disk 1:… (DISK=1)`
       and after `20-disk ok` the volumes are on disk 1, disk 0 still blank.
+      Let it finish: `50-boot ok msg=… the firmware boots Windows Boot
+      Manager first`, then `specialize` and `deployed` from disk 1 with no
+      second `ts-start` (`vm-boot` gives the second disk a boot index right
+      after the first).
 - [ ] Local-boot handoff (a PXE-first machine): `bin/vm-create t1d && bin/vm-boot t1d --pxe`,
       and during the deploy `bin/netboot t1d local`. After `ts-done`, the
       next boot shows `ipxe ok` then `specialize`/`firstlogon` from the
@@ -66,6 +82,24 @@ Prerequisites: `config.sh` from `config.sh.example` (ISO path, a free port),
       every 20 s) and `bin/status --watch` shows the step as `busy`.
 - [ ] `bin/shell t1 'dir W:\'` during `30-apply` lists the half-applied
       volume; `bin/screen t1` shows the WinPE console.
+- [ ] Every download verified: in t1's timeline `25-download ok msg=sha256 …
+      matches images/base.json`; with `DRIVERS=` and `UPDATES=` set, `40-drivers`
+      and `35-updates` say the same for their packs, and a deploy from a
+      captured image says it for `images/<name>.winre.json` in `45-winre`.
+      Control: on a VM stopped with `STOP_AFTER=30-apply`, set the `sha256` in
+      `http/drivers/<pack>.json` to 64 zeros and run `bin/shell t1 'X:\pdt\step.cmd 40-drivers'`:
+      `40-drivers fail rc=1 … download deleted`, no `W:\drivers.wim`; the same
+      for `updates/<pack>.json` (35) and `images/<name>.winre.json` (45, on an
+      image without its own `Winre.wim`). Restore the sidecars (`bin/lint --deep`
+      would catch them too).
+- [ ] The deploy window as text: with `STOP_BEFORE=20-disk`, `bin/console t1`
+      shows the prompt (`bin/vm-shot t1` shows the same screen); `bin/keys t1
+      'dir X:\pdt{enter}'` and `bin/console t1` shows the listing; `bin/keys t1
+      'deploy 20{enter}'` and `bin/console t1 --await 30-apply` returns when
+      the sequence gets there; `bin/console t1 --frames` lists the frames.
+      Controls: `bin/shell t1 'X:\pdt\pdt-console.exe dump nosuch X:\pdt\n.txt & call echo rc=%%errorlevel%%'`
+      → `rc=2`, no file; after `bin/shell t1 --off` the frame count stops
+      growing while the beacons continue.
 - [ ] A hash on the machine: `bin/shell t1 'X:\pdt\pdt-sha256.exe X:\pdt\pdt-screen.exe'`
       prints the SHA-256 recorded for it in `http/tools/built.json`. Second
       opinion, if `bin/build-tools openssl` was run: `bin/shell t1 'curl.exe -sS -o X:\pdt\openssl.exe %SRV%/tools/openssl.exe & X:\pdt\openssl.exe dgst -sha256 X:\pdt\pdt-screen.exe'`
@@ -104,6 +138,12 @@ Prerequisites: `config.sh` from `config.sh.example` (ISO path, a free port),
       → `Permission denied (publickey)` with no password prompt; `alice`
       (group Users) is refused with the same key; a VM without the key
       answers nothing on its forwarded 22.
+- [ ] Per-user keys: the lab role's `users.txt` gives `alice` `keys=alice.pub`
+      (`bin/fetch-tools openssh` makes the pair, private half `build/lab-alice`);
+      the timeline says `users ok … keys=alice`; `ssh -p 2223 -i build/lab-alice
+      alice@127.0.0.1 whoami` prints `…\alice`. Controls: `alice` with your
+      own key, `admin` with alice's key and a `bob` that does not exist are all
+      `Permission denied (publickey)`.
 - [ ] Power cycle: `bin/vm-stop t2` returns in seconds (fast startup is off
       for this role); `bin/vm-boot t2` → `boot ok trigger=onstart` within a
       minute.

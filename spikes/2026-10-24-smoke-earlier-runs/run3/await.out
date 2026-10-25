@@ -1,0 +1,10 @@
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/await smoke-ssh stop 900
+await: 2026-10-24T20:47:15-04:00 stop ok
+rc=0
+await: 2026-10-24T21:03:10-04:00 deployed ok
+await: TIMEOUT after 1500s waiting for deployed ok; last event: ts-done ok at 2026-10-24T20:49:18-04:00
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/await smoke-rdp deploy-removed 600
+await: TIMEOUT after 600s waiting for deploy-removed ok; no event from this machine at all
+rc=2

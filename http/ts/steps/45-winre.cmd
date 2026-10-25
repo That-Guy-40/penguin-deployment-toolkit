@@ -8,14 +8,19 @@ if not exist R:\ (>%PDT%\step.msg echo no recovery partition R: - check ts/diskp
 if not exist R:\Recovery\WindowsRE mkdir R:\Recovery\WindowsRE || exit /b !errorlevel!
 rem A base image carries Winre.wim. An image captured from an installed
 rem machine does not (Windows keeps it on that machine's recovery partition),
-rem so the server keeps one beside every image: images/<name>.winre.wim.
+rem so the server keeps one beside every image: images/<name>.winre.wim, with
+rem its own sidecar images/<name>.winre.json (bin/stage-image), verified here
+rem like every other download (ts/verified.cmd).
 if exist W:\Windows\System32\Recovery\Winre.wim (
   xcopy /h /y W:\Windows\System32\Recovery\Winre.wim R:\Recovery\WindowsRE\ || exit /b !errorlevel!
+  rem No parentheses in this line: inside a parenthesized block an unescaped ) ends the block
+  rem (found 2026-10-24: both branches ran, the server's copy overwrote the image's).
+  >%PDT%\step.msg echo Winre.wim from the image itself, W:\Windows\System32\Recovery
 ) else (
   echo the image has no Winre.wim, fetching images/%IMAGE:.wim=%.winre.wim
-  %CURL% -f -o R:\Recovery\WindowsRE\Winre.wim "%SRV%/images/%IMAGE:.wim=%.winre.wim"
-  if errorlevel 1 (>%PDT%\step.msg echo no Winre.wim in the image and none on the server at images/%IMAGE:.wim=%.winre.wim& exit /b 1)
-  >%PDT%\step.msg echo Winre.wim taken from the server: the image has none
+  call %PDT%\verified.cmd images/%IMAGE:.wim=%.winre.wim images/%IMAGE:.wim=%.winre.json R:\Recovery\WindowsRE\Winre.wim || exit /b !errorlevel!
+  set /p VMSG=<%PDT%\verified.msg
+  >%PDT%\step.msg echo Winre.wim taken from the server, the image has none; !VMSG!
 )
 W:\Windows\System32\Reagentc.exe /Setreimage /Path R:\Recovery\WindowsRE /Target W:\Windows || exit /b !errorlevel!
 W:\Windows\System32\Reagentc.exe /Info /Target W:\Windows

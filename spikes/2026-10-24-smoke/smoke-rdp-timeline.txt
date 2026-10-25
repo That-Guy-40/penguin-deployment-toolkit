@@ -1,0 +1,42 @@
+a6fbe33e-ae41-4917-b88c-a2223f228ebb  smoke-rdp
+  2026-10-24T22:26:29-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:b5:12:b3 nic=01:1a:f4:10:00 chip=virtio-net bootsrv=10.0.2.2 serial=smoke-rdp mfr=PDT
+  2026-10-24T22:26:29-04:00  +    0.4s  (+   0.4s)  wim         ok    msg=475 MiB in 0.4s (1215 MiB/s)
+  2026-10-24T22:26:37-04:00  +    8.7s  (+   8.3s)  ts-start    ok    mode=deploy model=lab-vm product=lab-vm mac=52:54:00:b5:12:b3
+  2026-10-24T22:26:38-04:00  +    9.0s  (+   0.4s)  15-preflight start 
+  2026-10-24T22:26:38-04:00  +    9.7s  (+   0.6s)  15-preflight ok    
+  2026-10-24T22:26:39-04:00  +   10.0s  (+   0.3s)  17-diskguard start 
+  2026-10-24T22:26:39-04:00  +   10.4s  (+   0.4s)  17-diskguard ok    msg=disk 1:Red Hat VirtIO SCSI Disk Device 64GiB of 2 (the only fixed disk)
+  2026-10-24T22:26:39-04:00  +   10.6s  (+   0.2s)  20-disk     start 
+  2026-10-24T22:26:49-04:00  +   20.3s  (+   9.7s)  20-disk     ok    
+  2026-10-24T22:26:49-04:00  +   20.5s  (+   0.2s)  25-download start 
+  2026-10-24T22:27:06-04:00  +   37.2s  (+  16.6s)  25-download ok    msg=sha256 0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279 matches images/base.json
+  2026-10-24T22:27:06-04:00  +   37.4s  (+   0.3s)  30-apply    start 
+  2026-10-24T22:28:16-04:00  +  106.8s  (+  69.3s)  30-apply    ok    
+  2026-10-24T22:28:16-04:00  +  107.1s  (+   0.3s)  35-updates  start 
+  2026-10-24T22:40:20-04:00  +  830.9s  (+ 723.8s)  35-updates  ok    msg=package 26100.9550 is installed in the image; sha256 254b71a462b33ea450ef84eca1749c67599284272115b881a31d76326646c697 matches updates/lcu.json
+  2026-10-24T22:40:20-04:00  +  831.2s  (+   0.3s)  40-drivers  start 
+  2026-10-24T22:40:22-04:00  +  833.0s  (+   1.8s)  40-drivers  ok    msg=sha256 0318467bc1adf768b54e54b97de367b52f0c5053ad966d1b5acdf66cff325330 matches drivers/virtio-w11.json
+  2026-10-24T22:40:22-04:00  +  833.4s  (+   0.4s)  45-winre    start 
+  2026-10-24T22:40:26-04:00  +  836.9s  (+   3.5s)  45-winre    ok    msg=Winre.wim taken from the server, the image has none; sha256 1f9ee125ccc278ad2d92e0e8e87f48a5b0bbcd55e9138fd93d185e6892421e26 matches images/base.winre.json
+  2026-10-24T22:40:26-04:00  +  837.3s  (+   0.4s)  50-boot     start 
+  2026-10-24T22:40:27-04:00  +  837.9s  (+   0.6s)  50-boot     ok    msg=boot files written; the firmware boots Windows Boot Manager first
+  2026-10-24T22:40:27-04:00  +  838.2s  (+   0.3s)  60-unattend start 
+  2026-10-24T22:40:28-04:00  +  838.9s  (+   0.6s)  60-unattend ok    
+  2026-10-24T22:40:28-04:00  +  839.2s  (+   0.3s)  90-reboot   start 
+  2026-10-24T22:40:28-04:00  +  839.2s  (+   0.1s)  90-reboot   ok    
+  2026-10-24T22:40:28-04:00  +  839.4s  (+   0.2s)  ts-done     ok    
+  2026-10-24T22:46:34-04:00  + 1205.6s  (+ 366.2s)  specialize  ok    
+  2026-10-24T22:47:25-04:00  + 1256.3s  (+  50.7s)  firstlogon  ok    host=WIN-JN1CUR9EPBN build=26100.9550 secureboot=False user=deploy
+  2026-10-24T22:47:31-04:00  + 1262.3s  (+   6.1s)  winre       ok    status=Enabled location=\\?\GLOBALROOT\device\harddisk0\partition4\Recovery\WindowsRE windows_partition=3
+  2026-10-24T22:47:36-04:00  + 1267.3s  (+   5.0s)  users       ok    created=helpdesk,bob set=deploy
+  2026-10-24T22:47:36-04:00  + 1267.4s  (+   0.1s)  users-upload ok    msg=generated passwords are in the uploads as users.txt
+  2026-10-24T22:47:50-04:00  + 1281.1s  (+  13.7s)  winget      ok    version=v1.29.380
+  2026-10-24T22:48:01-04:00  + 1292.6s  (+  11.5s)  apps        ok    installed=7zip.7zip
+  2026-10-24T22:48:02-04:00  + 1292.8s  (+   0.2s)  faststartup ok    state=off
+  2026-10-24T22:48:06-04:00  + 1297.0s  (+   4.2s)  rdp         ok    listening=yes
+  2026-10-24T22:48:06-04:00  + 1297.3s  (+   0.3s)  boot-tasks  ok    event_rc=0 onstart_rc=0
+  2026-10-24T22:48:10-04:00  + 1301.2s  (+   3.9s)  role-post   ok    disks=2 markers=1
+  2026-10-24T22:48:10-04:00  + 1301.3s  (+   0.0s)  deployed    ok    host=WIN-JN1CUR9EPBN role=demo-rdp
+  2026-10-24T22:48:10-04:00  + 1301.6s  (+   0.4s)  deploy-remove ok    account=deleted msg=profile removal scheduled for the next boot; restarting
+  2026-10-24T22:50:23-04:00  + 1434.4s  (+ 132.7s)  boot        ok    host=WIN-JN1CUR9EPBN trigger=onstart
+  2026-10-24T22:50:29-04:00  + 1439.8s  (+   5.4s)  deploy-removed ok    profile_gone=ok

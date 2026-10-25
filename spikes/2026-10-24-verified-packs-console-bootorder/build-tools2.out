@@ -1,0 +1,5 @@
+building 3 tools in docker.io/library/debian@sha256:38a76d01668772e381ad2826d876627c89e7133e2f8a0f5d567306798b0f2a16 with gcc-mingw-w64-x86-64=14.2.0-17+27 (podman)...
+http/tools/pdt-screen.exe: 40960 bytes, sha256 31f25d2816b819d2…  built twice, identical; recorded
+http/tools/pdt-sha256.exe: 45056 bytes, sha256 cd0965834efb92c0…  built twice, identical; recorded
+http/tools/pdt-console.exe: 44544 bytes, sha256 a27cd397f9e8fd50…  built twice, identical; recorded
+x86_64-w64-mingw32-gcc (GCC) 14-win32; http/tools/built.json updated

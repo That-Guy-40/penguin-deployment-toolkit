@@ -1,0 +1,24 @@
+### on vb: fetch the test scripts, run each with cmd /c, print its exit code
+t2.cmd
+ta.cmd
+tb.cmd
+tc.cmd
+td.cmd
+te.cmd
+tf.cmd
+--- ta
+in block
+exit code of cmd /c ta.cmd: 0
+--- tb
+exit code of cmd /c tb.cmd: 7
+--- tc
+after call: errorlevel=7
+exit code of cmd /c tc.cmd: 0
+--- td
+exit code of cmd /c td.cmd: 0
+--- te
+curl: (22) The requested URL returned error: 404
+exit code of cmd /c te.cmd: 0
+--- tf
+exit code of cmd /c tf.cmd: 0
+ls: cannot access 'http/ts/_t*': No such file or directory

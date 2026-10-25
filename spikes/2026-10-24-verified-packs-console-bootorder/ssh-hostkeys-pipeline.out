@@ -1,0 +1,143 @@
+18:41:29 waiting for ve to power off (sysprep /generalize /shutdown)...
+18:41:29 ve is off. Its last events:
+  2026-10-24T18:35:06-04:00  +  320.5s  (+   0.2s)  boot-tasks  ok    
+  2026-10-24T18:35:10-04:00  +  323.8s  (+   3.3s)  role-post   ok    sevenzip=yes
+  2026-10-24T18:35:10-04:00  +  323.9s  (+   0.1s)  deployed    ok    host=WIN-CNF01H7JHU4 role=lab-apps
+  2026-10-24T18:35:10-04:00  +  324.0s  (+   0.1s)  prepare-capture start 
+### the reference's own sshd host key fingerprints (uploaded ssh.txt)
+ssh.ps1 2026-10-24T22:34:55
+msiexec exit code 0
+default shell C:\Program Files\PowerShell\7\pwsh.exe
+1 key(s) in C:\ProgramData\ssh\administrators_authorized_keys
+hostkey 384 SHA256:BRipvT5cEjm8sBLRiyNe7q0ibuFFjYFiY43yWaQPdB0 system@WIN-CNF01H7JHU4 (ECDSA)
+hostkey 256 SHA256:ogfMJu3JFDFbFKWazurf/ce8q0nL0wQztUY+snYWVq0 system@WIN-CNF01H7JHU4 (ED25519)
+hostkey 256 SHA256:mgy8xMkhkXrVwTyYeFp7ic419Z7HMS4Qmnc1Uctn4qQ system@WIN-CNF01H7JHU4 (MLDSA44-ED25519)
+hostkey 3072 SHA256:rIFg+GPNH98bgPJT3LTUSjuS8FilTTxP0oJaru2CI8k system@WIN-CNF01H7JHU4 (RSA)
+sshd Running, listening=yes
+=== msi log (tail)
+MSI (s) (FC:80) [22:35:03:125]: No System Restore sequence number for this installation.
+=== Logging stopped: 10/24/2026  22:35:03 ===
+MSI (s) (FC:80) [22:35:03:127]: User policy value 'DisableRollback' is 0
+MSI (s) (FC:80) [22:35:03:127]: Machine policy value 'DisableRollback' is 0
+MSI (s) (FC:80) [22:35:03:127]: Incrementing counter to disable shutdown. Counter after increment: 0
+MSI (s) (FC:80) [22:35:03:127]: Note: 1: 1402 2: HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Installer\Rollback\Scripts 3: 2 
+MSI (s) (FC:80) [22:35:03:130]: Note: 1: 2265 2:  3: -2147287035 
+MSI (s) (FC:80) [22:35:03:132]: Note: 1: 1402 2: HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Installer\Rollback\Scripts 3: 2 
+MSI (s) (FC:80) [22:35:03:132]: Decrementing counter to disable shutdown. If counter >= 0, shutdown will be denied.  Counter after decrement: -1
+MSI (s) (FC:80) [22:35:03:132]: Destroying RemoteAPI object.
+### capture on Linux  18:41:29
+converting ve's disk to raw (sparse)...
+cutting out the Windows partition (64234 MiB at sector 567296)...
+capturing the NTFS volume with wimlib (LZX)...
+verifying the captured image (wimlib-imagex verify)...
+lab-ssh.winre.wim: copied from base.winre.wim (a captured Windows volume carries no Winre.wim)
+lab-ssh.winre.json: 480562488 bytes, sha256 1f9ee125ccc278ad…
+writing sidecar lab-ssh.json (hashing the image)...
+{
+  "file": "lab-ssh.wim",
+  "size": 3608839925,
+  "sha256": "521f39873e96afb5e78129544bd890d936707cf6a4abd25717cc5f6ff16f6d1f",
+  "kind": "captured",
+  "image_name": "captured afebecc1-9889-42ac-98d5-e836152b5075",
+  "edition": "Professional",
+  "build": "26100.1",
+  "languages": "en-US",
+  "source": {
+    "machine": "afebecc1-9889-42ac-98d5-e836152b5075",
+    "vm": "ve",
+    "via": "bin/capture-image (wimlib NTFS capture of the VM disk)"
+  },
+  "provenance": {
+    "stamp": "reference afebecc1-9889-42ac-98d5-e836152b5075 run 107219505 role lab-apps apps c066ab20af0c21e73651aade6565e0deeadc6d40fd4d823f123267b0876f679c",
+    "run": "107219505",
+    "role": "lab-apps",
+    "apps_sha256": "c066ab20af0c21e73651aade6565e0deeadc6d40fd4d823f123267b0876f679c",
+    "reference_machine": "afebecc1-9889-42ac-98d5-e836152b5075"
+  },
+  "created": "2026-10-24T18:43:19-0400",
+  "wimlib": "wimlib-imagex 1.14.5 (using wimlib 1.14.5)"
+}
+### what was published
+-rw-rw-r-- 1 sqs sqs        931 Oct 24 18:43 http/images/lab-ssh.json
+-rw-r--r-- 1 sqs sqs 3608839925 Oct 24 18:42 http/images/lab-ssh.wim
+-rw-r--r-- 1 sqs sqs        236 Oct 24 18:43 http/images/lab-ssh.winre.json
+-rw-r--r-- 1 sqs sqs  480562488 Oct 24 18:43 http/images/lab-ssh.winre.wim
+{
+  "file": "lab-ssh.winre.wim",
+  "size": 480562488,
+  "sha256": "1f9ee125ccc278ad2d92e0e8e87f48a5b0bbcd55e9138fd93d185e6892421e26",
+  "kind": "winre",
+  "origin": "copied from base.winre.wim",
+  "created": "2026-10-24T18:43:17-0400"
+}### lint with the new image
+lint rc=0
+231 PASS, 0 FAIL, 0 UNKNOWN   (-v lists every row)
+231 PASS, 0 FAIL, 0 UNKNOWN   (-v lists every row)
+### two machines from the image  18:43:23
+created VM vf
+  uuid f91273ff-75c3-4ecb-ae48-052d5b58ab28   mac 52:54:00:fa:2f:ce   monitor 127.0.0.1:7006
+  disk 64G   net user   machines entry: MODE=deploy
+next: bin/vm-boot vf
+created VM vg
+  uuid aec0d584-6344-4e6d-a127-3d8d31db2084   mac 52:54:00:13:6c:b6   monitor 127.0.0.1:7007
+  disk 64G   net user   machines entry: MODE=deploy
+next: bin/vm-boot vg
+VM vf running: pid 2171785, nic e1000e, boot disk then network, monitor 127.0.0.1:7006
+id for bin/status and bin/await: f91273ff-75c3-4ecb-ae48-052d5b58ab28
+VM vg running: pid 2171831, nic e1000e, boot disk then network, monitor 127.0.0.1:7007
+id for bin/status and bin/await: aec0d584-6344-4e6d-a127-3d8d31db2084
+await vf rc=0 : await: 2026-10-24T18:47:17-04:00 deployed ok
+await vg rc=0 : await: 2026-10-24T18:47:18-04:00 deployed ok
+### timelines
+  2026-10-24T18:45:46-04:00  +  135.7s  (+   0.7s)  50-boot     ok    msg=boot files written; the firmware boots Windows Boot Manager first
+  2026-10-24T18:45:47-04:00  +  136.0s  (+   0.3s)  60-unattend start 
+  2026-10-24T18:45:47-04:00  +  136.4s  (+   0.4s)  60-unattend ok    
+  2026-10-24T18:45:47-04:00  +  136.7s  (+   0.3s)  90-reboot   start 
+  2026-10-24T18:45:48-04:00  +  136.7s  (+   0.1s)  90-reboot   ok    
+  2026-10-24T18:45:48-04:00  +  136.9s  (+   0.1s)  ts-done     ok    
+  2026-10-24T18:46:31-04:00  +  180.4s  (+  43.5s)  specialize  ok    
+  2026-10-24T18:47:03-04:00  +  211.8s  (+  31.4s)  boot        ok    host=WIN-8SIRS736369 trigger=onstart
+  2026-10-24T18:47:14-04:00  +  222.7s  (+  10.8s)  firstlogon  ok    host=WIN-8SIRS736369 build=26100.1 secureboot=False image=reference afebecc1-9889-42ac-98d5-e836152b5075 run 107219505 role lab-apps apps c066ab20af0c21e73651aade6565e0deeadc6d40fd4d823f123267b0876f679c
+  2026-10-24T18:47:16-04:00  +  225.4s  (+   2.8s)  winre       ok    status=Enabled location=\\?\GLOBALROOT\device\harddisk0\partition4\Recovery\WindowsRE windows_partition=3
+  2026-10-24T18:47:17-04:00  +  225.8s  (+   0.3s)  boot-tasks  ok    
+  2026-10-24T18:47:17-04:00  +  225.9s  (+   0.1s)  deployed    ok    host=WIN-8SIRS736369
+  2026-10-24T18:45:47-04:00  +  136.2s  (+   0.6s)  50-boot     ok    msg=boot files written; the firmware boots Windows Boot Manager first
+  2026-10-24T18:45:47-04:00  +  136.5s  (+   0.3s)  60-unattend start 
+  2026-10-24T18:45:48-04:00  +  136.9s  (+   0.4s)  60-unattend ok    
+  2026-10-24T18:45:48-04:00  +  137.2s  (+   0.3s)  90-reboot   start 
+  2026-10-24T18:45:48-04:00  +  137.3s  (+   0.1s)  90-reboot   ok    
+  2026-10-24T18:45:48-04:00  +  137.5s  (+   0.1s)  ts-done     ok    
+  2026-10-24T18:46:32-04:00  +  180.8s  (+  43.4s)  specialize  ok    
+  2026-10-24T18:47:04-04:00  +  212.9s  (+  32.1s)  boot        ok    host=WIN-B1TACNDPMLR trigger=onstart
+  2026-10-24T18:47:15-04:00  +  224.0s  (+  11.0s)  firstlogon  ok    host=WIN-B1TACNDPMLR build=26100.1 secureboot=False image=reference afebecc1-9889-42ac-98d5-e836152b5075 run 107219505 role lab-apps apps c066ab20af0c21e73651aade6565e0deeadc6d40fd4d823f123267b0876f679c
+  2026-10-24T18:47:18-04:00  +  227.0s  (+   3.0s)  winre       ok    status=Enabled location=\\?\GLOBALROOT\device\harddisk0\partition4\Recovery\WindowsRE windows_partition=3
+  2026-10-24T18:47:18-04:00  +  227.3s  (+   0.3s)  boot-tasks  ok    
+  2026-10-24T18:47:18-04:00  +  227.4s  (+   0.1s)  deployed    ok    host=WIN-B1TACNDPMLR
+### host keys as seen from this host  18:47:19
+--- port 2231
+384 SHA256:CTAKfcRfs6K1rYMTsple/tXC4dvwQFGyPpt6Q0NMIIQ [127.0.0.1]:2231 (ECDSA)
+3072 SHA256:G3nDcW88KIAdICnZATGn3wP1gr6TWLGQHGpMZ3VHyfg [127.0.0.1]:2231 (RSA)
+256 SHA256:LBDf67z5Qo8W+Md6GNpesvqBOdssgm0PS2ghafs0oFI [127.0.0.1]:2231 (ED25519)
+--- port 2232
+3072 SHA256:2eC3OBpv4Xh0ZqkAfUYtDbGZjprg+3tvOBfxKHyGNb0 [127.0.0.1]:2232 (RSA)
+384 SHA256:4B944PUU8FaZD/nHthoKk2nm40lS5F966dKMdqbHgY0 [127.0.0.1]:2232 (ECDSA)
+256 SHA256:UzhIKsZHmTue+bs8wa4fJ6SN8i2TuZsYtM/NmTSsIEY [127.0.0.1]:2232 (ED25519)
+### ssh as admin with the role's key, hostname + sshd host key file dates
+
+[32;1mId    [0m[32;1m Name           [0m[32;1m PSJobTypeName  [0m[32;1m State        [0m[32;1m HasMoreData    [0m[32;1m Location            [0m[32;1m Command[0m
+[32;1m--    [0m [32;1m----           [0m [32;1m-------------  [0m [32;1m-----        [0m [32;1m-----------    [0m [32;1m--------            [0m [32;1m-------[0m
+1      Job1            BackgroundJob   Running       True            localhost            hostname
+[31;1mGet-ChildItem: [31;1mCannot find path 'C:\Users\admin\%ProgramData%\ssh\ssh_host_ed25519_key.pub' because it does not exist.[0m
+
+ssh rc=0
+
+[32;1mId    [0m[32;1m Name           [0m[32;1m PSJobTypeName  [0m[32;1m State        [0m[32;1m HasMoreData    [0m[32;1m Location            [0m[32;1m Command[0m
+[32;1m--    [0m [32;1m----           [0m [32;1m-------------  [0m [32;1m-----        [0m [32;1m-----------    [0m [32;1m--------            [0m [32;1m-------[0m
+1      Job1            BackgroundJob   Running       True            localhost            hostname
+[31;1mGet-ChildItem: [31;1mCannot find path 'C:\Users\admin\%ProgramData%\ssh\ssh_host_ed25519_key.pub' because it does not exist.[0m
+
+ssh rc=0
+### control: no key -> refused
+admin@127.0.0.1: Permission denied (publickey).
+rc=0
+18:47:29 pipeline done

@@ -65,7 +65,7 @@ state; a VM boot shows `wim ok` (the `boot.wim` request) or the collector's
 
 **What it does.** `winpeshl.ini` runs `deploy.cmd`: wait for the network,
 fetch the toolkit (`env.cmd`, `step.cmd`, `beacon.cmd`, `push.cmd`,
-`pushloop.cmd`, `shell-loop.cmd`, `slug.js`), identify the machine, layer
+`pushloop.cmd`, `shell-loop.cmd`, `verified.cmd`, `slug.js`, `disks.js`), identify the machine, layer
 `models/<slug>.cfg` under `machines/<uuid>.cfg`, start the remote shell, and
 run `ts/<MODE>.seq`: one step file per line, each run in a child `cmd` with
 `start`/`ok`/`fail` beacons and logs pushed every 20 s. No cfg: `MODE=shell`,

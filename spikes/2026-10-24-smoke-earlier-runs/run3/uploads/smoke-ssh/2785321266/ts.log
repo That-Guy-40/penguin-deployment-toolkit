@@ -1,0 +1,304 @@
+curl: (22) The requested URL returned error: 404
+[pdt] id c4c52b1d-4098-4ae2-81ea-587674977cf1 run 2785321266 mode deploy model lab-vm from ""
+[pdt] beacon ts-start ok
+
+[pdt] ===== 15-preflight
+[pdt] beacon 15-preflight start
+[pdt] beacon 15-preflight ok
+
+[pdt] ===== 17-diskguard
+[pdt] beacon 17-diskguard start
+0|Fixed hard disk media|IDE|64|QEMU HARDDISK|eligible
+1|Removable Media|USB|8|QEMU QEMU HARDDISK USB Device|not eligible: removable media (Removable Media)
+[pdt] beacon 17-diskguard ok
+
+[pdt] ===== 20-disk
+[pdt] beacon 20-disk start
+[pdt] disk 0: wiping and partitioning
+
+Microsoft DiskPart version 10.0.26100.1
+
+Copyright (C) Microsoft Corporation.
+On computer: MININT-HC7ODRH
+
+Disk 0 is now the selected disk.
+
+DiskPart succeeded in cleaning the disk.
+
+DiskPart successfully converted the selected disk to GPT format.
+
+DiskPart succeeded in creating the specified partition.
+
+    0 percent completed  100 percent completed
+
+DiskPart successfully formatted the volume.
+
+DiskPart successfully assigned the drive letter or mount point.
+
+DiskPart succeeded in creating the specified partition.
+
+DiskPart succeeded in creating the specified partition.
+
+DiskPart successfully shrunk the volume by: 1024 MB
+
+    0 percent completed  100 percent completed
+
+DiskPart successfully formatted the volume.
+
+DiskPart successfully assigned the drive letter or mount point.
+
+DiskPart succeeded in creating the specified partition.
+
+    0 percent completed  100 percent completed
+
+DiskPart successfully formatted the volume.
+
+DiskPart successfully assigned the drive letter or mount point.
+
+DiskPart successfully set the partition ID.
+
+DiskPart successfully assigned the attributes to the selected GPT partition.
+
+  Volume ###  Ltr  Label        Fs     Type        Size     Status     Info
+  ----------  ---  -----------  -----  ----------  -------  ---------  --------
+  Volume 0     C   PDTUSB       FAT32  Removable   8191 MB  Healthy            
+  Volume 1     W   Windows      NTFS   Partition     62 GB  Healthy            
+  Volume 2     S   SYSTEM       FAT32  Partition    260 MB  Healthy    Hidden  
+* Volume 3     R   Recovery     NTFS   Partition   1024 MB  Healthy    Hidden  
+
+Leaving DiskPart...
+[pdt] beacon 20-disk ok
+
+[pdt] ===== 25-download
+[pdt] beacon 25-download start
+0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279  W:\image.wim
+0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279  X:\pdt\images-base.json (sidecar)
+match
+[pdt] beacon 25-download ok
+[pdt] beacon stop ok
+[pdt] shell: running cmd 1
+[pdt] shell: running cmd 2
+[pdt] shell: running cmd 3
+[pdt] shell: running cmd 4
+[pdt] shell: running cmd 5
+[pdt] shell: running cmd 6
+[pdt] shell: running cmd 7
+[pdt] shell: running cmd 8
+[pdt] shell: running cmd 9
+[pdt] shell: running cmd 10
+[pdt] shell: running cmd 11
+[pdt] shell: running cmd 12
+curl: (22) The requested URL returned error: 404
+[pdt] id c4c52b1d-4098-4ae2-81ea-587674977cf1 run 2785321266 mode deploy model lab-vm from "30"
+
+[pdt] ===== 30-apply
+[pdt] beacon 30-apply start
+
+Deployment Image Servicing and Management tool
+Version: 10.0.26100.1
+
+Applying image
+[                           1.0%                           ] 
+[=                          2.0%                           ] 
+[=                          3.0%                           ] 
+[==                         4.0%                           ] 
+[==                         5.0%                           ] 
+[===                        6.0%                           ] 
+[====                       7.0%                           ] 
+[====                       8.0%                           ] 
+[=====                      9.0%                           ] 
+[=====                      10.0%                          ] 
+[======                     12.0%                          ] 
+[=======                    13.0%                          ] 
+[========                   14.0%                          ] 
+[========                   15.0%                          ] 
+[=========                  16.0%                          ] 
+[=========                  17.0%                          ] 
+[==========                 18.0%                          ] 
+[===========                19.0%                          ] 
+[===========                20.0%                          ] 
+[============               21.0%                          ] 
+[============               22.0%                          ] 
+[=============              23.0%                          ] 
+[=============              24.0%                          ] 
+[==============             25.0%                          ] 
+[===============            26.0%                          ] 
+[===============            27.0%                          ] 
+[================           28.0%                          ] 
+[================           29.0%                          ] 
+[=================          30.0%                          ] 
+[=================          31.0%                          ] 
+[==================         32.0%                          ] 
+[===================        33.0%                          ] 
+[===================        34.0%                          ] 
+[====================       35.0%                          ] 
+[====================       36.0%                          ] 
+[=====================      37.0%                          ] 
+[======================     38.0%                          ] 
+[======================     39.0%                          ] 
+[=======================    40.0%                          ] 
+[=======================    41.0%                          ] 
+[========================   42.0%                          ] 
+[========================   43.0%                          ] 
+[=========================  44.0%                          ] 
+[========================== 45.0%                          ] 
+[========================== 46.0%                          ] 
+[===========================47.0%                          ] 
+[===========================48.0%                          ] 
+[===========================49.0%                          ] 
+[===========================50.0%                          ] 
+[===========================51.0%                          ] 
+[===========================52.0%                          ] 
+[===========================53.0%                          ] 
+[===========================54.0%                          ] 
+[===========================55.0%                          ] 
+[===========================56.0%                          ] 
+[===========================57.0%=                         ] 
+[===========================58.0%=                         ] 
+[===========================59.0%==                        ] 
+[===========================60.0%==                        ] 
+[===========================61.0%===                       ] 
+[===========================62.0%===                       ] 
+[===========================63.0%====                      ] 
+[===========================64.0%=====                     ] 
+[===========================65.0%=====                     ] 
+[===========================66.0%======                    ] 
+[===========================67.0%======                    ] 
+[===========================68.0%=======                   ] 
+[===========================69.0%========                  ] 
+[===========================70.0%========                  ] 
+[===========================71.0%=========                 ] 
+[===========================72.0%=========                 ] 
+[===========================73.0%==========                ] 
+[===========================74.0%==========                ] 
+[===========================75.0%===========               ] 
+[===========================76.0%============              ] 
+[===========================77.0%============              ] 
+[===========================78.0%=============             ] 
+[===========================79.0%=============             ] 
+[===========================80.0%==============            ] 
+[===========================81.0%==============            ] 
+[===========================82.0%===============           ] 
+[===========================83.0%================          ] 
+[===========================84.0%================          ] 
+[===========================85.0%=================         ] 
+[===========================86.0%=================         ] 
+[===========================87.0%==================        ] 
+[===========================88.0%===================       ] 
+[===========================89.0%===================       ] 
+[===========================90.0%====================      ] 
+[===========================91.0%====================      ] 
+[===========================92.0%=====================     ] 
+[===========================93.0%=====================     ] 
+[===========================94.0%======================    ] 
+[===========================95.0%=======================   ] 
+[==========================100.0%==========================] 
+The operation completed successfully.
+[pdt] beacon 30-apply ok
+
+[pdt] ===== 35-updates
+[pdt] beacon 35-updates start
+[pdt] beacon 35-updates ok
+
+[pdt] ===== 40-drivers
+[pdt] beacon 40-drivers start
+[pdt] beacon 40-drivers ok
+
+[pdt] ===== 45-winre
+[pdt] beacon 45-winre start
+W:\Windows\System32\Recovery\winre.wim
+1 File(s) copied
+Directory set to: \\?\GLOBALROOT\device\harddisk0\partition4\Recovery\WindowsRE
+
+REAGENTC.EXE: Operation Successful.
+    
+Windows Recovery Environment (Windows RE) and system reset configuration
+Information:
+
+    Windows RE status:         Disabled
+    Windows RE location:       
+    Boot Configuration Data (BCD) identifier: 00000000-0000-0000-0000-000000000000
+    Recovery image location:   
+    Recovery image index:      0
+    Custom image location:     
+    Custom image index:        0
+
+REAGENTC.EXE: Operation Successful.
+    
+[pdt] beacon 45-winre ok
+
+[pdt] ===== 50-boot
+[pdt] beacon 50-boot start
+Boot files successfully created.
+
+Firmware Boot Manager
+---------------------
+identifier              {fwbootmgr}
+displayorder            {bootmgr}
+                        {f4c79ff7-d050-11f1-b9f8-525400c2fec2}
+                        {f4c79ff8-d050-11f1-b9f8-525400c2fec2}
+                        {f4c79ff9-d050-11f1-b9f8-525400c2fec2}
+                        {f4c79ffa-d050-11f1-b9f8-525400c2fec2}
+                        {f4c79ffb-d050-11f1-b9f8-525400c2fec2}
+                        {f4c79ff5-d050-11f1-b9f8-525400c2fec2}
+                        {f4c79ff6-d050-11f1-b9f8-525400c2fec2}
+timeout                 0
+
+Windows Boot Manager
+--------------------
+identifier              {bootmgr}
+device                  partition=S:
+path                    \EFI\Microsoft\Boot\bootmgfw.efi
+description             Windows Boot Manager
+locale                  en-us
+inherit                 {globalsettings}
+default                 {default}
+resumeobject            {f4c79ff3-d050-11f1-b9f8-525400c2fec2}
+displayorder            {default}
+toolsdisplayorder       {memdiag}
+timeout                 30
+
+Firmware Application (101fffff)
+-------------------------------
+identifier              {f4c79ff5-d050-11f1-b9f8-525400c2fec2}
+description             BootManagerMenuApp
+
+Firmware Application (101fffff)
+-------------------------------
+identifier              {f4c79ff6-d050-11f1-b9f8-525400c2fec2}
+description             EFI Firmware Setup
+
+Firmware Application (101fffff)
+-------------------------------
+identifier              {f4c79ff7-d050-11f1-b9f8-525400c2fec2}
+description             UEFI QEMU HARDDISK QM00001 
+
+Firmware Application (101fffff)
+-------------------------------
+identifier              {f4c79ff8-d050-11f1-b9f8-525400c2fec2}
+description             UEFI PXEv4 (MAC:525400C2FEC2)
+
+Firmware Application (101fffff)
+-------------------------------
+identifier              {f4c79ff9-d050-11f1-b9f8-525400c2fec2}
+description             UEFI PXEv6 (MAC:525400C2FEC2)
+
+Firmware Application (101fffff)
+-------------------------------
+identifier              {f4c79ffa-d050-11f1-b9f8-525400c2fec2}
+description             UEFI HTTPv4 (MAC:525400C2FEC2)
+
+Firmware Application (101fffff)
+-------------------------------
+identifier              {f4c79ffb-d050-11f1-b9f8-525400c2fec2}
+description             UEFI HTTPv6 (MAC:525400C2FEC2)
+[pdt] beacon 50-boot ok
+
+[pdt] ===== 60-unattend
+[pdt] beacon 60-unattend start
+        1 file(s) copied.
+        1 file(s) copied.
+[pdt] beacon 60-unattend ok
+
+[pdt] ===== 90-reboot
+[pdt] beacon 90-reboot start

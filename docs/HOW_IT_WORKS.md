@@ -155,12 +155,12 @@ read what machines report; `teardown` stops it all. Every script answers
      | `15-preflight` | every file this install needs is on the server, *before* destroying anything |
      | `17-diskguard` | which disk may be wiped: the only fixed one, or `DISK=<n>` from the cfg; several, none, removable or too small → the step fails and nothing is touched |
      | `20-disk` | `diskpart` on that disk (`select disk @DISK@` filled in): GPT with EFI, MSR, Windows and a 1 GB recovery partition |
-     | `25-download` | the image to the new Windows partition with `curl`, then its SHA-256 against the sidecar's (`tools/pdt-sha256.exe`, built from `tools-src/`; WinPE has no certutil); a mismatch deletes the download and fails the step |
+     | `25-download` | the image to the new Windows partition (`ts/verified.cmd`: `curl`, then its SHA-256 against the sidecar's with `tools/pdt-sha256.exe`, built from `tools-src/`; WinPE has no certutil); a mismatch deletes the download and fails the step; a match leaves the token `30-apply` demands |
      | `30-apply` | `dism /apply-image` |
-     | `35-updates` | optional: an update pack, `dism /add-package` |
-     | `40-drivers` | optional: a driver pack, `dism /add-driver` |
-     | `45-winre` | the recovery environment onto the recovery partition, `reagentc` |
-     | `50-boot` | `bcdboot`: boot files and firmware entry |
+     | `35-updates` | optional: an update pack, verified the same way, `dism /add-package` |
+     | `40-drivers` | optional: a driver pack, verified the same way, `dism /add-driver` |
+     | `45-winre` | the recovery environment onto the recovery partition (from the image, or the server's `images/<name>.winre.wim`, verified the same way), `reagentc` |
+     | `50-boot` | `bcdboot`: boot files and the firmware's boot entry; the beacon says whether the firmware now boots Windows Boot Manager first |
      | `60-unattend` | `unattend.xml` into Panther; `C:\pdt\` with `id.cmd` (now also carrying the run token) and two small scripts for later |
      | `90-reboot` | |
 
@@ -169,7 +169,10 @@ read what machines report; `teardown` stops it all. Every script answers
    while it runs and once more when it finishes. Each step runs in its own
    child `cmd` process: WinPE's `cmd` ends a whole batch stack silently when a
    pipe names a program that does not exist, and in a child that costs only the
-   step, which is then reported as failed.
+   step, which is then reported as failed. The child ends with an explicit
+   `exit !errorlevel!`, because a step that leaves with `exit /b !errorlevel!`
+   from inside a parenthesized block would otherwise exit 0 and be reported `ok`
+   (a `cmd` quirk measured on 2026-10-24; lint pins the line).
 
    Because the steps are separate files that each load `env.cmd` themselves,
    one can be run on its own at the WinPE prompt, and because `deploy.cmd`
@@ -243,7 +246,8 @@ Roles (Phase 3) are in: a directory per role with a winget list, local
 accounts (generated passwords uploaded once, then gone), a skel for new
 profiles, a post script, an unattend, the fast-startup policy and the removal
 of the toolkit's own account. For machines you cannot sit at: a remote shell
-and a screen pusher over HTTP (`bin/shell`, `bin/screen`), and the collector,
+and a screen pusher over HTTP (`bin/shell`, `bin/screen`), the deploy window
+as text frames and keystrokes into it (`bin/console`, `bin/keys`), and the collector,
 a Linux in RAM that inventories a machine and sends it on into Windows PE
 (`docs/COLLECTOR.md`). Next is real hardware on a real LAN (Phase 5), and
 an install guide good enough that someone else can stand the server up

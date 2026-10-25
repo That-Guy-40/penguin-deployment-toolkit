@@ -1,0 +1,19 @@
+  2026-10-24T18:40:32-04:00  + 1013.1s  (+ 202.2s)  35-updates  start 
+  2026-10-24T18:40:32-04:00  + 1013.3s  (+   0.2s)  35-updates  ok    msg=skipped: no UPDATES set
+  2026-10-24T18:40:32-04:00  + 1013.6s  (+   0.3s)  40-drivers  start 
+  2026-10-24T18:40:36-04:00  + 1017.6s  (+   4.1s)  40-drivers  ok    msg=sha256 0318467bc1adf768b54e54b97de367b52f0c5053ad966d1b5acdf66cff325330 matches drivers/virtio-w11.json
+  2026-10-24T18:40:36-04:00  + 1017.9s  (+   0.3s)  45-winre    start 
+  2026-10-24T18:40:40-04:00  + 1021.7s  (+   3.8s)  45-winre    ok    msg=Winre.wim taken from the server, the image has none; sha256 1f9ee125ccc278ad2d92e0e8e87f48a5b0bbcd55e9138fd93d185e6892421e26 matches images/lab-apps.winre.json
+### vb ts.log 45-winre section
+    Windows RE location:       
+    Boot Configuration Data (BCD) identifier: 00000000-0000-0000-0000-000000000000
+    Recovery image location:   
+    Recovery image index:      0
+    Custom image location:     
+    Custom image index:        0
+
+REAGENTC.EXE: Operation Successful.
+    
+[pdt] beacon 45-winre ok
+
+[pdt] ===== 50-boot

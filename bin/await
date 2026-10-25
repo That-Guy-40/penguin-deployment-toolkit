@@ -9,7 +9,16 @@ Exit status:
   2  timeout (the last event seen for the machine is printed: that is where it is stuck)
 
 Only events that arrive AFTER await starts count, so a result from an earlier
-run cannot satisfy it. Use --from-start to consider the whole log.
+run cannot satisfy it. Two ways to look back:
+  --run latest   consider the machine's latest run from its first event on,
+                 including events that arrived before await started, and only
+                 that run. For a second await on a run that is already under
+                 way (the event may have come while you were busy). Caveat: a
+                 machine about to reboot into a NEW run still has the old run
+                 as its latest, so for a redeploy start the await after the
+                 new ts-start, or name the run:
+  --run <id>     the same for one run id (bin/status shows it)
+  --from-start   the whole log, any run (an earlier run can satisfy it)
 
   bin/vm-boot lab01 && bin/await lab01 firstlogon 900 && bin/vm-shot lab01
 """
@@ -29,12 +38,30 @@ def main():
     ap.add_argument("timeout", nargs="?", type=float, default=600)
     ap.add_argument("--ev", default="ok")
     ap.add_argument("--from-start", action="store_true")
+    ap.add_argument("--run", metavar="latest|ID", help="look back to the start of this run of the machine, and count only its events")
     a = ap.parse_args()
 
     path = _pdt.paths()["BEACON_LOG"]
     mid = _pdt.resolve_id(a.id)
     pos = 0
-    if not a.from_start and os.path.exists(path):
+    run = None
+    if a.run and os.path.exists(path):
+        # The run's first line is where reading starts; its id is the filter.
+        starts = {}   # run id -> byte offset of its first line for this machine
+        latest = None
+        with open(path, errors="replace") as f:
+            off = f.tell()
+            for line in f:
+                e = _pdt.parse_beacon(line)
+                if e and e["id"] == mid and e.get("run"):
+                    starts.setdefault(e["run"], off)
+                    latest = e["run"]
+                off += len(line.encode("utf-8", "replace")) if isinstance(line, str) else len(line)
+        run = latest if a.run == "latest" else a.run
+        if not run or run not in starts:
+            _pdt.die(f"{mid}: no run {'known' if a.run == 'latest' else a.run} in {path}", 2)
+        pos = starts[run]
+    elif not a.from_start and os.path.exists(path):
         pos = os.path.getsize(path)
     deadline = time.time() + a.timeout
     last = None
@@ -48,7 +75,7 @@ def main():
             *lines, buf = buf.split("\n")
             for line in lines:
                 e = _pdt.parse_beacon(line)
-                if not e or e["id"] != mid:
+                if not e or e["id"] != mid or (run and e.get("run") != run):
                     continue
                 last = e
                 shown = f'{e["iso"]} {e["step"]} {e["ev"]}' + (f' rc={e["rc"]}' if e.get("rc") else "")

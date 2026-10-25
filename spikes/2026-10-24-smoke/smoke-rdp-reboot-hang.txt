@@ -1,0 +1,17 @@
+ts-done at 2026-10-24T22:40:28-04:00, no specialize within 300 s; QEMU at 2026-10-24T22:45:29-04:00:
+QEMU 10.2.1 monitor - type 'help' for more information
+(qemu) i[K[Din[K[D[Dinf[K[D[D[Dinfo[K[D[D[D[Dinfo [K[D[D[D[D[Dinfo s[K[D[D[D[D[D[Dinfo st[K[D[D[D[D[D[D[Dinfo sta[K[D[D[D[D[D[D[D[Dinfo stat[K[D[D[D[D[D[D[D[D[Dinfo statu[K[D[D[D[D[D[D[D[D[D[Dinfo status[K
+VM status: running
+(qemu) CPU#0
+RIP=000000007bf7c483 RFL=00000246 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=0
+CPU#1
+RIP=000000007ad65d71 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1
+CPU#2
+RIP=000000007ad65d71 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1
+CPU#3
+RIP=000000007ad65d71 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1
+serial.log: 2026-10-24 22:26:30.549024369 -0400 30890 bytes  disk.qcow2: 2026-10-24 22:40:34.136537300 -0400
+recovering: vm-stop --force, vm-boot --fwd 3391:3389,2225:22
+VM smoke-rdp stopped
+VM smoke-rdp running: pid 1386673, nic virtio-net-pci, boot disk then network, monitor 127.0.0.1:7002
+id for bin/status and bin/await: a6fbe33e-ae41-4917-b88c-a2223f228ebb

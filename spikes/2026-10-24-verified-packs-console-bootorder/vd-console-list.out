@@ -1,0 +1,67 @@
+### vd: the pdt-shell frame header, then list
+# cols=120 rows=30 cursor=0,0 viewport=0-29 title=pdt-shell
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+list rc=0 
+     0  [System Process]  -
+     4  System  -
+   124  Registry  -
+   412  smss.exe  -
+   504  csrss.exe  -
+   576  wininit.exe  -
+   584  csrss.exe  -
+   656  winlogon.exe  -
+   716  services.exe  -
+   724  lsass.exe  -
+   840  svchost.exe  -
+   872  fontdrvhost.exe  -
+   880  fontdrvhost.exe  -
+   944  svchost.exe  -
+   320  svchost.exe  -
+   464  svchost.exe  -
+   508  svchost.exe  -
+   712  svchost.exe  -
+   960  svchost.exe  -
+   780  svchost.exe  -
+  1120  winpeshl.exe  winpeshl.exe
+  1132  conhost.exe  -
+  1204  WallpaperHost.exe  -
+  1216  cmd.exe  Administrator:  pdt-deploy
+  1228  conhost.exe  -
+  1392  svchost.exe  -
+  1500  svchost.exe  -
+  1556  svchost.exe  -
+  1628  svchost.exe  -
+  1748  cmd.exe  pdt-shell
+  1752  conhost.exe  -
+  1268  WmiPrvSE.exe  -
+  1144  cmd.exe  pdt-shell
+  2012  pdt-console.exe  -

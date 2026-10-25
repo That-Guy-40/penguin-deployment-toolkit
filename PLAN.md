@@ -214,7 +214,7 @@ penguin-deployment-toolkit/
 │   ├── vm-shot / vm-type     # QEMU monitor screendump / sendkey into the lab VM (3.2)
 │   ├── shell / screen        # remote shell and the latest pushed screen of any machine in WinPE or the collector, over HTTP
 │   ├── netboot / enroll      # what a machine boots next (collector or WinPE); machines/<uuid>.cfg from the collector's inventory
-│   ├── build-tools           # tools-src/*.c -> http/tools/ with mingw-w64 in a pinned container (pdt-screen.exe, pdt-sha256.exe; openssl.exe from the pinned source), built twice, hashes recorded
+│   ├── build-tools           # tools-src/*.c -> http/tools/ with mingw-w64 in a pinned container (pdt-screen.exe, pdt-sha256.exe, pdt-console.exe; openssl.exe from the pinned source), built twice, hashes recorded
 │   ├── build-collector       # tools-src/collector/ -> http/collector/ (Debian in RAM; mmdebstrap, rootless)
 │   ├── fetch-drivers         # a vendor driver CAB/zip -> drivers/<name>.wim, pinned by hash
 │   ├── vm-stop               # ACPI power-down, then by PID
@@ -242,7 +242,7 @@ penguin-deployment-toolkit/
 │   ├── updates/              # <name>.wim update packs (bin/pack-updates) for step 35-updates
 │   ├── winpe-drivers/        # drivers WinPE itself lacks: <nic-pci-id>.ipxe / model-<product>.ipxe snippets (its README)
 │   └── uploads/              # PUT target for logs and captured WIMs (never served back)
-├── tools-src/                # source of the toolkit's own programs: pdt-screen.c, pdt-sha256.c, the collector's scripts and hooks
+├── tools-src/                # source of the toolkit's own programs: pdt-screen.c, pdt-sha256.c, pdt-console.c, the collector's scripts and hooks
 ├── run/                      # STATE_DIR: nginx pid, access.log, beacons.log (append-only; the "database")
 ├── systemd/                  # unit files for serve and pxe-lan (Phase 6)
 ├── INSTALL.md                # server install for other people (see 3.1)

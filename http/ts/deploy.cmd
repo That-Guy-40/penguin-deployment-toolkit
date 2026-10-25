@@ -16,6 +16,8 @@ rem A disk is wiped ONLY by the steps of ts/deploy.seq, which run only when
 rem machines/<id>.cfg on the server says MODE=deploy.
 
 set PDT=X:\pdt
+rem The window's title is how tools/pdt-console.exe finds this console (bin/console, bin/keys).
+title pdt-deploy
 if not exist %PDT%\steps mkdir %PDT%\steps
 set LOG=%PDT%\ts.log
 set FROM=%~1
@@ -46,7 +48,7 @@ set PDT_NET_UP=1
 :net_ok
 
 rem ------------------------------------------------------------------ toolkit
-for %%f in (env.cmd step.cmd beacon.cmd push.cmd pushloop.cmd shell-loop.cmd slug.js disks.js) do (
+for %%f in (env.cmd step.cmd beacon.cmd push.cmd pushloop.cmd shell-loop.cmd verified.cmd slug.js disks.js) do (
   curl.exe -sS -f -o %PDT%\%%f "%SRV%/ts/%%f" >>%LOG% 2>&1 || (echo [pdt] cannot fetch ts/%%f from the server.& exit /b 1)
 )
 rem One run token per boot; a resumed run continues the same run.

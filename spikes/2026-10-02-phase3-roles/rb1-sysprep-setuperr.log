@@ -1,0 +1,8 @@
+﻿2026-10-03 00:15:59, Error                 SYSPRP Package Microsoft.Winget.Source_2026.1002.2435.59_neutral__8wekyb3d8bbwe was installed for a user, but not provisioned for all users. This package will not function properly in the sysprep image.
+2026-10-03 00:15:59, Error                 SYSPRP Failed to remove apps for the current user: 0x80073cf2.
+2026-10-03 00:15:59, Error                 SYSPRP Exit code of RemoveAllApps thread was 0x3cf2.
+2026-10-03 00:15:59, Error                 SYSPRP ActionPlatform::LaunchModule: Failure occurred while executing 'SysprepGeneralizeValidate' from C:\Windows\System32\AppxSysprep.dll; dwRet = 0x3cf2
+2026-10-03 00:15:59, Error                 SYSPRP SysprepSession::Validate: Error in validating actions from C:\Windows\System32\Sysprep\ActionFiles\Generalize.xml; dwRet = 0x3cf2
+2026-10-03 00:15:59, Error                 SYSPRP RunPlatformActions:Failed while validating Sysprep session actions; dwRet = 0x3cf2
+2026-10-03 00:15:59, Error      [0x0f0070] SYSPRP RunDlls:An error occurred while running registry sysprep DLLs, halting sysprep execution. dwRet = 0x3cf2
+2026-10-03 00:15:59, Error      [0x0f00d8] SYSPRP WinMain:Hit failure while pre-validate sysprep generalize internal providers; hr = 0x80073cf2

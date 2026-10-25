@@ -4,6 +4,12 @@
 # users.txt, one account per line, # comments:
 #   name|group|random            create (or keep) the account; set a new random password
 #   name|group|plain:<password>  create (or keep) the account; set exactly this password
+#   name|group|policy|keys=<file>  ... and install the SSH public keys in <file> (a file
+#                                in the role directory, next to users.txt) for that account
+#                                as C:\ProgramData\ssh\users\<name>\authorized_keys, owned
+#                                by Administrators, readable by the account: the path the
+#                                toolkit's sshd_config lists for every non-administrator
+#                                (%USERPROFILE%\.ssh does not exist before a first logon)
 # group is Administrators or Users. An account that already exists (the unattend's
 # "deploy", for one) is not created again: only its password and group are set.
 #
@@ -13,11 +19,27 @@
 # disk at the end of first logon. Nothing else keeps the generated passwords.
 #
 # Output (stdout, read back by firstlogon.cmd): one line
-#   created=a,b set=c failed=d(reason)
+#   created=a,b set=c failed=d(reason) keys=a
 param([Parameter(Mandatory)][string]$List, [Parameter(Mandatory)][string]$Out)
 $ErrorActionPreference = 'Stop'
-$created = @(); $set = @(); $failed = @()
+$created = @(); $set = @(); $failed = @(); $keyed = @()
 $lines = @()
+
+function Install-UserKeys([string]$name, [string]$file) {
+    $pub = @(Get-Content -LiteralPath $file | Where-Object { $_ -match '^(ssh-|ecdsa-|sk-)' })
+    if ($pub.Count -eq 0) { throw "no public key in $(Split-Path -Leaf $file)" }
+    $d = Join-Path $env:ProgramData "ssh\users\$name"
+    New-Item -ItemType Directory -Path $d -Force | Out-Null
+    $ak = Join-Path $d 'authorized_keys'
+    Set-Content -LiteralPath $ak -Value $pub -Encoding ASCII
+    # sshd (StrictModes) wants the file owned by the account or an administrator and
+    # writable by nobody else: Administrators and SYSTEM full, the account read.
+    foreach ($p in @(@($d, 'RX'), @($ak, 'R'))) {
+        $out = & icacls.exe $p[0] /inheritance:r /grant '*S-1-5-32-544:F' /grant '*S-1-5-18:F' /grant "$($name):$($p[1])" 2>&1
+        if ($LASTEXITCODE -ne 0) { throw "icacls: $out" }
+    }
+    return $pub.Count
+}
 
 function New-RandomPassword {
     # 24 random bytes from the OS generator, base64: 32 characters of upper,
@@ -31,8 +53,14 @@ foreach ($raw in Get-Content -LiteralPath $List) {
     $line = $raw.Trim()
     if (-not $line -or $line.StartsWith('#')) { continue }
     $f = $line.Split('|')
-    if ($f.Count -ne 3) { $failed += "$($f[0].Trim())(not name|group|policy)"; continue }
+    if ($f.Count -lt 3 -or $f.Count -gt 4) { $failed += "$($f[0].Trim())(not name|group|policy[|keys=file])"; continue }
     $name, $group, $policy = $f[0].Trim(), $f[1].Trim(), $f[2].Trim()
+    $keysFile = $null
+    if ($f.Count -eq 4) {
+        if ($f[3].Trim() -notmatch '^keys=([A-Za-z0-9._-]+)$') { $failed += "$name(fourth field must be keys=<file>)"; continue }
+        $keysFile = Join-Path (Split-Path -Parent $List) $Matches[1]
+        if (-not (Test-Path -LiteralPath $keysFile)) { $failed += "$name(keys file $($Matches[1]) missing)"; continue }
+    }
     if ($name -notmatch '^[A-Za-z0-9._-]{1,20}$') { $failed += "$name(bad name)"; continue }
     if ($group -notin @('Administrators', 'Users')) { $failed += "$name(group must be Administrators or Users)"; continue }
     if ($policy -eq 'random') { $pw = New-RandomPassword }
@@ -52,6 +80,7 @@ foreach ($raw in Get-Content -LiteralPath $List) {
             Add-LocalGroupMember -Group $group -Member $name
         }
         $lines += "$name`t$pw"
+        if ($keysFile) { Install-UserKeys $name $keysFile | Out-Null; $keyed += $name }
     } catch {
         $failed += "$name($($_.Exception.Message.Trim() -replace '[\s|&=,]+', '_'))"
     }
@@ -69,4 +98,4 @@ foreach ($id in @('NT AUTHORITY\SYSTEM', $me)) {
 }
 Set-Acl -LiteralPath $Out -AclObject $acl
 Set-Content -LiteralPath $Out -Value $lines -Encoding ASCII
-"created=$($created -join ',') set=$($set -join ',') failed=$(($failed -join ',') -replace '\s+', '_')"
+"created=$($created -join ',') set=$($set -join ',') failed=$(($failed -join ',') -replace '\s+', '_') keys=$($keyed -join ',')"

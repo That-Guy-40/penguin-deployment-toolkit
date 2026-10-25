@@ -3,6 +3,7 @@
 # into an update pack: http/updates/<name>.wim, plus a <name>.json sidecar.
 #
 #   pack-updates <dir> <name> [--target <file>]... [--expect <text>]
+#   pack-updates --rehash <name>     rewrite size and sha256 in an existing pack's sidecar
 #
 #   --target  install exactly this file from <dir> (repeatable); everything
 #             else in the pack is only there for DISM to draw prerequisites
@@ -24,6 +25,28 @@
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 need wimlib-imagex python3
 
+# rehash <kind> <name>: rewrite size and sha256 in the sidecar of an existing pack
+# from the file as it is now (packs made before 2026-10-24 carried no sha256;
+# ts/verified.cmd refuses a pack whose sidecar has none).
+rehash() {
+    local wim="$HTTP_DIR/$1/$2.wim" sidecar="$HTTP_DIR/$1/$2.json"
+    [[ -f "$wim" && -f "$sidecar" ]] || die "no such pack: http/$1/$2.wim with $2.json"
+    python3 - "$wim" "$sidecar" <<'PY'
+import hashlib, json, os, sys, time
+wim, sidecar = sys.argv[1:3]
+d = json.load(open(sidecar))
+h = hashlib.sha256()
+with open(wim, "rb") as f:
+    for chunk in iter(lambda: f.read(1 << 22), b""):
+        h.update(chunk)
+d.update(size=os.path.getsize(wim), sha256=h.hexdigest(), rehashed=time.strftime("%Y-%m-%dT%H:%M:%S%z"))
+json.dump(d, open(sidecar, "w"), indent=2)
+print(f"{os.path.relpath(sidecar)}: {d['size']} bytes, sha256 {d['sha256'][:16]}…")
+PY
+}
+
+if [[ "${1:-}" == --rehash ]]; then rehash updates "${2:?--rehash <name>}"; exit 0; fi
+
 EXPECT=""
 TARGETS=()
 ARGS=()
@@ -31,7 +54,7 @@ while (( $# )); do
     case "$1" in
         --expect) EXPECT="${2:?}"; shift 2 ;;
         --target) TARGETS+=("${2:?}"); shift 2 ;;
-        -h|--help) sed -n '2,23p' "$0"; exit 0 ;;
+        -h|--help) sed -n '2,24p' "$0"; exit 0 ;;
         *) ARGS+=("$1"); shift ;;
     esac
 done

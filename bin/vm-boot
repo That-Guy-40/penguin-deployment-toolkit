@@ -4,8 +4,13 @@
 #   vm-boot <name> [--gui] [--pxe] [--nic e1000e|virtio-net-pci] [--no-rom] [--fwd <host>:<guest>[,...]]
 #
 # Hardware is chosen so stock WinPE needs no extra drivers: an e1000e NIC and
-# an AHCI disk (both inbox). Boot order is disk, then network: an empty disk
-# falls through to PXE and gets deployed; an installed disk just boots.
+# an AHCI disk (both inbox). Boot order is disk(s), then network: an empty disk
+# falls through to PXE and gets deployed; an installed disk just boots. A
+# second disk (vm-create --second-disk) comes right after the first, so a
+# DISK=1 install boots too (OVMF orders the firmware's entries by QEMU's
+# bootindex list and puts entries for devices not on it, such as Windows Boot
+# Manager on an unlisted disk, last: after the network, which is how a two-disk
+# lab VM once re-imaged itself on 2026-10-24).
 #   --pxe   network first, to redeploy a VM that already has an OS. Not for a
 #           new VM: it stays network-first and redeploys itself after 90-reboot
 #   --gui   open a window instead of running headless
@@ -77,21 +82,30 @@ case "$VM_NET" in
 esac
 
 # Stale NVRAM boot entries only matter while there is no OS: reset the
-# variables while the disk is effectively empty, keep them once it has data
-# (Windows records its boot entry there).
-ALLOC="$(qemu-img info --output=json "$VM_DIR/disk.qcow2" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("actual-size", 0))')"
+# variables while every fixed disk is effectively empty, keep them once one
+# has data (Windows records its boot entry there, on whichever disk it is).
+ALLOC=0
+for d in "$VM_DIR/disk.qcow2" "$VM_DIR/disk2.qcow2"; do
+    [[ -f "$d" ]] || continue
+    a="$(qemu-img info --output=json "$d" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("actual-size", 0))')"
+    (( a > ALLOC )) && ALLOC=$a
+done
 if (( ALLOC < 104857600 )) || (( PXE_FIRST )); then cp "$VARS_TEMPLATE" "$VM_DIR/vars.fd"; fi
 
-if (( PXE_FIRST )); then DISK_IDX=2 NET_IDX=1; else DISK_IDX=1 NET_IDX=2; fi
+if (( PXE_FIRST )); then NET_IDX=1 DISK_IDX=2 DISK2_IDX=3; else DISK_IDX=1 DISK2_IDX=2 NET_IDX=3; fi
 
-# Extra disks from vm-create --second-disk / --usb-disk (for the disk guard's
-# negative controls): a second fixed disk on the AHCI bus, a removable USB stick.
+# Extra disks from vm-create --second-disk / --usb-disk / --sd-card (for the
+# disk guard's negative controls): a second fixed disk on the AHCI bus, a
+# removable USB stick, an SD card behind a PCI SDHCI controller.
 EXTRA_DISKS=()
 if [[ -f "$VM_DIR/disk2.qcow2" ]]; then
-    EXTRA_DISKS+=(-drive "file=$VM_DIR/disk2.qcow2,format=qcow2,if=none,id=hd1" -device "ide-hd,drive=hd1,bus=ide.1")
+    EXTRA_DISKS+=(-drive "file=$VM_DIR/disk2.qcow2,format=qcow2,if=none,id=hd1" -device "ide-hd,drive=hd1,bus=ide.1,bootindex=$DISK2_IDX")
 fi
 if [[ -f "$VM_DIR/usb.qcow2" ]]; then
     EXTRA_DISKS+=(-device qemu-xhci,id=xhci -drive "file=$VM_DIR/usb.qcow2,format=qcow2,if=none,id=usb0" -device "usb-storage,bus=xhci.0,drive=usb0,removable=on")
+fi
+if [[ -f "$VM_DIR/sd.qcow2" ]]; then
+    EXTRA_DISKS+=(-device sdhci-pci,id=sdhci0 -drive "file=$VM_DIR/sd.qcow2,format=qcow2,if=none,id=sd0" -device "sd-card,drive=sd0")
 fi
 
 QEMU=(

@@ -8,7 +8,11 @@ rem it; n counts up from 1 within this run, so nothing runs twice and nothing
 rem from an earlier boot runs at all). If it is there: run it with cmd /c,
 rem PUT its output as uploads/<id>/<run>/cmd-<n>.out, n+1. Also, while
 rem tools/pdt-screen.exe is injected, a screenshot every PDT_SCREEN_EVERY
-rem (default 5) seconds as uploads/<id>/<run>/screen.bmp (bin/screen shows it).
+rem (default 5) seconds as uploads/<id>/<run>/screen.bmp (bin/screen shows it),
+rem and while tools/pdt-console.exe is, a text frame of the deploy window
+rem (title pdt-deploy) on every pass in which it changed, as console-<n>.txt
+rem plus console.txt, the latest (bin/console shows them, bin/keys types into
+rem that window).
 rem
 rem Trust: whoever can write to http/ on the server already runs code as
 rem SYSTEM on every machine that boots (that is what deploy.cmd is); this
@@ -23,6 +27,9 @@ rem The screen pusher is optional: built by bin/build-tools (mingw-w64, pinned) 
 rem served from tools/; without it this loop is just the shell.
 set SCREEN=%PDT%\pdt-screen.exe
 if not exist "%SCREEN%" %CURL% -f -o "%SCREEN%" "%SRV%/tools/pdt-screen.exe" >nul 2>&1 & rem [optional]
+set CONSOLE=%PDT%\pdt-console.exe
+if not exist "%CONSOLE%" %CURL% -f -o "%CONSOLE%" "%SRV%/tools/pdt-console.exe" >nul 2>&1 & rem [optional]
+set FRAME=0
 :loop
 %CURL% -f -o %PDT%\cmd-%N%.cmd "%SRV%/cmd/%ID%/%RUN%/%N%.cmd" >nul 2>&1
 if exist %PDT%\cmd-%N%.cmd (
@@ -38,6 +45,15 @@ set /a TICK+=2
 if exist "%SCREEN%" if !TICK! geq %PDT_SCREEN_EVERY% (
   set TICK=0
   "%SCREEN%" %PDT%\screen.bmp >nul 2>&1 && %CURL% -T %PDT%\screen.bmp "%SRV%/uploads/%ID%/%RUN%/screen.bmp" -o nul --max-time 30 >nul 2>&1
+)
+rem A frame only when the screen changed (exit 0; 4 = same as last time, 2 = no such window yet).
+if exist "%CONSOLE%" (
+  "%CONSOLE%" dump pdt-deploy %PDT%\console.txt >nul 2>&1
+  if !errorlevel!==0 (
+    set /a FRAME+=1
+    %CURL% -T %PDT%\console.txt "%SRV%/uploads/%ID%/%RUN%/console-!FRAME!.txt" -o nul --max-time 30 >nul 2>&1
+    %CURL% -T %PDT%\console.txt "%SRV%/uploads/%ID%/%RUN%/console.txt" -o nul --max-time 30 >nul 2>&1
+  )
 )
 ping -n 3 127.0.0.1 >nul
 goto :loop

@@ -77,12 +77,41 @@ the machine runs the recorded binary. For a second opinion that is not our
 code, `bin/build-tools openssl` cross-builds OpenSSL's command-line tool from
 the pinned source tarball, static, twice, into `tools/openssl.exe`
 (`openssl dgst -sha256 <file>` on the machine agrees with `pdt-sha256`).
-Evidence: `spikes/2026-10-24-sha256-and-dism/`.
+Evidence: `spikes/2026-10-24-sha256-and-dism/`. Since later that day the same
+check (`ts/verified.cmd`) stands in front of every large download: update and
+driver packs and the recovery image too (`spikes/2026-10-24-verified-packs-console-bootorder/`).
 
-### What you get with both
+### 4. The deploy window as text, and keys into it **[verified, built]** — `bin/console`, `bin/keys`
+
+`bin/screen` is a picture: 3 MB every 5 s, not diffable, and nothing can wait
+on it. `tools/pdt-console.exe` (`tools-src/pdt-console.c`, plain Win32, built
+like the others) is tmux's `capture-pane` and `send-keys` for the one console
+that matters: `deploy.cmd` titles its window `pdt-deploy`, the tool gives up
+its own console, attaches to every process in turn until it finds a console
+whose title contains that (WinPE shows it as `Administrator:  pdt-deploy`;
+conhost itself refuses to be attached to, so the title is the handle), and
+reads the viewport with `ReadConsoleOutput`. `shell-loop.cmd` runs it on every
+pass (2 s) and uploads a frame only when the screen changed, as
+`console-<n>.txt` plus `console.txt`, 0.5–1.5 KB each. `bin/console <m>`
+prints the latest, `--watch`, `--frames`, `--diff`, and `--await TEXT` waits
+for a string. `bin/keys <m> 'deploy 20{enter}'` writes key events into that
+window's input buffer with `WriteConsoleInput` (`{enter}`, `{esc}`, `{tab}`,
+`{ctrl-c}`; the text travels as hex through `bin/shell`, so `cmd` never
+quotes it): the prompt a stopped or failed sequence sits at is answered, which
+`bin/shell` (a *new* `cmd`) cannot do. Verified on a VM stopped before
+`20-disk`: the first frame was the prompt, `dir` typed in showed up in the
+next frame, `deploy 20` resumed the sequence to `deployed`; a title nobody
+has exits 2 and writes nothing; `bin/shell --off` stops the frames while the
+beacons go on. What the frame does *not* show: a step's own output, which goes
+to `ts.log` (`bin/logs`), so during `30-apply` the frame says `[pdt] 30-apply ...`
+and the percentage is in the log. A firmware screen or a BSOD is still
+`bin/screen`'s. Evidence: `spikes/2026-10-24-verified-packs-console-bootorder/`.
+
+### What you get with all of them
 
 PXE → WinPE → every step → first logon, as beacons and logs (today), plus a
-shell into WinPE and a picture of the screen every 5 s, on the server, with
+shell into WinPE, a picture of the screen every 5 s, the deploy window as
+text whenever it changes, and a way to type into it, all on the server, with
 nothing attached to the machine. For the laptop, that covers everything
 after the firmware.
 

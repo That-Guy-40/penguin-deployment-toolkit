@@ -31,34 +31,30 @@ parked are in `DEFERRED.md`, not here.
   site, one deploy per site, with the tunnel-down and stale-mirror controls.
   Output: `spikes/<date>-two-sites/` and a `docs/SITE_APPLIANCE.md` runbook
   (Tier A, zero code).
-- [ ] Per-user SSH keys for `Users` accounts (`SSH=on` serves the Administrators
-  through `administrators_authorized_keys` only), and the reference-image
-  check for `SSH=on`: two machines deployed from one captured image must show
-  different host keys (`prepare-capture.cmd` removes them before sysprep;
-  not yet exercised).
+
+- [x] **Per-user SSH keys and the reference-image check (2026-10-24).**
+  `users.txt` takes `name|group|policy|keys=<file>`; `users.ps1` installs the
+  file as `C:\ProgramData\ssh\users\<name>\authorized_keys` (Administrators-owned,
+  readable by the account) and `sshd_config` lists that path for
+  non-administrators; lint, preflight and `60-unattend` know the field; the lab
+  role gives `alice` a key of her own (`bin/fetch-tools openssh`, private half
+  `build/lab-alice`). Verified with three refusal controls. Two machines
+  deployed from one captured `SSH=on` image showed different host keys, and
+  different from the reference's. Evidence:
+  `spikes/2026-10-24-verified-packs-console-bootorder/`.
 
 ## Housekeeping
 
-- [ ] **Verify driver and update packs on the machine too.** Since 2026-10-24
-  `25-download` checks the OS image's SHA-256 against its sidecar with
-  `tools/pdt-sha256.exe`, and `bin/pack-drivers` / `bin/pack-updates` write a
-  `sha256` into their sidecars; `35-updates` and `40-drivers` do not check it
-  yet, and packs made before that date carry none (re-pack them first). The
-  separate `images/<name>.winre.wim` that `45-winre` fetches has no sidecar at
-  all. Same mechanism, three more call sites; make lint demand the hash once
-  the steps do (`spikes/2026-10-24-sha256-and-dism/`).
-- [ ] **A `DISK=<n>` install on a disk the firmware does not boot first re-images
-  itself** (seen 2026-10-24, demo for Noah): a two-disk lab VM deployed onto
-  disk 1 with disk 0 left blank; at `90-reboot` the firmware tried disk 0
-  (nothing), then the network, and the task sequence ran again, wiping disk 1
-  (`MODE=deploy` was still set, as it is after every deploy). `bin/netboot <m>
-  local` stops the loop, and the machine then boots from disk 1, but only after
-  the firmware has timed out every network entry (several minutes per boot on
-  OVMF). Options: have `90-reboot` or `50-boot` warn when the chosen disk is not
-  disk 0; document that a multi-disk machine needs its boot order set (or the
-  Windows disk made first) before `netboot local` is removed; or `bin/netboot
-  <m> local` automatically at `ts-done` for machines whose cfg says `DISK=`.
-  Not seen on real firmware yet [unknown]. Evidence: `spikes/2026-10-24-demo-for-noah/`.
+- [ ] **`bin/shell` command files are run with a plain `cmd /c`** in
+  `shell-loop.cmd`, so a command that leaves with `exit /b !errorlevel!` from
+  inside a parenthesized block reports exit code 0 (the `cmd` quirk `step.cmd`
+  now works around with `cmd /v:on /c "… & exit !errorlevel!"`; see
+  `spikes/2026-10-24-verified-packs-console-bootorder/`). One-line commands are unaffected; apply the same wrapper
+  when `bin/shell` grows multi-line scripts.
+- [ ] **`35-updates` with `--expect`: the success message** now carries the
+  package and the pack's hash; the wording changed after the one run that
+  exercised that path (build `26100.9550`, 2026-10-24), so the message itself
+  has not been seen in a timeline yet [unknown]; the logic around it has.
 - [ ] **Lab VMs sometimes hang at a guest-initiated reboot** (QEMU 10.2 host):
   twice on 2026-10-22, once after WinPE's `90-reboot` (PXE-first `r8`) and
   once after Setup's specialize reboot (disk-first `s3`), out of about ten
@@ -69,6 +65,44 @@ parked are in `DEFERRED.md`, not here.
   `spikes/2026-10-21-local-diskguard-ssh/` has both records. If it keeps
   happening: bisect QEMU 10.2 / OVMF / `-machine q35,smm=on`; `bin/await`
   cannot tell it from a slow boot, so a stuck VM looks like silence.
+  2026-10-24, the TODO/DEFERRED session: eight VMs, ten guest-initiated
+  reboots or shutdowns (WinPE `90-reboot` ×7, a sysprep shutdown, two
+  specialize reboots counted once each), none hung.
+  **2026-10-24, `bin/smoke` run 3: reproduced**, a third signature. `smoke-ssh`
+  (AHCI disk + a USB stick on xHCI, resumed with `deploy 30` typed by
+  `bin/keys`) sent `90-reboot ok` and `ts-done ok`, then nothing: the display
+  stayed on WinPE's prompt (two "The process cannot access the file because
+  it is being used by another process" lines after `90-reboot ...`, from the
+  shutdown), the shell loop's last poll was 3 s after `ts-done`, QEMU said
+  `running` at 110 % CPU, `info registers`: CPU#0 at `RIP=7bfe35d3` (just
+  below TSEG at `7c000000`, i.e. the firmware's SMM-adjacent reset path),
+  CPU#1-3 `HLT=1`, the same 2 s later; no serial output, `disk.qcow2` and
+  `serial.log` untouched for 25 min. `system_reset` did not recover it
+  (display and disk unchanged 20 s later); `vm-stop --force` + `vm-boot`
+  did: Windows booted from the disk, `specialize` 30 s later, `deployed`
+  at +1 min 41 s. Evidence: `spikes/2026-10-24-smoke-earlier-runs/run3/
+  smoke-ssh-reboot-hang-by-hand.txt` and `shots/`. The other VM of the same
+  run (`smoke-rdp`, virtio, an SD card) rebooted fine.
+  **Run 4, the other reboot:** `smoke-rdp` (virtio disk and NIC, SD card)
+  came through WinPE's reboot, sent `specialize ok`, and never sent
+  `firstlogon`: 31 min later the display was black (never initialised),
+  CPU#0 busy and moving (`RIP=7bf8689a`, then `7bf7c483`: the firmware
+  region, not one spot), CPU#1-3 halted at `7ad65d71`, serial and disk
+  untouched since the reboot, QEMU at 137 % CPU. The same forced stop and
+  boot recovered it (first logon 1 min later). `smoke-ssh` of that run came
+  through both reboots (`spikes/2026-10-24-smoke-earlier-runs/run4/smoke-rdp-reboot-hang-by-hand.txt`).
+  **Run 5:** `smoke-rdp` again, this time at the reboot out of WinPE, with
+  the *same* registers as run 4 (CPU#0 `RIP=7bf7c483`, CPU#1-3 halted at
+  `7ad65d71`): a reproducible firmware state, not noise. `bin/smoke`'s
+  watcher caught it at 300 s and recovered it unattended
+  (`spikes/2026-10-24-smoke/smoke-rdp-reboot-hang.txt`). Score for
+  guest-initiated reboots in the smoke runs: 3 hung of 10; the virtio + SD
+  card VM hung twice, the AHCI + USB stick VM once. Next step when this is
+  picked up: the same VM with `-machine q35,smm=off` (needs the non-SMM OVMF
+  build) and without the SD card, ten reboots each, to split firmware from
+  hardware variant.
+  `bin/smoke` now watches for it (no `specialize` within 5 min of `ts-done`),
+  records QEMU's registers and recovers the same way; the row is a FAIL.
 - [ ] Real hardware has still seen none of this (Phase 5). In particular:
   enrolling the Secure Boot certificate in real firmware, and proxy-DHCP on a
   real switch next to a real router. (A bridge on the real host, and
@@ -86,6 +120,19 @@ parked are in `DEFERRED.md`, not here.
 
 ## Done
 
+- [x] **Every download verified, the console as text, the second-disk boot
+  order (2026-10-24).** `ts/verified.cmd` behind `25-download`, `35-updates`,
+  `40-drivers` and `45-winre` (sidecars with `sha256` for every pack and
+  recovery image: `pack-* --rehash`, `stage-image --sidecars`; lint demands
+  them, self-test 56/56); the controls found `45-winre` reporting `ok` after a
+  mismatch, which led to the `cmd` quirk (`exit /b !errorlevel!` inside a
+  parenthesized block exits the process with 0) and the `step.cmd` wrapper that
+  ends it. The two-disk re-image loop was the lab's: `vm-boot` now gives the
+  second disk a boot index and keeps the NVRAM once any disk has data; `50-boot`
+  records the firmware's order and says whether Windows leads it (`bcdedit
+  /enum firmware`; `bcdboot` puts it first, [read] and seen on OVMF; real
+  firmware still [unknown]). `tools/pdt-console.exe` + `bin/console` + `bin/keys`
+  (DEFERRED's spike, done). Evidence: `spikes/2026-10-24-verified-packs-console-bootorder/`.
 - [x] **Local-boot handoff, disk guard, `SSH=on`, RDP credentials (2026-10-22).**
   `bin/netboot <m> local` (iPXE exits, the firmware boots the disk; two
   defects found and fixed in the embedded chainloader: it fell into `:failed`

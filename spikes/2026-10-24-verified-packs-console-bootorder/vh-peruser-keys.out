@@ -1,0 +1,33 @@
+created VM vh
+  uuid 65cd65ca-10c9-4b89-bbc0-121e105cfd35   mac 52:54:00:5a:47:71   monitor 127.0.0.1:7008
+  disk 64G   net user   machines entry: MODE=deploy
+next: bin/vm-boot vh
+VM vh running: pid 2323271, nic e1000e, boot disk then network, monitor 127.0.0.1:7008
+id for bin/status and bin/await: 65cd65ca-10c9-4b89-bbc0-121e105cfd35
+await: 2026-10-24T18:59:35-04:00 deployed ok
+await rc=0
+  2026-10-24T18:58:29-04:00  +  235.8s  (+   1.4s)  users       ok    keys=alice
+  2026-10-24T18:59:31-04:00  +  298.2s  (+  10.0s)  ssh         ok    port=22 shell=pwsh keys=1 listening=yes
+  2026-10-24T18:59:35-04:00  +  302.0s  (+   0.0s)  deployed    ok    host=WIN-SH2HIHMAFK2 role=lab-apps
+### alice with her key (build/lab-alice)
+win-sh2hihmafk2\alice
+C:\ProgramData\ssh\users\alice\authorized_keys WIN-SH2HIHMAFK2\alice:(R)
+                                               NT AUTHORITY\SYSTEM:(F)
+                                               BUILTIN\Administrators:(F)
+
+Successfully processed 1 files; Failed processing 0 files
+rc=0
+### control: alice with the admins' key
+alice@127.0.0.1: Permission denied (publickey).
+rc=255
+### control: admin with alice's key
+admin@127.0.0.1: Permission denied (publickey).
+rc=255
+### control: bob, who does not exist, with alice's key
+bob@127.0.0.1: Permission denied (publickey).
+rc=255
+### admin with the admins' key
+win-sh2hihmafk2\admin
+AuthorizedKeysFile .ssh/authorized_keys __PROGRAMDATA__/ssh/users/%u/authorized_keys
+       AuthorizedKeysFile __PROGRAMDATA__/ssh/administrators_authorized_keys
+rc=0

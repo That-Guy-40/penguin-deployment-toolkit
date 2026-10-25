@@ -1,0 +1,21 @@
+smoke-rdp: specialize ok at 21:48:08, no firstlogon by 22:20:24 (31 min); QEMU:
+VM status: running?
+RIP=000000007bf8689a RFL=00000293 [--S-A-C] CPL=0 II=0 A20=1 SMM=0 HLT=0?
+CPU#1?
+RIP=000000007ad65d71 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1?
+CPU#2?
+RIP=000000007ad65d71 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1?
+CPU#3?
+RIP=000000007ad65d71 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1?
+-- 2 s later
+RIP=000000007bf7c483 RFL=00000246 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=0?
+RIP=000000007ad65d71 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1?
+RIP=000000007ad65d71 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1?
+RIP=000000007ad65d71 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1?
+serial.log: 2026-10-24 21:47:02.458635871 -0400 31300 bytes  disk.qcow2: 2026-10-24 21:48:11.623868417 -0400  sd.qcow2: 2026-10-24 21:48:11.557866286 -0400
+    ELAPSED %CPU
+      47:32  137
+recovering at 22:20:26: vm-stop --force, vm-boot --fwd 3391:3389,2225:22
+VM smoke-rdp stopped
+VM smoke-rdp running: pid 1048232, nic virtio-net-pci, boot disk then network, monitor 127.0.0.1:7002
+id for bin/status and bin/await: a1f83d7a-3432-46a2-8ca0-2603e67fa914

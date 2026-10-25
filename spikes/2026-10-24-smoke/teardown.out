@@ -1,0 +1,10 @@
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/teardown --purge-vm smoke-ssh --yes
+VM smoke-ssh is not running
+deleted VM smoke-ssh (and machines/3a450a5d-c386-4240-957e-acdf8612fcc4.cfg, its boot override and command files)
+rc=0
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/teardown --purge-vm smoke-rdp --yes
+VM smoke-rdp is not running
+deleted VM smoke-rdp (and machines/a6fbe33e-ae41-4917-b88c-a2223f228ebb.cfg, its boot override and command files)
+rc=0

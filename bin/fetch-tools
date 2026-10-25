@@ -10,8 +10,12 @@
 #                          http/post/winget/, for roles that install apps at first logon
 #   fetch-tools openssh [--ssh-key <pubkey>]
 #                          also fetch Win32-OpenSSH (the MSI) into http/post/openssh/, for
-#                          roles with SSH=on; and write the lab role's authorized_keys
-#                          (http/roles/lab-apps/) from your public key (default: ~/.ssh/id_*.pub)
+#                          roles with SSH=on; then "keys"
+#   fetch-tools keys [--ssh-key <pubkey>]
+#                          no download: write the lab keys into every role with SSH=on, its
+#                          SSHKEYS file from your public key (default: ~/.ssh/id_*.pub) and,
+#                          for each account with keys=<file> in its USERS, a key pair of its
+#                          own (private half build/lab-<account>, never served)
 #
 # A version string is not an identity (the wimboot v2.9.0 asset was re-uploaded
 # with different contents in 2026-05), so every artefact is pinned by hash.
@@ -160,27 +164,58 @@ openssh() {
     install -m 0644 "$DL/OpenSSH-Win64-v10.4.0.0.msi" "$od/OpenSSH-Win64.msi"
     printf 'OpenSSH-Win64.msi\r\n' > "$od/files.txt"
     info "http/post/openssh/: $(ls "$od" | tr '\n' ' ')"
-    # The lab role's keys file: whoever holds this key may ssh into a lab
-    # machine deployed with SSH=on (as any Administrators account of USERS).
-    # The same default as bin/build-collector, so one key opens both.
-    local key="${SSH_KEY:-}" k
+    lab_keys
+}
+
+lab_keys() {
+    # The lab's SSH keys, into every role that wants them. SSHKEYS: whoever
+    # holds this key may ssh into a machine deployed with SSH=on as any
+    # Administrators account of its USERS (the same default as
+    # bin/build-collector, so one key opens both). keys=<file> on a USERS line:
+    # that account's own pair, made once; the private half stays in
+    # build/lab-<account> (never served), the public half goes into the role.
+    need ssh-keygen
+    local key="${SSH_KEY:-}" k rc dir f users acct rest kf lk n=0
     if [[ -z "$key" ]]; then
         for k in ~/.ssh/id_ed25519.pub ~/.ssh/id_ecdsa.pub ~/.ssh/id_rsa.pub; do [[ -f "$k" ]] && { key="$k"; break; }; done
     fi
-    [[ -n "$key" && -f "$key" ]] || die "no SSH public key for the lab role: pass --ssh-key <file> (SSH=on is key-only)"
+    [[ -n "$key" && -f "$key" ]] || die "no SSH public key for the lab roles: pass --ssh-key <file> (SSH=on is key-only)"
     grep -qE '^(ssh-|ecdsa-|sk-)' "$key" || die "$key does not look like an OpenSSH public key"
-    { echo "# pdt lab role: written by bin/fetch-tools openssh from $key on $(date -I)"; cat "$key"; } | sed 's/\r*$/\r/' > "$HTTP_DIR/roles/lab-apps/authorized_keys"
-    info "http/roles/lab-apps/authorized_keys: $(cut -d' ' -f1,3- "$key")"
+    for rc in "$HTTP_DIR"/roles/*/role.cfg; do
+        dir="$(dirname "$rc")"
+        grep -qiE '^SSH=on\s*$' "$rc" || continue
+        f="$(awk -F= '/^SSHKEYS=/ { print $2; exit }' "$rc" | tr -d '\r')"
+        if [[ -n "$f" ]]; then
+            { echo "# pdt lab role: written by bin/fetch-tools keys from $key on $(date -I)"; cat "$key"; } | sed 's/\r*$/\r/' > "$dir/$f"
+            info "roles/$(basename "$dir")/$f: $(cut -d' ' -f1,3- "$key")"
+            n=$((n + 1))
+        fi
+        users="$(awk -F= '/^USERS=/ { print $2; exit }' "$rc" | tr -d '\r')"
+        [[ -n "$users" && -f "$dir/$users" ]] || continue
+        # The role's files are CRLF (.gitattributes); a last line without a newline still counts.
+        while IFS='|' read -r acct _ _ kf rest || [[ -n "$acct" ]]; do
+            acct="${acct%%#*}"; acct="${acct// /}"
+            kf="${kf//$'\r'/}"; kf="${kf// /}"
+            [[ -n "$acct" && "$kf" == keys=* ]] || continue
+            lk="$BUILD_DIR/lab-$acct"
+            [[ -f "$lk" && -f "$lk.pub" ]] || ssh-keygen -q -t ed25519 -N '' -C "pdt-lab-$acct" -f "$lk"
+            { echo "# pdt lab role: $acct's key, written by bin/fetch-tools keys on $(date -I); the private half is build/lab-$acct"; cat "$lk.pub"; } | sed 's/\r*$/\r/' > "$dir/${kf#keys=}"
+            info "roles/$(basename "$dir")/${kf#keys=}: $(cut -d' ' -f1,3- "$lk.pub") (ssh -i build/lab-$acct $acct@<machine>)"
+            n=$((n + 1))
+        done < "$dir/$users"
+    done
+    (( n )) || info "no role has SSH=on: no keys written"
 }
 
 SSH_KEY=""
-if [[ "${1:-}" == openssh && "${2:-}" == --ssh-key ]]; then SSH_KEY="${3:?--ssh-key wants a file}"; fi
+if [[ "${1:-}" =~ ^(openssh|keys)$ && "${2:-}" == --ssh-key ]]; then SSH_KEY="${3:?--ssh-key wants a file}"; fi
 case "${1:-all}" in
     all)    install_all ;;
     check)  check ;;
     virtio) virtio ;;
     winget) winget ;;
     openssh) openssh ;;
-    -h|--help) sed -n '2,16p' "$0" ;;
+    keys)   lab_keys ;;
+    -h|--help) sed -n '2,21p' "$0" ;;
     *) die "unknown argument: $1 (try --help)" ;;
 esac

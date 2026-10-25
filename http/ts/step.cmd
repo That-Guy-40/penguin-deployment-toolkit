@@ -20,7 +20,13 @@ rem The step runs in a CHILD cmd, not with "call". In WinPE a pipe to a program
 rem that does not exist ends batch processing altogether, callers included,
 rem without a word (verified). In a child that costs only the step: we get
 rem exit code 255 and can still say so.
-cmd /c %PDT%\steps\%STEP%.cmd >>%LOG% 2>&1
+rem The child ends with an explicit "exit <errorlevel>": a step that leaves with
+rem "exit /b N" reached through || or an if inside a multi-line parenthesized
+rem block sets the errorlevel, but cmd /c then exits 0 (measured 2026-10-24 on
+rem every such form, literal N or !errorlevel!; top level, one-line blocks and a
+rem bare literal exit in a block propagate). The shell's errorlevel is right
+rem either way, so the gate is that, read after the step with /v:on.
+cmd /v:on /c "%PDT%\steps\%STEP%.cmd & exit !errorlevel!" >>%LOG% 2>&1
 set RC=%errorlevel%
 del %PDT%\step.running 2>nul
 rem A step may leave one line in step.msg: why it failed, or that it had nothing to do.

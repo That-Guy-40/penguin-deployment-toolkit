@@ -9,13 +9,13 @@ files; `role.cfg` names the rest:
 | `APPS` | one winget package id per line, optionally followed by winget options (`Microsoft.PowerShell --installer-type wix`: the MSI; the manifest's type names are winget's, `wix` for a WiX-built MSI), `#` comments | installed at first logon with `winget install --id <id> -e --silent --scope machine` (`post/winget.cmd`; a package with no machine-wide installer is installed for the deploy account instead, and the transcript says so: a per-user install vanishes with that profile under `DEPLOY=remove`). winget itself is bootstrapped first from `post/winget/`, the release pinned by `bin/fetch-tools winget`: an image built from install media has no App Installer at first logon |
 | `POST` | a batch file | runs at first logon after the apps, elevated, from `C:\pdt\role\`; `..\id.cmd` and `..\beacon.cmd` are next to it |
 | `UNATTEND` | an unattend.xml | replaces the cfg's `UNATTEND=` from `http/unattend/` for this role |
-| `USERS` | `name\|group\|policy` per line | local accounts, created (or, if they exist, re-passworded) at first logon by `post/users.ps1`. Group `Administrators` or `Users`; policy `random` (a 32-character password from the OS generator) or `plain:<password>`. See "Accounts and passwords" |
+| `USERS` | `name\|group\|policy[\|keys=<file>]` per line | local accounts, created (or, if they exist, re-passworded) at first logon by `post/users.ps1`. Group `Administrators` or `Users`; policy `random` (a 32-character password from the OS generator) or `plain:<password>`. See "Accounts and passwords". The optional fourth field, `keys=<file>`, names a file in the role directory with that account's SSH public keys (for `SSH=on`): installed as `C:\ProgramData\ssh\users\<name>\authorized_keys`, owned by Administrators, readable by the account, the path the toolkit's `sshd_config` lists for non-administrators (a profile's own `.ssh\authorized_keys` does not exist before a first logon). `lint` insists the file exists and holds a key |
 | `SKEL` | a manifest: one relative path per line | the files, kept under `skel/` in the role directory, are copied into `C:\Users\Default`: Windows' `/etc/skel`, copied into every profile created from then on. `lint` insists the manifest and the directory agree |
 | `SKELREG` | a `.reg` file (`reg export` format) of `HKEY_CURRENT_USER` keys | merged into the Default profile's hive (`C:\Users\Default\NTUSER.DAT`), so every profile created afterwards starts with those values: Explorer, locale and taskbar defaults are the usual use. `lint` refuses any other root |
 | `DEPLOY` | `remove` (or absent) | delete the toolkit's own `deploy` account. `post/remove-deploy.cmd` deletes the account at the end of first logon (Windows allows deleting the logged-on account; the session lives until the restart that follows), registers a one-shot SYSTEM task for the next boot that removes the profile directory, and restarts (`deploy-remove ok account=deleted`, then `deploy-removed ok` from the next boot). `lint` requires `USERS` to create another `Administrators` account first. Skipped on a reference machine (sysprep needs `deploy`; the captured image's unattend makes it again) |
 | `RDP` | `on` (or absent) | Windows' own Remote Desktop: enabled with NLA, the "Remote Desktop" firewall group opened, and every account of `USERS` added to Remote Desktop Users (Administrators may connect anyway). Beacon `rdp ok listening=yes`. From Linux: `xfreerdp /v:<machine> /u:<user> /p:<password>` (`/auth-only` to just check the credentials); in the lab, `bin/vm-boot <vm> --fwd 3390:3389` then `/v:127.0.0.1:3390` |
-| `SSH` | `on` (or absent) | OpenSSH Server (Win32-OpenSSH, the MSI served from `post/openssh/`, pinned by `bin/fetch-tools openssh`), installed at first logon by `post/ssh.ps1`: key-only (no passwords), the role's `SSHKEYS` for every Administrators account, PowerShell as the login shell, and when PowerShell 7 is among `APPS` (`Microsoft.PowerShell`) the `powershell` subsystem that PowerShell remoting over SSH needs. Beacon `ssh ok port=22 shell=pwsh keys=N listening=yes`; host key fingerprints in the uploads as `ssh.txt`. From Linux: `ssh -i <key> admin@<machine>`, `Enter-PSSession -HostName <machine> -UserName admin`; in the lab, `bin/vm-boot <vm> --fwd 2223:22`. A reference machine loses its host keys before sysprep, so machines from the image get their own |
-| `SSHKEYS` | an `authorized_keys` file | required with `SSH=on` (`lint`: a key-only server with no keys would lock everyone out). Public keys, served in clear like the rest of the role. Installed as `C:\ProgramData\ssh\administrators_authorized_keys` with the ACL sshd insists on; it serves every member of Administrators, so accounts in `Users` cannot log in over SSH. The lab role's file is written by `bin/fetch-tools openssh` from `~/.ssh/id_*.pub` (the same key the collector takes) and is not in git |
+| `SSH` | `on` (or absent) | OpenSSH Server (Win32-OpenSSH, the MSI served from `post/openssh/`, pinned by `bin/fetch-tools openssh`), installed at first logon by `post/ssh.ps1`: key-only (no passwords), the role's `SSHKEYS` for every Administrators account, PowerShell as the login shell, and when PowerShell 7 is among `APPS` (`Microsoft.PowerShell`) the `powershell` subsystem that PowerShell remoting over SSH needs. Beacon `ssh ok port=22 shell=pwsh keys=N listening=yes`; host key fingerprints in the uploads as `ssh.txt`. From Linux: `ssh -i <key> admin@<machine>`, `Enter-PSSession -HostName <machine> -UserName admin`; in the lab, `bin/vm-boot <vm> --fwd 2223:22`. A reference machine loses its host keys before sysprep, so machines from the image get their own; other accounts of `USERS` with a `keys=<file>` field log in with those keys |
+| `SSHKEYS` | an `authorized_keys` file | required with `SSH=on` (`lint`: a key-only server with no keys would lock everyone out). Public keys, served in clear like the rest of the role. Installed as `C:\ProgramData\ssh\administrators_authorized_keys` with the ACL sshd insists on; it serves every member of Administrators, so accounts in `Users` cannot log in over SSH. The lab roles' files are written by `bin/fetch-tools keys` from `~/.ssh/id_*.pub` (the same key the collector takes) and are not in git |
 | `FILES` | file names, space-separated | companions of the post script, fetched next to it |
 | `FASTSTARTUP` | `off` (or absent) | `off`: `powercfg /h off` at first logon, so every shutdown is a real shutdown and every power-on a real boot. Absent: Windows' default (fast startup on). See below |
 
@@ -25,7 +25,7 @@ the disk; `60-unattend` puts `role.cfg` and the files it names in `C:\pdt\role\`
 and `firstlogon.cmd` works through them in this order:
 
 ```
-firstlogon ok  →  winre ok  →  skel ok files=N  →  skelreg ok  →  users ok created=… set=… failed=
+firstlogon ok  →  winre ok  →  skel ok files=N  →  skelreg ok  →  users ok created=… set=… failed= keys=…
   →  users-upload ok  →  winget ok version=…  →  apps ok installed=… failed=
   →  faststartup ok state=off  →  rdp ok listening=yes  →  ssh ok port=22 shell=pwsh keys=1 listening=yes
   →  boot-tasks ok  →  role-post …  →  (POST script)
@@ -92,6 +92,17 @@ sends `boot ok trigger=onstart|event` after each boot: the `event` task
 `trigger=event` is one that fast-starts.
 
 ## Example
+
+`demo-ssh/` and `demo-rdp/` are the two roles `bin/smoke` deploys side by
+side, one feature set each so a failure points at a layer: `demo-ssh` is
+key-only SSH for `ops` (Administrators, `SSHKEYS`) and `carol` (Users, her own
+`keys=carol.pub`), no Remote Desktop, no apps; `demo-rdp` is Remote Desktop for
+`helpdesk` and `bob` with generated passwords, 7-Zip from winget, and
+`DEPLOY=remove`, no SSH. Both run `post.cmd` with `FILES=disks.ps1`, which
+uploads `disks.txt` (the disks and volumes the installed Windows sees, and any
+`PDT-MARKER.txt` on them) and beacons `role-post ok disks=N markers=N`. Their
+key files are written by `bin/fetch-tools keys` and are not in git.
+
 
 `lab-apps/` is the role the lab tests with: 7-Zip and Notepad++, fast startup
 off, Remote Desktop on, a skel with two files and a `skel.reg`, accounts `admin` and `alice`

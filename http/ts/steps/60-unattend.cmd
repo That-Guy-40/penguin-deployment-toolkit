@@ -30,6 +30,11 @@ if defined ROLE (
   copy /y %PDT%\role.cfg W:\pdt\role\role.cfg >nul || exit /b !errorlevel!
   for /f "usebackq eol=# tokens=1,* delims==" %%a in ("%PDT%\role.cfg") do (
     for %%k in (APPS POST USERS SKEL SKELREG SSHKEYS) do if /i "%%a"=="%%k" (%CURL% -f -o "W:\pdt\role\%%b" "%SRV%/roles/%ROLE%/%%b" || exit /b !errorlevel!)
+    rem USERS: a line's fourth field, keys=<file>, names that account's SSH public keys, in the role directory too.
+    if /i "%%a"=="USERS" for /f "usebackq eol=# tokens=4 delims=|" %%k in ("W:\pdt\role\%%b") do if not "%%k"=="" (
+      set "KF=%%k"
+      if /i "!KF:~0,5!"=="keys=" (%CURL% -f -o "W:\pdt\role\!KF:~5!" "%SRV%/roles/%ROLE%/!KF:~5!" || exit /b !errorlevel!)
+    )
     rem SSH=on: the installer (post/openssh/, listed in files.txt), the script and the config.
     if /i "%%a"=="SSH" (
       mkdir W:\pdt\openssh

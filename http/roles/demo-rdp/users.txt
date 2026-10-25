@@ -1,0 +1,4 @@
+# name|group|policy  (../README.md): passwords generated on the machine, uploaded as users.txt
+deploy|Administrators|random
+helpdesk|Administrators|random
+bob|Users|random

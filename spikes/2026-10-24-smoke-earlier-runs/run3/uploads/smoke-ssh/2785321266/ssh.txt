@@ -1,0 +1,25 @@
+ssh.ps1 2026-10-25T01:19:09
+msiexec exit code 0
+default shell C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+1 key(s) in C:\ProgramData\ssh\administrators_authorized_keys
+hostkey 384 SHA256:IcYvDh/80ECQgxmf82gtoZzIeroLX8qCx8uSI86F4bo system@WIN-JMV7LGGCDDO (ECDSA)
+hostkey 256 SHA256:7kX/b/l4l4KQuH9oU/qAukYGJaGWxaoUfsc9dXbJaSs system@WIN-JMV7LGGCDDO (ED25519)
+hostkey 256 SHA256:N+BKq3+oA+rd43YeIH8F+QIAM/frV/b6TZou3UQs3kk system@WIN-JMV7LGGCDDO (MLDSA44-ED25519)
+hostkey 3072 SHA256:Rv5Fuc3zTOYmCP0zR/ioxq0IPGa5iAVsKys1WRSRO2w system@WIN-JMV7LGGCDDO (RSA)
+sshd Running, listening=yes
+=== msi log (tail)
+MSI (s) (04:04) [01:19:17:437]: No System Restore sequence number for this installation.
+=== Logging stopped: 10/25/2026  1:19:17 ===
+MSI (s) (04:04) [01:19:17:439]: User policy value 'DisableRollback' is 0
+MSI (s) (04:04) [01:19:17:439]: Machine policy value 'DisableRollback' is 0
+MSI (s) (04:04) [01:19:17:439]: Incrementing counter to disable shutdown. Counter after increment: 0
+MSI (s) (04:04) [01:19:17:439]: Note: 1: 1402 2: HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Installer\Rollback\Scripts 3: 2 
+MSI (s) (04:04) [01:19:17:442]: Note: 1: 2265 2:  3: -2147287035 
+MSI (s) (04:04) [01:19:17:442]: Note: 1: 1402 2: HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Installer\Rollback\Scripts 3: 2 
+MSI (s) (04:04) [01:19:17:444]: Decrementing counter to disable shutdown. If counter >= 0, shutdown will be denied.  Counter after decrement: -1
+MSI (s) (04:04) [01:19:17:444]: Destroying RemoteAPI object.
+MSI (s) (04:3C) [01:19:17:444]: Custom Action Manager thread ending.
+MSI (c) (18:70) [01:19:17:446]: Decrementing counter to disable shutdown. If counter >= 0, shutdown will be denied.  Counter after decrement: -1
+MSI (c) (18:70) [01:19:17:448]: MainEngineThread is returning 0
+=== Verbose logging stopped: 10/25/2026  1:19:17 ===
+

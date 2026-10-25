@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+"""keys - type into a machine's deploy window, over HTTP (tools/pdt-console.exe keys).
+
+  keys <id|vm-name> '<text>'       {enter} {esc} {tab} {ctrl-c} are tokens; a newline is Enter
+
+For the one thing bin/shell cannot do: answer the prompt the deploy window is
+sitting at (a stopped sequence, a failed step, "deploy 20" to carry on). The
+text travels as UTF-8 in hex, so cmd never sees it; it is delivered through
+bin/shell, which runs pdt-console.exe on the machine. Exit status: bin/shell's
+(0 typed; 2 the machine did not answer; the tool's 2 if no window titled
+pdt-deploy exists, 3 on a console error). See the result with bin/console.
+"""
+import os
+import subprocess
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
+
+
+def main():
+    if len(sys.argv) != 3 or sys.argv[1].startswith("-"):
+        print(__doc__.strip(), file=sys.stderr)
+        return 3
+    machine, text = sys.argv[1], sys.argv[2]
+    hexed = text.encode("utf-8").hex()
+    shell = os.path.join(os.path.dirname(os.path.realpath(__file__)), "shell")
+    r = subprocess.run([shell, machine, f"X:\\pdt\\pdt-console.exe keys pdt-deploy --hex {hexed}"])
+    if r.returncode == 0:
+        print(f"{machine}: typed {text!r} into the pdt-deploy window")
+    elif r.returncode == 2:
+        print(f"{machine}: no window titled pdt-deploy on the machine, or no answer (see bin/shell)", file=sys.stderr)
+    return r.returncode
+
+
+sys.exit(main())

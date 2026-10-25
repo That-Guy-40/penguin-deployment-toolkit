@@ -1,0 +1,2 @@
+# winget package ids, one per line
+7zip.7zip

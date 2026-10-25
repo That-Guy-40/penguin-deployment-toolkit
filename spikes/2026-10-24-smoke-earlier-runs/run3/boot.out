@@ -1,0 +1,10 @@
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/vm-boot smoke-ssh --fwd 2224:22,3392:3389
+VM smoke-ssh running: pid 3934619, nic e1000e, boot disk then network, monitor 127.0.0.1:7001
+id for bin/status and bin/await: c4c52b1d-4098-4ae2-81ea-587674977cf1
+rc=0
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/vm-boot smoke-rdp --fwd 3391:3389,2225:22
+VM smoke-rdp running: pid 3934680, nic virtio-net-pci, boot disk then network, monitor 127.0.0.1:7002
+id for bin/status and bin/await: 2759b979-3512-406d-ad42-7ab658b68ec2
+rc=0

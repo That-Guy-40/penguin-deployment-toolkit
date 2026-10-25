@@ -1,0 +1,38 @@
+3a450a5d-c386-4240-957e-acdf8612fcc4  smoke-ssh
+  2026-10-24T22:26:29-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:1b:9f:da nic=01:80:86:10:d3 chip=82574l bootsrv=10.0.2.2 serial=smoke-ssh mfr=PDT
+  2026-10-24T22:26:31-04:00  +    1.7s  (+   1.7s)  wim         ok    msg=475 MiB in 1.4s (331 MiB/s)
+  2026-10-24T22:26:40-04:00  +   10.3s  (+   8.6s)  ts-start    ok    mode=deploy model=lab-vm product=lab-vm mac=52:54:00:1b:9f:da
+  2026-10-24T22:26:40-04:00  +   10.7s  (+   0.4s)  15-preflight start 
+  2026-10-24T22:26:41-04:00  +   11.3s  (+   0.7s)  15-preflight ok    
+  2026-10-24T22:26:41-04:00  +   11.6s  (+   0.3s)  17-diskguard start 
+  2026-10-24T22:26:42-04:00  +   12.0s  (+   0.4s)  17-diskguard ok    msg=disk 0:QEMU HARDDISK 64GiB of 2 (the only fixed disk)
+  2026-10-24T22:26:42-04:00  +   12.3s  (+   0.3s)  20-disk     start 
+  2026-10-24T22:26:51-04:00  +   21.9s  (+   9.6s)  20-disk     ok    
+  2026-10-24T22:26:52-04:00  +   22.2s  (+   0.3s)  25-download start 
+  2026-10-24T22:27:17-04:00  +   47.5s  (+  25.2s)  25-download ok    msg=sha256 0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279 matches images/base.json
+  2026-10-24T22:27:17-04:00  +   47.6s  (+   0.1s)  stop        ok    after=25-download
+  2026-10-24T22:28:01-04:00  +   91.8s  (+  44.1s)  30-apply    start 
+  2026-10-24T22:29:17-04:00  +  167.9s  (+  76.1s)  30-apply    ok    
+  2026-10-24T22:29:18-04:00  +  168.2s  (+   0.3s)  35-updates  start 
+  2026-10-24T22:41:56-04:00  +  926.0s  (+ 757.8s)  35-updates  ok    msg=package 26100.9550 is installed in the image; sha256 254b71a462b33ea450ef84eca1749c67599284272115b881a31d76326646c697 matches updates/lcu.json
+  2026-10-24T22:41:56-04:00  +  926.4s  (+   0.4s)  40-drivers  start 
+  2026-10-24T22:41:56-04:00  +  926.6s  (+   0.2s)  40-drivers  ok    msg=skipped: no DRIVERS set
+  2026-10-24T22:41:56-04:00  +  926.9s  (+   0.4s)  45-winre    start 
+  2026-10-24T22:42:01-04:00  +  931.1s  (+   4.2s)  45-winre    ok    msg=Winre.wim taken from the server, the image has none; sha256 1f9ee125ccc278ad2d92e0e8e87f48a5b0bbcd55e9138fd93d185e6892421e26 matches images/base.winre.json
+  2026-10-24T22:42:01-04:00  +  931.5s  (+   0.3s)  50-boot     start 
+  2026-10-24T22:42:02-04:00  +  932.0s  (+   0.6s)  50-boot     ok    msg=boot files written; the firmware boots Windows Boot Manager first
+  2026-10-24T22:42:02-04:00  +  932.4s  (+   0.4s)  60-unattend start 
+  2026-10-24T22:42:03-04:00  +  933.2s  (+   0.8s)  60-unattend ok    
+  2026-10-24T22:42:03-04:00  +  933.5s  (+   0.3s)  90-reboot   start 
+  2026-10-24T22:42:03-04:00  +  933.6s  (+   0.1s)  90-reboot   ok    
+  2026-10-24T22:42:03-04:00  +  933.8s  (+   0.2s)  ts-done     ok    
+  2026-10-24T22:43:16-04:00  + 1006.9s  (+  73.1s)  specialize  ok    
+  2026-10-24T22:44:10-04:00  + 1060.5s  (+  53.6s)  firstlogon  ok    host=WIN-472GVFMU2I4 build=26100.9550 secureboot=False user=deploy
+  2026-10-24T22:44:16-04:00  + 1066.2s  (+   5.7s)  winre       ok    status=Enabled location=\\?\GLOBALROOT\device\harddisk0\partition4\Recovery\WindowsRE windows_partition=3
+  2026-10-24T22:44:21-04:00  + 1071.5s  (+   5.3s)  users       ok    keys=carol created=ops,carol set=deploy
+  2026-10-24T22:44:21-04:00  + 1071.6s  (+   0.1s)  users-upload ok    msg=generated passwords are in the uploads as users.txt
+  2026-10-24T22:44:21-04:00  + 1071.7s  (+   0.1s)  faststartup ok    state=off
+  2026-10-24T22:44:35-04:00  + 1086.0s  (+  14.3s)  ssh         ok    port=22 shell=powershell keys=1 listening=yes
+  2026-10-24T22:44:36-04:00  + 1086.2s  (+   0.2s)  boot-tasks  ok    event_rc=0 onstart_rc=0
+  2026-10-24T22:44:39-04:00  + 1089.9s  (+   3.7s)  role-post   ok    disks=2 markers=1
+  2026-10-24T22:44:39-04:00  + 1089.9s  (+   0.0s)  deployed    ok    host=WIN-472GVFMU2I4 role=demo-ssh

@@ -1,0 +1,56 @@
+ID                                    VM         LAST EVENT             AGE          MODE    RUN         PRODUCT  MODEL   DETAIL
+a1f83d7a-3432-46a2-8ca0-2603e67fa914  smoke-rdp  deploy-removed ok      31s          deploy  42094057    lab-vm   lab-vm
+dd38cb5e-312b-4101-847f-2cf3a19d8864  smoke-ssh  deployed ok            33m          deploy  421214806   lab-vm   lab-vm
+c4c52b1d-4098-4ae2-81ea-587674977cf1             deployed ok            65m          deploy  2785321266  lab-vm   lab-vm
+2759b979-3512-406d-ad42-7ab658b68ec2             deploy-removed ok      79m          deploy  2785010518  lab-vm   lab-vm
+6009bfb6-2d80-48d1-9e04-724d789b59bd             35-updates start       1h   STUCK?  deploy  2734726431  lab-vm   lab-vm
+5cc89673-a4d3-413e-b6bc-c601d084c408             stop ok                1h           deploy  273504411   lab-vm   lab-vm  after=25-download
+65cd65ca-10c9-4b89-bbc0-121e105cfd35             deploy-removed ok      3h           deploy  5925853     lab-vm   lab-vm
+aec0d584-6344-4e6d-a127-3d8d31db2084             deployed ok            3h           deploy  376328832   lab-vm   lab-vm
+f91273ff-75c3-4ecb-ae48-052d5b58ab28             deployed ok            3h           deploy  376328832   lab-vm   lab-vm
+46f9301b-5ab3-4412-a294-00acdccf8e54             deployed ok            3h           deploy  3263829020  lab-vm   lab-vm
+3626e3ec-c381-484f-9fae-17754411089c             deployed ok            3h           deploy  10698757    lab-vm   lab-vm
+0a7fe60c-bb82-4e34-b61c-da16c2e74538             deployed ok            3h           deploy  326427000   lab-vm   lab-vm
+afebecc1-9889-42ac-98d5-e836152b5075             prepare-capture start  3h   STUCK?  deploy  107219505   lab-vm   lab-vm
+28bf2ac7-6d07-4cdf-87e4-975562b78508             deployed ok            3h           deploy  3263829020  lab-vm   lab-vm
+dc34b37d-4043-4113-bc05-635a96103f39             deployed ok            8h           deploy  1734715859  lab-vm   lab-vm
+cad9b607-2a43-4511-a653-ea28d6eccc74             deployed ok            8h           deploy  1472813621  lab-vm   lab-vm
+e39ae6c1-cc07-4faa-86da-33da210b7702             30-apply fail          8h   FAIL    deploy  1472813621  lab-vm   lab-vm  rc=1392
+70d362fa-bb16-47c6-8ab1-bb6040d7fac6             25-download fail       8h   FAIL    deploy  1472813621  lab-vm   lab-vm  rc=1 msg=image.wim does not match the sha256 in images/corrupt.json: download deleted, nothing applied
+bfb5a695-2931-4fd8-a0da-482718d0dc74             shell ok               16h          shell   13392389    lab-vm   lab-vm
+43915312-eec8-41fa-ac93-5fa371b471b2             ipxe ok                17h          deploy              lab-vm   lab-vm
+f37a3735-46c3-48a6-8b06-470cefa458c2             deployed ok            17h          deploy  24923169    lab-vm   lab-vm
+e6c96dba-9367-4e1b-8406-618b9e343fcd             deploy-removed ok      17h          deploy  57828827    lab-vm   lab-vm
+c41b0d8b-c3ac-4a8c-aec1-10673a92e561             deploy-removed ok      2d           deploy  1307224882  lab-vm   lab-vm
+23eee746-b08a-4190-814d-34330202a933             deploy-remove ok       2d           deploy  1050530779  lab-vm   lab-vm  msg=profile removal scheduled for the next boot; restarting
+a3a175f2-f0af-400a-aae5-df385ae13ee4             stop ok                2d           deploy  102182423   lab-vm   lab-vm  before=20-disk
+7b5e037a-dd61-4403-bc43-32b9046d55c1             deploy-removed ok      2d           deploy  877813736   lab-vm   lab-vm
+4a799ac7-2dba-4a78-9fd3-271dd2623593             deploy-removed ok      2d           deploy  717411916   lab-vm   lab-vm
+59225551-f108-4cbd-b2b2-27b77262562f             stop ok                2d           deploy  577010390   lab-vm   lab-vm  before=90-reboot
+33961030-55ec-42bc-959c-b7437a3ea769             deployed ok            2d           deploy  533211895   lab-vm   lab-vm
+cc8e4a8b-99b5-48ff-869c-12158c9a00c3             deploy-removed ok      2d           deploy  322315241   lab-vm   lab-vm
+652e4651-55d2-4f62-8018-eab8354250f8             deploy-removed ok      11d          deploy  1817024626  lab-vm   lab-vm
+29cfb8cb-da2f-4718-a87f-36b1d404c8f9             deployed ok            11d          deploy  1817024626  lab-vm   lab-vm
+7eaf9e02-9334-40d1-b870-5fb0f2451492             collect ok             11d                  306472703   lab-vm
+da7f3458-485e-4b81-bc14-91a46648d735             boot ok                12d          deploy  213832879   lab-vm   lab-vm
+2a353841-c4de-423f-9cd9-3cff6eaf9ff4             deployed ok            12d          deploy  121842250   lab-vm   lab-vm
+ff9069ea-6fe6-4b37-8e48-dcf2fca1fcbe             shell ok               12d          shell   1190916888  lab-vm   lab-vm
+1fa2071a-569b-4dc8-b159-3759994a14fd             deploy-removed ok      12d          deploy  513018204   lab-vm   lab-vm
+68b204e5-edc3-4574-bcba-6aac607456f8             boot ok                12d          deploy  356925042   lab-vm   lab-vm
+170b363a-2130-49b2-a413-2815169e8b5e             deploy-removed ok      12d          deploy  240321717   lab-vm   lab-vm
+4d3aa494-44b3-485b-b20a-08080476c590             deploy-removed ok      12d          deploy  10257873    lab-vm   lab-vm
+e59a4d8f-099b-452c-a795-22419c09880f             boot ok                12d          deploy  3259528136  lab-vm   lab-vm
+dbc575fd-26b6-430d-9731-3cd5592c3b51             deploy-removed ok      12d          deploy  325986117   lab-vm   lab-vm
+1153ce1f-ad79-4dee-98d1-5ab70e88c074             deployed ok            22d          deploy  215285732   lab-vm   lab-vm
+37c7864d-3ba9-49e9-923c-6ff4deaf159e             diag4 ok               22d          deploy  1811923819  lab-vm   lab-vm
+1d26c7ae-0f9b-4280-869d-e4ac2d0bf532             deployed ok            22d          deploy  1811923819  lab-vm   lab-vm
+51f019da-5a1a-4fd0-a742-9fbd195580cd             diag2 ok               22d          deploy  1699218403  lab-vm   lab-vm
+e48d3760-ce8a-41b4-8238-182b73e6901e             deployed ok            22d          deploy  1699218403  lab-vm   lab-vm
+f4e452b5-bf53-4a38-8592-a64115ae9627             deployed ok            22d          deploy  104387696   lab-vm   lab-vm
+8cd72918-082d-4962-9485-a2780d2c4f53             deployed ok            22d          deploy  104387696   lab-vm   lab-vm
+07055ab4-3bc0-40f7-96b0-6b3c169ba904             prepare-capture start  22d  STUCK?  deploy  79797842    lab-vm   lab-vm
+136d75ae-1221-435c-83c1-5a936c9c57bb             prepare-capture fail   22d  FAIL    deploy  713031304   lab-vm   lab-vm  msg=sysprep did not succeed; see sysprep-setuperr.log in the uploads
+2ba6cb47-839a-434e-8bf1-40ebc161854f             deployed ok            22d          deploy  713031304   lab-vm   lab-vm
+174837f8-5378-4155-8eba-4b90e443116e             15-preflight fail      22d  FAIL    deploy  713031304   lab-vm   lab-vm  rc=1 msg=missing: roles/ghost/role.cfg
+30d6e8ae-0105-4100-b64b-59a1b75341b2             boot ok                22d          deploy  471029359   lab-vm   lab-vm
+351014f7-c329-4bbc-ae66-b0019e47e466             ts-done ok             22d          deploy  427330864   lab-vm   lab-vm

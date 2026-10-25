@@ -1,0 +1,24 @@
+### more forms on vb
+--- tg: if exist X:\ (echo one-line block& exit /b 5)
+one-line block
+exit code of cmd /c tg.cmd: 5
+--- th: if exist X:\ (call X:\pdt\t2.cmd || exit /b 1)
+exit code of cmd /c th.cmd: 1
+--- tk: if exist X:\ exit /b 6
+exit code of cmd /c tk.cmd: 6
+--- tl: if exist X:\ (
+multi-line block, literal exit
+exit code of cmd /c tl.cmd: 9
+--- tm: setlocal EnableDelayedExpansion
+exit code of cmd /c tm.cmd: 7
+--- ti: what the INNER shell's errorlevel is after ta.cmd ended from inside its block
+inner errorlevel after ta.cmd: 0
+--- tn: cmd /v:on /c with an explicit exit !errorlevel! after the batch (the step.cmd fix candidate)
+exit code: 7
+one-line block
+exit code: 5
+exit code: 7
+ls: cannot access 'http/ts/_t*': No such file or directory
+### earlier today: did the 30-apply guard (exit /b 1 in a one-line block) report fail?
+2026-10-24T14:06:27-04:00 1792865187.217 127.0.0.1 id=e39ae6c1-cc07-4faa-86da-33da210b7702&run=1472813621&step=30-apply&ev=fail&rc=1392&msg=
+### 45-winre no-R: control from Phase 2?

@@ -1,0 +1,32 @@
+### access.log: vd's fetches of tools/
+### on vd: is the tool there, what does dump return
+ Volume in drive X is Boot
+ Volume Serial Number is D60A-0DC2
+
+ Directory of X:\pdt
+
+10/24/2026  10:29 PM            43,520 pdt-console.exe
+
+ Directory of X:\pdt
+
+               1 File(s)         43,520 bytes
+               0 Dir(s)     529,620,992 bytes free
+dump pdt-deploy rc=2
+dump pdt-shell rc=0
+usage: pdt-console dump <title> <out.txt> [--all]
+       pdt-console keys <title> <text>        ({enter} {esc} {tab} {ctrl-c})
+       pdt-console keys <title> --hex <hex>   (the text as UTF-8 in hex)
+no-args rc=2
+ Volume in drive X is Boot
+ Volume Serial Number is D60A-0DC2
+
+ Directory of X:\pdt
+
+
+ Directory of X:\pdt
+
+10/24/2026  10:32 PM                90 t2.txt
+               1 File(s)             90 bytes
+               0 Dir(s)     529,592,320 bytes free
+'tasklist' is not recognized as an internal or external command,
+operable program or batch file.

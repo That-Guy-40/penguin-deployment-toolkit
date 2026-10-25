@@ -1,0 +1,3 @@
+tools/pdt-screen.exe does not match the sha256 in cmd/smoke/bad.json: download deleted
+ctl-bad.exe deleted
+[pdt] exit code 0

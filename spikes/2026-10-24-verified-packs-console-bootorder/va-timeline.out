@@ -1,0 +1,75 @@
+### va timeline (update pack + driver pack, both verified)
+0a7fe60c-bb82-4e34-b61c-da16c2e74538  va
+  2026-10-24T18:23:39-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:b7:db:84 nic=01:80:86:10:d3 chip=82574l bootsrv=10.0.2.2 serial=va
+  2026-10-24T18:23:41-04:00  +    2.0s  (+   2.0s)  wim         ok    msg=475 MiB in 1.4s (330 MiB/s)
+  2026-10-24T18:23:50-04:00  +   10.4s  (+   8.5s)  ts-start    ok    mode=deploy model=lab-vm product=lab-vm mac=52:54:00:b7:db:84
+  2026-10-24T18:23:50-04:00  +   10.8s  (+   0.4s)  15-preflight start 
+  2026-10-24T18:23:51-04:00  +   11.3s  (+   0.5s)  15-preflight ok    
+  2026-10-24T18:23:51-04:00  +   11.6s  (+   0.3s)  17-diskguard start 
+  2026-10-24T18:23:51-04:00  +   12.0s  (+   0.5s)  17-diskguard ok    msg=disk 0:QEMU HARDDISK 64GiB of 1 (the only fixed disk)
+  2026-10-24T18:23:52-04:00  +   12.3s  (+   0.3s)  20-disk     start 
+  2026-10-24T18:24:01-04:00  +   21.9s  (+   9.6s)  20-disk     ok    
+  2026-10-24T18:24:02-04:00  +   22.1s  (+   0.3s)  25-download start 
+  2026-10-24T18:24:27-04:00  +   47.8s  (+  25.7s)  25-download ok    msg=sha256 0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279 matches images/base.json
+  2026-10-24T18:24:28-04:00  +   48.1s  (+   0.3s)  30-apply    start 
+  2026-10-24T18:25:47-04:00  +  127.6s  (+  79.4s)  30-apply    ok    
+  2026-10-24T18:25:47-04:00  +  127.9s  (+   0.3s)  35-updates  start 
+  2026-10-24T18:38:57-04:00  +  917.8s  (+ 789.9s)  35-updates  ok    
+  2026-10-24T18:38:58-04:00  +  918.1s  (+   0.4s)  40-drivers  start 
+  2026-10-24T18:38:59-04:00  +  920.0s  (+   1.8s)  40-drivers  ok    msg=sha256 0318467bc1adf768b54e54b97de367b52f0c5053ad966d1b5acdf66cff325330 matches drivers/virtio-w11.json
+  2026-10-24T18:39:00-04:00  +  920.3s  (+   0.4s)  45-winre    start 
+  2026-10-24T18:39:01-04:00  +  921.2s  (+   0.9s)  45-winre    ok    
+  2026-10-24T18:39:01-04:00  +  921.6s  (+   0.4s)  50-boot     start 
+  2026-10-24T18:39:02-04:00  +  922.2s  (+   0.6s)  50-boot     ok    msg=boot files written; the firmware boots Windows Boot Manager first
+  2026-10-24T18:39:02-04:00  +  922.6s  (+   0.4s)  60-unattend start 
+  2026-10-24T18:39:03-04:00  +  923.1s  (+   0.4s)  60-unattend ok    
+  2026-10-24T18:39:03-04:00  +  923.4s  (+   0.3s)  90-reboot   start 
+  2026-10-24T18:39:03-04:00  +  923.5s  (+   0.1s)  90-reboot   ok    
+  2026-10-24T18:39:03-04:00  +  923.7s  (+   0.2s)  ts-done     ok    
+  2026-10-24T18:40:20-04:00  + 1000.3s  (+  76.6s)  specialize  ok    
+  2026-10-24T18:41:15-04:00  + 1055.1s  (+  54.8s)  firstlogon  ok    host=WIN-E3CJSS3B9EH build=26100.9550 secureboot=False
+  2026-10-24T18:41:21-04:00  + 1061.1s  (+   6.0s)  winre       ok    status=Enabled location=\\?\GLOBALROOT\device\harddisk0\partition4\Recovery\WindowsRE windows_partition=3
+  2026-10-24T18:41:23-04:00  + 1063.3s  (+   2.3s)  boot-tasks  ok    
+  2026-10-24T18:41:23-04:00  + 1063.5s  (+   0.1s)  deployed    ok    host=WIN-E3CJSS3B9EH
+
+### va ts.log: the 35-updates section, trimmed
+254b71a462b33ea450ef84eca1749c67599284272115b881a31d76326646c697  W:\updates.wim
+254b71a462b33ea450ef84eca1749c67599284272115b881a31d76326646c697  X:\pdt\updates-lcu.json (sidecar)
+match
+Deployment Image Servicing and Management tool
+Version: 10.0.26100.1
+Applying image
+[                           1.0%                           ] 
+[=                          2.0%                           ] 
+[=                          3.0%                           ] 
+[==                         4.0%                           ] 
+[==                         5.0%                           ] 
+[===                        6.0%                           ] 
+[====                       7.0%                           ] 
+[====                       8.0%                           ] 
+[=====                      9.0%                           ] 
+[=====                      10.0%                          ] 
+[======                     11.0%                          ] 
+[======                     12.0%                          ] 
+[=======                    13.0%                          ] 
+[========                   14.0%                          ] 
+[========                   15.0%                          ] 
+[=========                  16.0%                          ] 
+[=========                  17.0%                          ] 
+[==========                 18.0%                          ] 
+[===========                19.0%                          ] 
+[===========                20.0%                          ] 
+[============               21.0%                          ] 
+[============               22.0%                          ] 
+[=============              23.0%                          ] 
+[=============              24.0%                          ] 
+[==============             25.0%                          ] 
+[===============            26.0%                          ] 
+[===============            27.0%                          ] 
+[================           28.0%                          ] 
+[================           29.0%                          ] 
+[=================          30.0%                          ] 
+[=================          31.0%                          ] 
+[==================         32.0%                          ] 
+[===================        33.0%                          ] 
+[===================        34.0%                          ] 

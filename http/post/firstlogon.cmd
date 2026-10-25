@@ -93,11 +93,11 @@ if defined USERS (
   set USERS_RESULT=
   for /f "delims=" %%r in ('powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0users.ps1" "%USERS%" "%USERS_OUT%"') do set "USERS_RESULT=%%r"
   if not defined USERS_RESULT set "USERS_RESULT=failed=users.ps1 produced no result"
-  rem Three tokens: created=… set=… failed=…; the step fails iff failed= is not empty.
+  rem Four tokens: created=… set=… failed=… keys=…; the step fails iff failed= is not empty.
   set USERS_V=ok
-  for /f "tokens=1-3 delims= " %%a in ("!USERS_RESULT!") do (
+  for /f "tokens=1-4 delims= " %%a in ("!USERS_RESULT!") do (
     if not "%%c"=="failed=" set USERS_V=fail
-    call "%~dp0beacon.cmd" users !USERS_V! "%%a" "%%b" "%%c"
+    call "%~dp0beacon.cmd" users !USERS_V! "%%a" "%%b" "%%c" "%%d"
   )
   if exist "%USERS_OUT%" (
     curl.exe -sS -T "%USERS_OUT%" "%SRV%/uploads/%ID%/%RUN%/users.txt" -o nul --max-time 60 --retry 10 --retry-delay 3 --retry-all-errors && (

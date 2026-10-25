@@ -91,7 +91,7 @@ BUILTINS = set("""assoc break call cd chdir cls color copy date del dir echo els
 if md mkdir mklink move path pause popd prompt pushd rd rem ren rename rmdir set setlocal shift start time title
 type ver verify vol""".split())
 # What the self-test pretends WinPE ships (the real list is read from boot.wim).
-SELFTEST_PROGRAMS = set("bcdboot cmd cscript curl dism diskpart drvload find ipconfig ping reg wpeinit wpeutil xcopy".split())
+SELFTEST_PROGRAMS = set("bcdboot bcdedit cmd cscript curl dism diskpart drvload find ipconfig ping reg wpeinit wpeutil xcopy".split())
 
 
 class Rows:
@@ -293,6 +293,9 @@ def lint_tree(http, deep=False, programs=None):
         for m in re.finditer(r"%SRV%/([^\s\"]+)", text):
             path = m.group(1)
             m_start.setdefault(path, m.start())
+            if rel(script) == os.path.join("ts", "verified.cmd") and path in ("%WHAT%", "%SIDECAR%"):
+                R.ok(f"{rel(script)} -> {path}", "the caller's argument: checked at every call site below")
+                continue
             loop = re.search(r"%%~?(\w)", path)
             lists = re.findall(r"(?i)for %%" + loop.group(1) + r" in \(([^)]*)\)", text[:m.start()]) if loop else []
             if lists:
@@ -302,6 +305,12 @@ def lint_tree(http, deep=False, programs=None):
                     toolkit |= {os.path.basename(i).lower() for i in items}
             else:
                 refs.append(path)
+        # "call %PDT%\\verified.cmd <path> <sidecar> <dest>": the first two are
+        # server paths, fetched by the helper; check them like a %SRV%/ reference.
+        for m in re.finditer(r"(?im)^\s*call %PDT%\\verified\.cmd\s+(\S+)\s+(\S+)\s+\S+", text):
+            for path in (m.group(1), m.group(2)):
+                refs.append(path)
+                m_start.setdefault(path, m.start())
         for ref in refs:
             path = ref.split("?")[0]
             where = f"{rel(script)} -> {path}"
@@ -359,6 +368,16 @@ def lint_tree(http, deep=False, programs=None):
             defaults.setdefault(m.group(1).upper(), m.group(2).strip())
     else:
         R.fail("ts/env.cmd", "missing")
+
+    # step.cmd must end the child shell with "exit !errorlevel!": a step leaving with
+    # "exit /b !errorlevel!" from inside a parenthesized block otherwise exits 0
+    # (cmd quirk, verified 2026-10-24), and a failed step would be reported ok.
+    stepcmd = os.path.join(http, "ts", "step.cmd")
+    if os.path.isfile(stepcmd):
+        if re.search(r'(?i)cmd /v:on /c "%PDT%\\steps\\%STEP%\.cmd & exit !errorlevel!"', read(stepcmd)):
+            R.ok("ts/step.cmd runs the step under cmd /v:on /c \"... & exit !errorlevel!\"", "a step's failure from inside a block still fails the step")
+        else:
+            R.fail("ts/step.cmd runs the step", "not as cmd /v:on /c \"%PDT%\\steps\\%STEP%.cmd & exit !errorlevel!\": a step that exits from inside a parenthesized block would be reported ok")
 
     ini = os.path.join(http, "ts", "winpeshl.ini")
     if os.path.isfile(ini):
@@ -514,8 +533,21 @@ def lint_tree(http, deep=False, programs=None):
                     if not line or line.startswith("#"):
                         continue
                     parts = [x.strip() for x in line.split("|")]
+                    if len(parts) == 4:
+                        # keys=<file>: that account's SSH public keys, a file in the role directory
+                        km = re.fullmatch(r"keys=([\w.-]+)", parts[3])
+                        kf = os.path.join(http, "roles", name, km.group(1)) if km else ""
+                        if not km:
+                            problems.append(f"line {n}: the fourth field must be keys=<file>")
+                        elif not os.path.isfile(kf):
+                            problems.append(f"line {n}: roles/{name}/{km.group(1)} does not exist (for the lab role, bin/fetch-tools openssh writes alice.pub)")
+                        elif not [l for l in read(kf).splitlines() if SSHKEY_RE.match(l.strip())]:
+                            problems.append(f"line {n}: no OpenSSH public key in roles/{name}/{km.group(1)}")
+                        elif "SSH" not in vals:
+                            problems.append(f"line {n}: keys={km.group(1)} without SSH=on does nothing")
+                        parts = parts[:3]
                     if len(parts) != 3:
-                        problems.append(f"line {n}: not name|group|policy")
+                        problems.append(f"line {n}: not name|group|policy[|keys=<file>]")
                     elif not USER_RE.match(parts[0]):
                         problems.append(f"line {n}: bad account name {parts[0]!r}")
                     elif parts[1] not in ("Administrators", "Users"):
@@ -614,7 +646,7 @@ def lint_tree(http, deep=False, programs=None):
                     if gone or not listed:
                         R.fail(f"{who} SSH=on", f"post/openssh/files.txt lists {', '.join(gone) or 'nothing'}, not there (run bin/fetch-tools openssh)")
                     else:
-                        R.ok(f"{who} SSH=on", "OpenSSH Server, key-only, for the Administrators of USERS; PowerShell remoting with pwsh among APPS")
+                        R.ok(f"{who} SSH=on", "OpenSSH Server, key-only: SSHKEYS for the Administrators of USERS, keys=<file> per other account; PowerShell remoting with pwsh among APPS")
         if "RDP" in vals:
             if vals["RDP"].lower() == "on":
                 R.ok(f"{who} RDP=on", "Remote Desktop with NLA; the USERS accounts may connect")
@@ -676,8 +708,10 @@ def check_asset(http, key, path, deep):
             return f"sidecar {os.path.basename(sidecar)} does not parse ({e})"
         if meta.get("size") != os.path.getsize(full):
             return f"http/{path} is {os.path.getsize(full)} bytes but its sidecar describes a {meta.get('size')}-byte file"
-        if key == "IMAGE" and not re.fullmatch(r"[0-9a-fA-F]{64}", str(meta.get("sha256", ""))):
-            return f"sidecar {os.path.basename(sidecar)} has no 64-digit sha256: 25-download would refuse http/{path} (re-run bin/stage-image)"
+        if not re.fullmatch(r"[0-9a-fA-F]{64}", str(meta.get("sha256", ""))):
+            fix = {"IMAGE": "re-run bin/stage-image", "DRIVERS": f"bin/pack-drivers --rehash {os.path.basename(path)[:-4]}",
+                   "UPDATES": f"bin/pack-updates --rehash {os.path.basename(path)[:-4]}"}[key]
+            return f"sidecar {os.path.basename(sidecar)} has no 64-digit sha256: ts/verified.cmd would refuse http/{path} ({fix})"
         if key == "DRIVERS" and not meta.get("infs"):
             return f"driver pack http/{path} lists no .inf files"
         if key == "UPDATES" and not meta.get("packages"):
@@ -689,6 +723,41 @@ def check_asset(http, key, path, deep):
                     h.update(chunk)
             if h.hexdigest() != str(meta["sha256"]).lower():   # pdt-sha256 compares case-insensitively too
                 return f"http/{path} does not match the SHA-256 in its sidecar"
+        if key == "IMAGE":
+            # The recovery image 45-winre falls back to when the applied image has no
+            # Winre.wim (a captured image never has): served with a sidecar of its own.
+            winre = full[:-4] + ".winre.wim"
+            if not os.path.isfile(winre):
+                if meta.get("kind") == "captured":
+                    return f"http/{path} is a captured image, which carries no Winre.wim, and images/{os.path.basename(winre)} is not there: 45-winre would fail (bin/stage-image writes it)"
+            else:
+                problem = check_winre(winre, deep)
+                if problem:
+                    return problem
+    return ""
+
+
+def check_winre(winre, deep):
+    """Return a problem string, or '' if images/<name>.winre.wim has a sound sidecar."""
+    name = os.path.basename(winre)
+    sidecar = winre[:-4] + ".json"
+    if not os.path.isfile(sidecar):
+        return f"images/{name} has no sidecar {name[:-4]}.json: 45-winre would refuse it (bin/stage-image --sidecars)"
+    try:
+        meta = json.load(open(sidecar))
+    except Exception as e:  # noqa: BLE001
+        return f"sidecar {name[:-4]}.json does not parse ({e})"
+    if meta.get("size") != os.path.getsize(winre):
+        return f"images/{name} is {os.path.getsize(winre)} bytes but its sidecar describes a {meta.get('size')}-byte file (bin/stage-image --sidecars)"
+    if not re.fullmatch(r"[0-9a-fA-F]{64}", str(meta.get("sha256", ""))):
+        return f"sidecar {name[:-4]}.json has no 64-digit sha256: 45-winre would refuse images/{name} (bin/stage-image --sidecars)"
+    if deep:
+        h = hashlib.sha256()
+        with open(winre, "rb") as f:
+            for chunk in iter(lambda: f.read(1 << 22), b""):
+                h.update(chunk)
+        if h.hexdigest() != str(meta["sha256"]).lower():
+            return f"images/{name} does not match the SHA-256 in its sidecar"
     return ""
 
 
@@ -774,9 +843,11 @@ def selftest():
                 os.makedirs(oss, exist_ok=True)
                 open(os.path.join(oss, "OpenSSH-Win64.msi"), "w").write("x")
                 open(os.path.join(oss, "files.txt"), "w").write("OpenSSH-Win64.msi\n")
-            ak = os.path.join(d, "roles", "lab-apps", "authorized_keys")
-            if not os.path.isfile(ak):
-                open(ak, "w").write("ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKE lint@selftest\n")
+            for role, kf in (("lab-apps", "authorized_keys"), ("lab-apps", "alice.pub"),   # ... nor fetch-tools keys, which
+                             ("demo-ssh", "authorized_keys"), ("demo-ssh", "carol.pub")):   # writes the roles' key files
+                ak = os.path.join(d, "roles", role, kf)
+                if not os.path.isfile(ak):
+                    open(ak, "w").write("ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKE lint@selftest\n")
             for sub in ("winpe", "tools", "images", "machines", "models", "drivers", "updates"):
                 os.makedirs(os.path.join(d, sub))
             for _cmd, url, _name, _o in ipxe_refs(read(os.path.join(d, "boot.ipxe"))):
@@ -787,6 +858,9 @@ def selftest():
             open(os.path.join(d, "images", "base.wim"), "w").write("image")
             json.dump({"size": 5, "sha256": "0" * 64}, open(os.path.join(d, "images", "base.json"), "w"))
             open(os.path.join(d, "tools", "pdt-sha256.exe"), "w").write("x")   # a host that has run bin/build-tools
+            for sub, extra in (("drivers", {"infs": ["x.inf"]}), ("updates", {"packages": ["x.msu"]})):
+                open(os.path.join(d, sub, "pack.wim"), "w").write("pack!")
+                json.dump({"size": 5, "sha256": "0" * 64, **extra}, open(os.path.join(d, sub, "pack.json"), "w"))
             open(os.path.join(d, "machines", "11111111-2222-3333-4444-555555555555.cfg"), "w").write("MODE=deploy\n")
             return d
 
@@ -838,7 +912,7 @@ def selftest():
                 open(os.path.join(d, "winpe-drivers", "somenic.ipxe"), "w").write("#!ipxe\ninitrd --name x.inf drv/x.inf\n")), "winpe-drivers/drv/x.inf"),
             ("a machine names a POST script that does not exist", lambda d: cfg(d, "MODE=deploy\nPOST=ghost.cmd\n"), "POST=ghost.cmd"),
             ("a machine names an update pack that does not exist", lambda d: cfg(d, "MODE=deploy\nUPDATES=ghost\n"), "UPDATES=ghost"),
-            ("deploy.cmd stops fetching a helper the steps call", lambda d: sub_text(d, "ts/deploy.cmd", "push.cmd pushloop.cmd shell-loop.cmd slug.js", "push.cmd shell-loop.cmd slug.js"), "pushloop.cmd"),
+            ("deploy.cmd stops fetching a helper the steps call", lambda d: sub_text(d, "ts/deploy.cmd", "push.cmd pushloop.cmd shell-loop.cmd", "push.cmd shell-loop.cmd"), "pushloop.cmd"),
             ("a machine names a role that does not exist", lambda d: cfg(d, "MODE=deploy\nROLE=ghost\n"), "ROLE=ghost"),
             ("a role names an apps list that does not exist", lambda d: sub_text(d, "roles/lab-apps/role.cfg", "APPS=apps.txt", "APPS=nope.txt"), "APPS=nope.txt"),
             ("a role wants apps but winget was never fetched", lambda d: shutil.rmtree(os.path.join(d, "post", "winget")), "fetch-tools winget"),
@@ -859,10 +933,19 @@ def selftest():
             ("a role.cfg sets SSH to something that is not on", lambda d: sub_text(d, "roles/lab-apps/role.cfg", "SSH=on", "SSH=yes"), "SSH=yes"),
             ("SSH=on with no keys file", lambda d: sub_text(d, "roles/lab-apps/role.cfg", "SSHKEYS=authorized_keys\n", ""), "needs SSHKEYS"),
             ("the keys file holds no public key", lambda d: open(os.path.join(d, "roles", "lab-apps", "authorized_keys"), "w").write("# empty\n"), "no OpenSSH public key"),
+            ("a users line names a keys file that is not there", lambda d: sub_text(d, "roles/lab-apps/users.txt", "keys=alice.pub", "keys=nobody.pub"), "nobody.pub does not exist"),
+            ("an account's keys file holds no public key", lambda d: open(os.path.join(d, "roles", "lab-apps", "alice.pub"), "w").write("# empty\n"), "no OpenSSH public key in roles/lab-apps/alice.pub"),
+            ("keys= for an account in a role without SSH=on", lambda d: sub_text(d, "roles/lab-apps/role.cfg", "SSH=on\nSSHKEYS=authorized_keys\n", ""), "without SSH=on does nothing"),
             ("SSH=on but fetch-tools openssh never ran", lambda d: os.remove(os.path.join(d, "post", "openssh", "files.txt")), "fetch-tools openssh"),
             ("the hasher 25-download needs was never built", lambda d: os.remove(os.path.join(d, "tools", "pdt-sha256.exe")), "tools/pdt-sha256.exe"),
             ("an image sidecar carries no sha256", lambda d: json.dump({"size": 5}, open(os.path.join(d, "images", "base.json"), "w")), "no 64-digit sha256"),
             ("a machine names an image that is not a .wim", lambda d: (open(os.path.join(d, "images", "base.esd"), "w").write("image"), cfg(d, "MODE=deploy\nIMAGE=base.esd\n")), "must end in .wim"),
+            ("a driver pack's sidecar carries no sha256", lambda d: (json.dump({"size": 5, "infs": ["x.inf"]}, open(os.path.join(d, "drivers", "pack.json"), "w")), cfg(d, "MODE=deploy\nDRIVERS=pack\n")), "pack-drivers --rehash pack"),
+            ("an update pack's sidecar carries no sha256", lambda d: (json.dump({"size": 5, "packages": ["x.msu"]}, open(os.path.join(d, "updates", "pack.json"), "w")), cfg(d, "MODE=deploy\nUPDATES=pack\n")), "pack-updates --rehash pack"),
+            ("a recovery image is served without a sidecar", lambda d: open(os.path.join(d, "images", "base.winre.wim"), "w").write("winre"), "base.winre.json"),
+            ("a recovery image's sidecar describes another file", lambda d: (open(os.path.join(d, "images", "base.winre.wim"), "w").write("winre"), json.dump({"size": 4, "sha256": "0" * 64}, open(os.path.join(d, "images", "base.winre.json"), "w"))), "5 bytes but its sidecar describes a 4-byte"),
+            ("step.cmd runs the step without the exit !errorlevel! wrapper", lambda d: sub_text(d, "ts/step.cmd", 'cmd /v:on /c "%PDT%\\steps\\%STEP%.cmd & exit !errorlevel!"', "cmd /c %PDT%\\steps\\%STEP%.cmd"), "reported ok"),
+            ("a captured image has no recovery image beside it", lambda d: json.dump({"size": 5, "sha256": "0" * 64, "kind": "captured"}, open(os.path.join(d, "images", "base.json"), "w")), "carries no Winre.wim"),
         ]
 
         control = lint_tree(fresh(), programs=SELFTEST_PROGRAMS)

@@ -2,11 +2,12 @@
 rem 35-updates - optional: add update packages (.msu/.cab) to the applied
 rem image. UPDATES=<name> in a cfg names http/updates/<name>.wim, a pack made
 rem by bin/pack-updates. This is where cumulative updates go, since they
-rem cannot be integrated into the image on Linux.
+rem cannot be integrated into the image on Linux. The pack is verified against
+rem its sidecar before DISM sees it (ts/verified.cmd).
 setlocal EnableExtensions EnableDelayedExpansion
 call X:\pdt\env.cmd
 if not defined UPDATES (>%PDT%\step.msg echo skipped: no UPDATES set& exit /b 0)
-%CURL% -f -o W:\updates.wim "%SRV%/updates/%UPDATES%.wim" || exit /b !errorlevel!
+call %PDT%\verified.cmd updates/%UPDATES%.wim updates/%UPDATES%.json W:\updates.wim || exit /b !errorlevel!
 if not exist W:\Updates mkdir W:\Updates
 dism /apply-image /imagefile:W:\updates.wim /index:1 /applydir:W:\Updates /scratchdir:W:\Scratch /logpath:%DISMLOG% || exit /b !errorlevel!
 rem The pack may carry a target list and an expectation (bin/pack-updates
@@ -36,7 +37,7 @@ rem reported the updated build). So when the pack says which package version to
 rem expect, the verdict is whether the image now lists it as installed.
 set EXPECT=
 if exist %PDT%\expect.txt set /p EXPECT=<%PDT%\expect.txt
-if not defined EXPECT goto :cleanup
+if not defined EXPECT (copy /y %PDT%\verified.msg %PDT%\step.msg >nul& goto :cleanup)
 dism /image:W:\ /get-packages /format:table /scratchdir:W:\Scratch /logpath:%DISMLOG% /loglevel:2 >%PDT%\packages.txt
 rem Lines naming the expected package, then: is its state Installed or
 rem Install Pending? (find is case-sensitive, so "Uninstall Pending" is no match.)
@@ -45,7 +46,9 @@ find "!EXPECT!" %PDT%\packages.txt >%PDT%\expect-match.txt
 type %PDT%\expect-match.txt
 find "Install" %PDT%\expect-match.txt >nul
 if errorlevel 1 goto :not_installed
-if not "!RC!"=="0" >%PDT%\step.msg echo dism exit !RC!, but package !EXPECT! is installed in the image
+set VMSG=
+if exist %PDT%\verified.msg set /p VMSG=<%PDT%\verified.msg
+if "!RC!"=="0" (>%PDT%\step.msg echo package !EXPECT! is installed in the image; !VMSG!) else (>%PDT%\step.msg echo dism exit !RC!, but package !EXPECT! is installed in the image; !VMSG!)
 set RC=0
 goto :cleanup
 :not_installed

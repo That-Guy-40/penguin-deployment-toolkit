@@ -1,0 +1,32 @@
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/vm-create smoke-ssh --role demo-ssh --usb-disk 8G
+created VM smoke-ssh
+  uuid dd38cb5e-312b-4101-847f-2cf3a19d8864   mac 52:54:00:4e:89:71   monitor 127.0.0.1:7001
+  disk 64G + USB stick 8G   net user   machines entry: MODE=deploy
+next: bin/vm-boot smoke-ssh
+rc=0
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/vm-create smoke-rdp --role demo-rdp --sd-card 8G --disk virtio --nic virtio-net-pci --drivers virtio-w11
+created VM smoke-rdp
+  uuid a1f83d7a-3432-46a2-8ca0-2603e67fa914   mac 52:54:00:b7:1d:e7   monitor 127.0.0.1:7002
+  disk 64G + SD card 8G   net user   machines entry: MODE=deploy
+next: bin/vm-boot smoke-rdp
+rc=0
+
+# machines/dd38cb5e-312b-4101-847f-2cf3a19d8864.cfg
+# lab VM smoke-ssh (bin/vm-create, 2026-10-24)
+MODE=deploy
+IMAGE=base.wim
+UNATTEND=default.xml
+ROLE=demo-ssh
+STOP_AFTER=25-download
+UPDATES=lcu
+
+# machines/a1f83d7a-3432-46a2-8ca0-2603e67fa914.cfg
+# lab VM smoke-rdp (bin/vm-create, 2026-10-24)
+MODE=deploy
+IMAGE=base.wim
+UNATTEND=default.xml
+DRIVERS=virtio-w11
+ROLE=demo-rdp
+UPDATES=lcu

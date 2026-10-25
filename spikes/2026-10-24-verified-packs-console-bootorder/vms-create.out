@@ -1,0 +1,43 @@
+created VM va
+  uuid 0a7fe60c-bb82-4e34-b61c-da16c2e74538   mac 52:54:00:b7:db:84   monitor 127.0.0.1:7001
+  disk 64G   net user   machines entry: MODE=deploy
+next: bin/vm-boot va
+created VM vb
+  uuid 46f9301b-5ab3-4412-a294-00acdccf8e54   mac 52:54:00:69:1d:8c   monitor 127.0.0.1:7002
+  disk 64G   net user   machines entry: MODE=deploy
+next: bin/vm-boot vb
+created VM vc
+  uuid 28bf2ac7-6d07-4cdf-87e4-975562b78508   mac 52:54:00:f6:a8:cd   monitor 127.0.0.1:7003
+  disk 64G + second disk 64G   net user   machines entry: MODE=deploy
+next: bin/vm-boot vc
+--- va cfg:
+# lab VM va (bin/vm-create, 2026-10-24)
+MODE=deploy
+IMAGE=base.wim
+UNATTEND=default.xml
+DRIVERS=virtio-w11
+UPDATES=lcu
+--- vb cfg:
+# lab VM vb (bin/vm-create, 2026-10-24)
+MODE=deploy
+IMAGE=lab-apps.wim
+UNATTEND=default.xml
+DRIVERS=virtio-w11
+UPDATES=lcu
+STOP_AFTER=30-apply
+--- vc cfg:
+# lab VM vc (bin/vm-create, 2026-10-24)
+MODE=deploy
+IMAGE=base.wim
+UNATTEND=default.xml
+DISK=1
+lint with lab cfgs rc=0
+218 PASS, 0 FAIL, 0 UNKNOWN   (-v lists every row)
+218 PASS, 0 FAIL, 0 UNKNOWN   (-v lists every row)
+2026-10-24T18:23:30-04:00
+VM va running: pid 1906488, nic e1000e, boot disk then network, monitor 127.0.0.1:7001
+id for bin/status and bin/await: 0a7fe60c-bb82-4e34-b61c-da16c2e74538
+VM vb running: pid 1906518, nic e1000e, boot disk then network, monitor 127.0.0.1:7002
+id for bin/status and bin/await: 46f9301b-5ab3-4412-a294-00acdccf8e54
+VM vc running: pid 1906552, nic e1000e, boot disk then network, monitor 127.0.0.1:7003
+id for bin/status and bin/await: 28bf2ac7-6d07-4cdf-87e4-975562b78508

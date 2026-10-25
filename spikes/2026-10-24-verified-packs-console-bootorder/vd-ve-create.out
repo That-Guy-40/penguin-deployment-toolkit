@@ -1,0 +1,15 @@
+created VM vd
+  uuid 3626e3ec-c381-484f-9fae-17754411089c   mac 52:54:00:50:51:79   monitor 127.0.0.1:7004
+  disk 64G   net user   machines entry: MODE=deploy
+next: bin/vm-boot vd
+created VM ve
+  uuid afebecc1-9889-42ac-98d5-e836152b5075   mac 52:54:00:30:de:af   monitor 127.0.0.1:7005
+  disk 64G   net user   machines entry: MODE=deploy
+next: bin/vm-boot ve
+lint rc=0
+232 PASS, 0 FAIL, 0 UNKNOWN   (-v lists every row)
+2026-10-24T18:29:38-04:00
+VM vd running: pid 1990246, nic e1000e, boot disk then network, monitor 127.0.0.1:7004
+id for bin/status and bin/await: 3626e3ec-c381-484f-9fae-17754411089c
+VM ve running: pid 1990276, nic e1000e, boot disk then network, monitor 127.0.0.1:7005
+id for bin/status and bin/await: afebecc1-9889-42ac-98d5-e836152b5075

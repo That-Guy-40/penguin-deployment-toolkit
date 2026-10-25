@@ -1,0 +1,18 @@
+### vd frames so far  18:39:12
+   1  18:37:33     459 B  # cols=120 rows=30 cursor=20,8 viewport=0-29 title=Administrator:  pdt-deploy
+   2  18:37:44    1479 B  # cols=120 rows=30 cursor=20,62 viewport=33-62 title=Administrator:  pdt-deploy
+   3  18:37:55    1440 B  # cols=120 rows=30 cursor=0,63 viewport=34-63 title=Administrator:  pdt-deploy
+   4  18:37:57    1407 B  # cols=120 rows=30 cursor=0,65 viewport=36-65 title=Administrator:  pdt-deploy
+   5  18:38:03    1380 B  # cols=120 rows=30 cursor=0,66 viewport=37-66 title=Administrator:  pdt-deploy
+   6  18:38:27    1350 B  # cols=120 rows=30 cursor=0,67 viewport=38-67 title=Administrator:  pdt-deploy
+### control: switch the loop off while the sequence runs; frames must stop, beacons must not
+loop on vd switched off (run 10698757)
+--- 18:39:59: latest frame age vs latest beacon
+=== vd  1m old
+  2026-10-24T18:39:47-04:00  +  601.6s  (+   0.3s)  90-reboot   start 
+  2026-10-24T18:39:47-04:00  +  601.6s  (+   0.1s)  90-reboot   ok    
+  2026-10-24T18:39:47-04:00  +  601.8s  (+   0.1s)  ts-done     ok    
+--- frames after the switch-off (count must not grow): 6
+--- 18:40:29: 6 frames
+  2026-10-24T18:39:47-04:00  +  601.6s  (+   0.1s)  90-reboot   ok    
+  2026-10-24T18:39:47-04:00  +  601.8s  (+   0.1s)  ts-done     ok    

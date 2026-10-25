@@ -1,0 +1,32 @@
+=== smoke-ssh  0s old
+# cols=120 rows=30 cursor=20,9 viewport=0-29 title=Administrator:  pdt-deploy
+[pdt] id 3a450a5d-c386-4240-957e-acdf8612fcc4  server http://10.0.2.2:8090
+[pdt] starting the network (wpeinit)...
+[pdt] run 1468513009  mode deploy  model "lab-vm"
+[pdt] 15-preflight ...
+[pdt] 17-diskguard ...
+[pdt] 20-disk ...
+[pdt] 25-download ...
+[pdt] STOP_AFTER=25-download: stopped after 25-download.
+
+X:\Windows\System32>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

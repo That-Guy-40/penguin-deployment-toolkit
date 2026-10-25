@@ -1,0 +1,20 @@
+﻿2026-10-25 00:47:56, Info                  DISM   PID=2404 TID=2732 Scratch directory set to 'X:\windows\SystemTemp\'. - CDISMManager::put_ScratchDir
+2026-10-25 00:47:56, Info                  DISM   PID=2404 TID=2732 DismCore.dll version: 10.0.26100.1 - CDISMManager::FinalConstruct
+2026-10-25 00:47:56, Info                  DISM   PID=2404 TID=2732 Scratch directory set to 'W:\Scratch'. - CDISMManager::put_ScratchDir
+2026-10-25 00:47:56, Info                  DISM   Initialized Panther logging at W:\Scratch\dism.log
+2026-10-25 00:47:56, Info                  DISM   PID=2404 TID=2732 Successfully loaded the ImageSession at "X:\Windows\System32\Dism" - CDISMManager::LoadLocalImageSession
+2026-10-25 00:47:56, Info                  DISM   Initialized Panther logging at W:\Scratch\dism.log
+2026-10-25 00:47:56, Info                  DISM   DISM Provider Store: PID=2404 TID=2732 Found and Initialized the DISM Logger. - CDISMProviderStore::Internal_InitializeLogger
+2026-10-25 00:47:56, Info                  DISM   Initialized Panther logging at W:\Scratch\dism.log
+2026-10-25 00:47:56, Info                  DISM   DISM Manager: PID=2404 TID=2732 Successfully created the local image session and provider store. - CDISMManager::CreateLocalImageSession
+2026-10-25 00:47:56, Info                  DISM   DISM.EXE: 
+2026-10-25 00:47:56, Info                  DISM   DISM.EXE: <----- Starting Dism.exe session ----->
+2026-10-25 00:47:56, Info                  DISM   DISM.EXE: 
+2026-10-25 00:47:56, Info                  DISM   DISM.EXE: Host machine information: OS Version=10.0.26100, Running architecture=amd64, Number of processors=4
+2026-10-25 00:47:56, Info                  DISM   DISM.EXE: Instance information: Parent process=X:\Windows\System32\cmd.exe, Parent process PID=740
+2026-10-25 00:47:56, Info                  DISM   DISM.EXE: Dism.exe version: 10.0.26100.1
+2026-10-25 00:47:56, Info                  DISM   DISM.EXE: Executing command line: dism  /apply-image /imagefile:W:\image.wim /index:1 /applydir:W:\ /scratchdir:W:\Scratch /logpath:W:\Scratch\dism.log 
+2026-10-25 00:49:12, Info                  DISM   DISM.EXE: Image session has been closed. Reboot required=no.
+2026-10-25 00:49:12, Info                  DISM   DISM.EXE: 
+2026-10-25 00:49:12, Info                  DISM   DISM.EXE: <----- Ending Dism.exe session ----->
+2026-10-25 00:49:12, Info                  DISM   DISM.EXE: 

@@ -1,0 +1,68 @@
+### vc ts.log, the 50-boot section (bcdedit /enum firmware)
+[pdt] ===== 50-boot
+[pdt] beacon 50-boot start
+Boot files successfully created.
+
+Firmware Boot Manager
+---------------------
+identifier              {fwbootmgr}
+displayorder            {bootmgr}
+                        {ea69d949-d03c-11f1-a162-525400f6a8cd}
+                        {ea69d94a-d03c-11f1-a162-525400f6a8cd}
+                        {ea69d94b-d03c-11f1-a162-525400f6a8cd}
+                        {ea69d94c-d03c-11f1-a162-525400f6a8cd}
+                        {ea69d94d-d03c-11f1-a162-525400f6a8cd}
+                        {ea69d94e-d03c-11f1-a162-525400f6a8cd}
+                        {ea69d947-d03c-11f1-a162-525400f6a8cd}
+                        {ea69d948-d03c-11f1-a162-525400f6a8cd}
+timeout                 0
+
+Windows Boot Manager
+--------------------
+identifier              {bootmgr}
+device                  partition=S:
+path                    \EFI\Microsoft\Boot\bootmgfw.efi
+description             Windows Boot Manager
+locale                  en-us
+inherit                 {globalsettings}
+default                 {default}
+resumeobject            {ea69d945-d03c-11f1-a162-525400f6a8cd}
+displayorder            {default}
+toolsdisplayorder       {memdiag}
+timeout                 30
+
+Firmware Application (101fffff)
+-------------------------------
+identifier              {ea69d947-d03c-11f1-a162-525400f6a8cd}
+description             BootManagerMenuApp
+
+Firmware Application (101fffff)
+-------------------------------
+identifier              {ea69d948-d03c-11f1-a162-525400f6a8cd}
+description             EFI Firmware Setup
+
+Firmware Application (101fffff)
+-------------------------------
+identifier              {ea69d949-d03c-11f1-a162-525400f6a8cd}
+description             UEFI QEMU HARDDISK QM00001 
+
+Firmware Application (101fffff)
+-------------------------------
+identifier              {ea69d94a-d03c-11f1-a162-525400f6a8cd}
+description             UEFI QEMU HARDDISK QM00003 
+
+Firmware Application (101fffff)
+-------------------------------
+identifier              {ea69d94b-d03c-11f1-a162-525400f6a8cd}
+description             UEFI PXEv4 (MAC:525400F6A8CD)
+
+Firmware Application (101fffff)
+-------------------------------
+identifier              {ea69d94c-d03c-11f1-a162-525400f6a8cd}
+
+  2026-10-24T18:28:07-04:00  +  267.9s  (+   3.4s)  winre       ok    status=Enabled location=\\?\GLOBALROOT\device\harddisk1\partition4\Recovery\WindowsRE windows_partition=3
+  2026-10-24T18:28:07-04:00  +  268.3s  (+   0.3s)  boot-tasks  ok    
+  2026-10-24T18:28:07-04:00  +  268.4s  (+   0.1s)  deployed    ok    host=WIN-P1M9EO27TIK
+               total        used        free      shared  buff/cache   available
+Mem:             121          18           6           0          97         102
+32

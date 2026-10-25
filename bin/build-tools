@@ -2,7 +2,8 @@
 # build-tools - build the toolkit's own Windows programs from tools-src/ with
 # mingw-w64 into http/tools/, reproducibly, and record what was built.
 #
-#   build-tools            the canonical build of pdt-screen.exe and pdt-sha256.exe:
+#   build-tools            the canonical build of pdt-screen.exe, pdt-sha256.exe and
+#                          pdt-console.exe:
 #                          in a pinned Debian container (podman or docker, rootless),
 #                          compiler pinned too. 25-download needs pdt-sha256.exe.
 #   build-tools host       the same build with this host's x86_64-w64-mingw32-gcc
@@ -41,6 +42,7 @@ OPENSSL_SHA256="603f5602e2eef00d77fbd429d34dcd5822bb301757a1bc9cdb24c670f1eb859a
 TOOLS=(
     "pdt-screen.exe|pdt-screen.c|-lgdi32"
     "pdt-sha256.exe|pdt-sha256.c|"
+    "pdt-console.exe|pdt-console.c|-luser32"
 )
 
 CC=x86_64-w64-mingw32-gcc

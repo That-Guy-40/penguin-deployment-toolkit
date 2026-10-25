@@ -1,0 +1,17 @@
+18:31:27
+  2026-10-24T18:29:57-04:00  +   11.5s  (+   0.5s)  15-preflight ok    
+  2026-10-24T18:29:57-04:00  +   11.8s  (+   0.3s)  17-diskguard start 
+  2026-10-24T18:29:58-04:00  +   12.3s  (+   0.5s)  17-diskguard ok    msg=disk 0:QEMU HARDDISK 64GiB of 1 (the only fixed disk)
+  2026-10-24T18:29:58-04:00  +   12.5s  (+   0.2s)  stop        ok    before=20-disk
+### bin/console vd
+ERROR: vd: no console frame in run 10698757 (is the machine in WinPE with tools/pdt-console.exe built?)
+rc=1
+### frames
+ERROR: vd: no console frame in run 10698757 (is the machine in WinPE with tools/pdt-console.exe built?)
+### uploads
+3626e3ec-c381-484f-9fae-17754411089c  run 10698757  (1 run(s): 10698757)
+     3072054  2026-10-24 18:31:23  screen.bmp
+         428  2026-10-24 18:29:58  ts.log
+  (http/uploads/3626e3ec-c381-484f-9fae-17754411089c/10698757)
+### vm-shot for parity
+/tmp/claude-1000/-home-sqs-scripts-Windows-install-via-Linux/db333f61-18fb-420a-8c91-36dad1f2e3d0/scratchpad/vd-prompt.png

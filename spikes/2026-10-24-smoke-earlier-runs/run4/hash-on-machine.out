@@ -1,0 +1,73 @@
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/shell smoke-ssh type X:\pdt\verified.msg & type X:\pdt\image.verified & dir W:\
+sha256 0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279 matches images/base.json
+0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279  W:\image.wim
+0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279  X:\pdt\images-base.json (sidecar)
+match
+ Volume in drive W is Windows
+ Volume Serial Number is 7CDF-68FF
+
+ Directory of W:\
+
+10/25/2026  01:33 AM     3,563,286,653 image.wim
+10/25/2026  01:33 AM    <DIR>          Scratch
+               1 File(s)  3,563,286,653 bytes
+               1 Dir(s)  63,691,657,216 bytes free
+rc=0
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/shell smoke-ssh X:\pdt\pdt-sha256.exe X:\pdt\pdt-sha256.exe
+cd0965834efb92c03499bc327ca7e6ed72c6e10176c53bea13a411bda1356aa0  X:\pdt\pdt-sha256.exe
+rc=0
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/shell smoke-ssh %CURL% -f -o %PDT%\openssl.exe "%SRV%/tools/openssl.exe" && X:\pdt\pdt-sha256.exe X:\pdt\openssl.exe --timeout 120
+5384210784f5a4182192316bba6d2b0a0381f65ed8e0e6ea6067c889354f687c  X:\pdt\openssl.exe
+rc=0
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/shell smoke-ssh X:\pdt\openssl.exe version -a
+OpenSSL 3.5.9 29 Sep 2026 (Library: OpenSSL 3.5.9 29 Sep 2026)
+built on: Thu Jan  1 00:00:01 1970 UTC
+platform: mingw64
+options:  bn(64,64)
+compiler: x86_64-w64-mingw32-gcc -m64 -Wall -O3 -s -DL_ENDIAN -DUNICODE -D_UNICODE -DWIN32_LEAN_AND_MEAN -D_MT -DOPENSSL_BUILDING_OPENSSL -DNDEBUG
+OPENSSLDIR: "/pdt/ssl"
+ENGINESDIR: "/pdt/lib64/engines-3"
+MODULESDIR: "/pdt/lib64/ossl-modules"
+Seeding source: os-specific
+CPUINFO: OPENSSL_ia32cap=0xfff83203078bffff:0x18405f4ef1bf07ab:0x000000309c000110:0x0000000000000000:0x0000000000000000
+rc=0
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/shell smoke-ssh X:\pdt\openssl.exe dgst -sha256 W:\image.wim --timeout 180
+SHA2-256(W:\image.wim)= 0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279
+rc=0
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/shell smoke-ssh X:\pdt\pdt-sha256.exe --check X:\pdt\images-base.json W:\image.wim --timeout 180
+0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279  W:\image.wim
+0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279  X:\pdt\images-base.json (sidecar)
+match
+rc=0
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/shell smoke-ssh cmd /v:on /c "call X:\pdt\verified.cmd tools/pdt-screen.exe cmd/smoke/good.json X:\pdt\ctl-good.exe & exit !errorlevel!" --timeout 120
+31f25d2816b819d21abf011519f7fa7cd2dd37fd8efc0e84ee3085c70225c61d  X:\pdt\ctl-good.exe
+31f25d2816b819d21abf011519f7fa7cd2dd37fd8efc0e84ee3085c70225c61d  X:\pdt\cmd-smoke-good.json (sidecar)
+match
+rc=0
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/shell smoke-ssh if exist X:\pdt\ctl-good.exe (echo ctl-good.exe kept& exit /b 0) else (echo ctl-good.exe MISSING& exit /b 1)
+ctl-good.exe kept
+rc=0
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/shell smoke-ssh cmd /v:on /c "call X:\pdt\verified.cmd tools/pdt-screen.exe cmd/smoke/bad.json X:\pdt\ctl-bad.exe & exit !errorlevel!" --timeout 120
+31f25d2816b819d21abf011519f7fa7cd2dd37fd8efc0e84ee3085c70225c61d  X:\pdt\ctl-bad.exe
+42036e3927c92ae32bc012262a080b8de3ee480e9f0d1f95ff4196d81336d72e  X:\pdt\cmd-smoke-bad.json (sidecar)
+MISMATCH: the file is not the one the sidecar describes
+rc=1
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/shell smoke-ssh type X:\pdt\step.msg & if exist X:\pdt\ctl-bad.exe (echo ctl-bad.exe STILL THERE& exit /b 1) else (echo ctl-bad.exe deleted& exit /b 0)
+tools/pdt-screen.exe does not match the sha256 in cmd/smoke/bad.json: download deleted
+ctl-bad.exe deleted
+rc=0
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/shell smoke-ssh type X:\pdt\ts.log | find "|"
+0|Fixed hard disk media|IDE|64|QEMU HARDDISK|eligible
+1|Removable Media|USB|8|QEMU QEMU HARDDISK USB Device|not eligible: removable media (Removable Media)
+rc=0

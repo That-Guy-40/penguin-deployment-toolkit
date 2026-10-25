@@ -71,7 +71,7 @@ cp config.sh.example config.sh     # set ISO_PATH; pick a free HTTP_PORT
 bin/fetch-iso                      # only if you have no ISO: builds one via UUP dump (4-6 GB)
 bin/fetch-tools                    # wimboot, curl.exe, wimlib for Windows (pinned by hash)
 bin/fetch-tools winget             # if roles install apps: winget + dependencies, served to first logon
-bin/fetch-tools openssh            # if roles say SSH=on: Win32-OpenSSH (MSI), and the lab role's authorized_keys from ~/.ssh
+bin/fetch-tools openssh            # if roles say SSH=on: Win32-OpenSSH (MSI), then the lab keys into every such role (fetch-tools keys)
 bin/stage-winpe                    # boot.wim + boot files out of the ISO (7z, no sudo)
 bin/stage-image                    # install.wim -> http/images/base.wim + sidecar
 bin/build-ipxe                     # pxe/ipxe.efi, chaining to HTTP_HOST:HTTP_PORT
@@ -135,13 +135,13 @@ Raw data, if you prefer `tail -f`: `run/beacons.log` (one line per event),
 | `config.sh.example` | template for `config.sh`, the only place host-specific values live |
 | `bin/lib.sh`, `bin/_pdt.py` | shared by every script: loads `config.sh`, paths, helpers (bash and python) |
 | `bin/fetch-iso` | optional: build a Windows 11 ISO from Microsoft's update servers via UUP dump, into `iso/` with a sidecar (base build only: no cumulative updates on Linux) |
-| `bin/fetch-tools` | third-party binaries, pinned by SHA-256, into `http/winpe/` and `http/tools/`; `fetch-tools virtio` builds a virtio driver pack; `fetch-tools winget` serves winget and its dependencies from `http/post/winget/`; `fetch-tools openssh` serves the Win32-OpenSSH installer from `http/post/openssh/` and writes the lab role's `authorized_keys` |
+| `bin/fetch-tools` | third-party binaries, pinned by SHA-256, into `http/winpe/` and `http/tools/`; `fetch-tools virtio` builds a virtio driver pack; `fetch-tools winget` serves winget and its dependencies from `http/post/winget/`; `fetch-tools openssh` serves the Win32-OpenSSH installer from `http/post/openssh/`; `fetch-tools keys` (also run by `openssh`) writes the lab keys into every role with `SSH=on`: its `SSHKEYS` file from `~/.ssh/id_*.pub`, and a key pair of its own for each `keys=<file>` account (private half `build/lab-<account>`) |
 | `bin/stage-winpe` | `boot.wim`, `bootmgfw.efi`, `BCD`, `boot.sdi` from the ISO, unmodified |
-| `bin/stage-image` | the ISO's install image → `http/images/base.wim` + `base.json` + `base.winre.wim`; `--from-upload <vm>` publishes an image captured by `MODE=capture` |
+| `bin/stage-image` | the ISO's install image → `http/images/base.wim` + `base.json` + `base.winre.wim` + `base.winre.json`; `--from-upload <vm>` publishes an image captured by `MODE=capture`; `--sidecars` describes recovery images staged before they had sidecars |
 | `bin/capture-image` | capture a role image from a switched-off, generalized lab VM's disk on Linux (wimlib), publish it |
-| `bin/pack-drivers` | a directory of drivers → `http/drivers/<name>.wim` |
+| `bin/pack-drivers` | a directory of drivers → `http/drivers/<name>.wim` + a sidecar with its SHA-256 (`--rehash <name>` adds the hash to a pack made before 2026-10-24) |
 | `bin/fetch-drivers` | a vendor driver pack by URL (Dell/Lenovo/HP `.CAB`/`.zip`), pinned by SHA-256 on the second run, unpacked and packed as above; the sidecar records the source |
-| `bin/pack-updates` | a directory of `.msu`/`.cab` updates → `http/updates/<name>.wim`; `--target` names the update to install (others are prerequisites), `--expect` the package version that must end up installed |
+| `bin/pack-updates` | a directory of `.msu`/`.cab` updates → `http/updates/<name>.wim` + a sidecar with its SHA-256; `--target` names the update to install (others are prerequisites), `--expect` the package version that must end up installed; `--rehash <name>` as above |
 | `bin/build-ipxe` | builds `pxe/ipxe.efi` from a pinned iPXE commit |
 | `bin/serve` | rootless nginx: static files, `GET /beacon`, `GET /ts/id.cmd`, `PUT /uploads/` |
 | `bin/pxe-lan` | dnsmasq + TFTP: proxy-DHCP for a real LAN (not yet run against hardware), or `--bridge` authoritative DHCP for a lab bridge (verified) |
@@ -149,12 +149,14 @@ Raw data, if you prefer `tail -f`: `run/beacons.log` (one line per event),
 | `bin/vm-create`, `vm-boot`, `vm-stop`, `vm-shot`, `vm-type` | the lab VM |
 | `bin/status`, `await`, `logs`, `lint` | read-only tools over the logs and `http/` |
 | `bin/shell` | run a command on a machine in WinPE over HTTP (`ts/shell-loop.cmd` polls for it); for machines with no screen, i.e. every physical one |
-| `bin/screen`, `bin/build-tools` | the latest screen a machine pushed (needs `tools/pdt-screen.exe`); `build-tools` builds it and `tools/pdt-sha256.exe` (the hash `25-download` checks every image with) from `tools-src/` with mingw-w64 in a pinned container, reproducibly: two builds must be identical; `build-tools openssl` cross-builds a static `tools/openssl.exe` from the pinned OpenSSL source the same way, as an independent second opinion on the machine; `check` verifies the served binaries against `tools/built.json` (lint runs it) |
+| `bin/console`, `bin/keys` | the text frames of the machine's deploy window (`tools/pdt-console.exe` reads the console buffer; one frame per change, `--watch`, `--frames`, `--diff`, `--await TEXT`), and keystrokes into that window (`bin/keys <m> 'deploy 20{enter}'` answers the prompt a stopped or failed sequence sits at, which a new `cmd` from `bin/shell` cannot) |
+| `bin/screen`, `bin/build-tools` | the latest screen a machine pushed (needs `tools/pdt-screen.exe`); `build-tools` builds it, `tools/pdt-sha256.exe` (the hash every image, pack and recovery image is checked with on the machine) and `tools/pdt-console.exe` from `tools-src/` with mingw-w64 in a pinned container, reproducibly: two builds must be identical; `build-tools openssl` cross-builds a static `tools/openssl.exe` from the pinned OpenSSL source the same way, as an independent second opinion on the machine; `check` verifies the served binaries against `tools/built.json` (lint runs it) |
 | `bin/build-collector`, `bin/netboot`, `bin/enroll` | the collector: a small Debian that PXE-boots into RAM, inventories a machine, takes commands and SSH, and reboots it into Windows PE; which machines boot it; `machines/<uuid>.cfg` from its inventory (`docs/COLLECTOR.md`) |
 | `bin/teardown` | stop services; optionally delete lab state |
+| `bin/smoke` | the whole toolkit end to end on two lab VMs at once (roles `demo-ssh` and `demo-rdp`, a USB stick and an SD card beside the one fixed disk, every download's hash, the console frames and keys, SSH and RDP from this host with controls), every check a PASS/FAIL row in `report.md` beside the screenshots, timelines and uploads; exits 0 only if nothing failed and at least one control fired |
 | `http/boot.ipxe` | the iPXE script every target runs (static, relative URLs) |
-| `http/ts/` | the WinPE task sequence: `deploy.cmd` (bootstrap + runner), `env.cmd` (all state), `step.cmd`/`beacon.cmd`/`push.cmd` (helpers), `shell-loop.cmd` (the remote shell and screen pusher), `*.seq` (which steps a MODE runs), `steps/` (one file per step), `diskpart/` |
-| `tools-src/` | source of the toolkit's own Windows programs (`pdt-screen.c`, `pdt-sha256.c`), built by `bin/build-tools` |
+| `http/ts/` | the WinPE task sequence: `deploy.cmd` (bootstrap + runner), `env.cmd` (all state), `step.cmd`/`beacon.cmd`/`push.cmd` (helpers), `verified.cmd` (every large download, checked against its sidecar's SHA-256 before use), `shell-loop.cmd` (the remote shell, screen pusher and console frames), `*.seq` (which steps a MODE runs), `steps/` (one file per step), `diskpart/` |
+| `tools-src/` | source of the toolkit's own Windows programs (`pdt-screen.c`, `pdt-sha256.c`, `pdt-console.c`), built by `bin/build-tools` |
 | `http/unattend/` | Panther unattend files (`default.xml`: local admin `deploy`, **blank password**, one autologon: lab defaults) |
 | `http/post/` | scripts run by the installed system from `C:\pdt\`: `firstlogon.cmd` (orchestrates the rest), `winget.cmd` (bootstrap + the role's apps), `users.ps1` (the role's accounts; generated passwords uploaded, then removed), `boot-probe.cmd` (a `boot` beacon after every boot), `prepare-capture.cmd` (sysprep, for `REFERENCE=yes`), and your own (`POST=` in a cfg); `winget/` holds the fetched packages (not tracked) |
 | `http/roles/` | `<name>/role.cfg` + files: what a machine becomes after Windows is on it (winget apps, local accounts, a skel for new profiles, post script, unattend, fast-startup policy); `ROLE=<name>` in a cfg selects it (see its README) |
@@ -363,9 +365,21 @@ Later the same day, with root supplied from another shell:
 | `17-diskguard` | one disk: "the only fixed disk"; a 32 G disk and an 8 G USB stick beside it: both "not eligible", disk 0 deployed; two 64 G disks and no `DISK=`: `17-diskguard fail`, both disks left blank; `DISK=9`: refused; `DISK=1`: the partitions on disk 1, disk 0 still blank |
 | Role key `SSH=on` + `SSHKEYS` | `ssh ok port=22 keys=1 listening=yes`; `ssh -i ~/.ssh/id_ed25519 admin@…` logs in, host-key fingerprint equals the uploaded `ssh.txt`; no key, `alice` (group Users) and the deleted `deploy`: `Permission denied (publickey)`, no password prompt. With PowerShell 7 among the apps (`Microsoft.PowerShell --installer-type wix`: the MSI, not the MSIX winget picks by default), `shell=pwsh` and `Invoke-Command -HostName … -Port 2223` from this host's `pwsh` runs a script block on the machine |
 
+**Every download verified, the console as text, the second-disk boot order, 2026-10-24** (evidence: `spikes/2026-10-24-verified-packs-console-bootorder/`):
+
+| what | result |
+|---|---|
+| `ts/verified.cmd` behind `25-download`, `35-updates`, `40-drivers`, `45-winre` | a deploy with a 5.2 GB update pack (the 24H2 checkpoint + the September 2026 cumulative update) and the virtio driver pack: every step `ok` with `sha256 … matches <sidecar>` in its message, `35-updates` 790 s, first logon reports `build=26100.9550`; a deploy from the captured `lab-apps.wim` fetched its recovery image from the server and verified it the same way |
+| Controls: each pack's sidecar made to claim a hash of all zeros | `40-drivers fail rc=1 … download deleted`, `35-updates fail rc=1 … download deleted`, no `W:\drivers.wim`, `W:\updates.wim`, `W:\Drivers`, `W:\Updates`; `45-winre` first reported **`ok`** with the mismatch as its message (a liar) |
+| The liar: an `exit /b` reached through `\|\|` or an `if` inside a multi-line parenthesized block | measured with twelve one-line test scripts on the VM: `cmd /c script` exits **0** for every such form (after `call` or a program, with a literal code or `!errorlevel!`, the exit parenthesized or not), while the same lines at top level or in a one-line block, and a bare literal `exit /b 9` in a multi-line block, propagate; the shell's errorlevel is right in every case. `step.cmd` now runs each step as `cmd /v:on /c "<step> & exit !errorlevel!"`; lint pins that line (self-test 56/56); the control re-run: `45-winre fail rc=1`, nothing on `R:` |
+| A two-disk VM with `DISK=1`, disk 0 blank | `50-boot ok msg=… the firmware boots Windows Boot Manager first` (`bcdedit /enum firmware` in the log: `{bootmgr}` leads `displayorder`), `ts-done`, then `specialize` 49 s later and `deployed`: Windows from disk 1, no second `ts-start`. The 2026-10-24 demo's re-image loop was the lab's doing: `vm-boot` gave the second disk no QEMU `bootindex` (OVMF then lists it after the network) and reset the NVRAM when disk 0 alone looked empty; both fixed |
+| `tools/pdt-console.exe` + `bin/console` + `bin/keys` | a VM stopped before `20-disk`: the first frame is the deploy window (title `Administrator:  pdt-deploy`, 459 B), `bin/keys vd 'dir X:\pdt{enter}'` shows the listing in the next frame, `bin/keys vd 'deploy 20{enter}'` resumes the sequence (`bin/console --await 30-apply` returned 34 s later) and the VM reached `deployed`. Frames: 6 in a 2-minute WinPE session, 0.5–1.5 KB each, against 3 MB per screenshot. Controls: `dump` against a title nobody has → exit 2, no file; `bin/shell --off` → the frame count stays at 6 while the sequence beacons on to `ts-done` |
+| `bin/lint` | 231 PASS; self-test 56/56 (new: a pack sidecar without `sha256`, a recovery image without a sidecar or with another file's, a captured image with no recovery image, `step.cmd` without the exit wrapper) |
+| `SSH=on` on a captured image | a reference VM with the lab role generalized itself (`prepare-capture` deletes sshd's host keys first), captured on Linux, two VMs deployed from the image: `ssh-keyscan` shows three different ED25519 keys for the reference and the two machines (RSA, ECDSA too); the role's key logs in as `admin` on both, no key is refused |
+| Per-user SSH keys: `alice\|Users\|random\|keys=alice.pub` in the lab role | `users ok … keys=alice`; `ssh -i build/lab-alice alice@…` logs in (the file `C:\ProgramData\ssh\users\alice\authorized_keys`, Administrators-owned, alice read; `sshd_config` lists `__PROGRAMDATA__/ssh/users/%u/authorized_keys`); controls: `alice` with the admins' key, `admin` with alice's key and an account that does not exist are all refused |
+
 Still not verified: anything on physical hardware, including enrolling a
-Secure Boot certificate in real firmware; `SSH=on` on a captured image
-(distinct host keys per machine).
+Secure Boot certificate in real firmware.
 
 ## Documents
 

@@ -6,9 +6,15 @@
 #   stage-image --from-upload <vm|id> --name <role> [--run <run>] [--force]
 #   stage-image --from-wim <file.wim> --name <role> [--force]
 #
+#   stage-image --sidecars
+#
 # Either way the image gets a companion http/images/<name>.winre.wim, the
 # Windows Recovery Environment that step 45-winre installs when the applied
-# image does not carry one (a captured image never does).
+# image does not carry one (a captured image never does), with its own sidecar
+# <name>.winre.json (size, sha256) that the step verifies the download against.
+# --sidecars (re)writes those sidecars for every images/*.winre.wim already
+# there, from the files as they are now: for recovery images staged before
+# 2026-10-24, which had none.
 #
 # The second form publishes an image captured by MODE=capture (step 70-capture
 # uploads it to http/uploads/<id>/<run>/capture.wim): it is verified with
@@ -22,7 +28,7 @@
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 need 7z wimlib-imagex python3 sha256sum
 
-INDEX="" NAME="base" FORCE=0 LIST=0 FROM="" RUN="" FROM_WIM="" SOURCE_JSON=""
+INDEX="" NAME="base" FORCE=0 LIST=0 FROM="" RUN="" FROM_WIM="" SOURCE_JSON="" SIDECARS=0
 while (( $# )); do
     case "$1" in
         --index) INDEX="${2:?}"; shift 2 ;;
@@ -33,6 +39,7 @@ while (( $# )); do
         --run)   RUN="${2:?}"; shift 2 ;;
         --from-wim) FROM_WIM="${2:?}"; shift 2 ;;
         --source-json) SOURCE_JSON="${2:?}"; shift 2 ;;      # used by bin/capture-image
+        --sidecars) SIDECARS=1; shift ;;
         -h|--help) sed -n '2,23p' "$0"; exit 0 ;;
         *) die "unknown argument: $1" ;;
     esac
@@ -87,6 +94,23 @@ print(open(sidecar).read())
 PY
 }
 
+# winre_sidecar <winre.wim> <origin>: describe a recovery image beside it, in
+# <name>.winre.json: what 45-winre checks the download against (ts/verified.cmd).
+winre_sidecar() {
+    python3 - "$1" "${1%.wim}.json" "$2" <<'PY'
+import hashlib, json, os, sys, time
+wim, sidecar, origin = sys.argv[1:4]
+h = hashlib.sha256()
+with open(wim, "rb") as f:
+    for chunk in iter(lambda: f.read(1 << 22), b""):
+        h.update(chunk)
+json.dump({"file": os.path.basename(wim), "size": os.path.getsize(wim), "sha256": h.hexdigest(), "kind": "winre",
+           "origin": origin, "created": time.strftime("%Y-%m-%dT%H:%M:%S%z")}, open(sidecar, "w"), indent=2)
+print(f"{os.path.basename(sidecar)}: {os.path.getsize(wim)} bytes, sha256 {h.hexdigest()[:16]}…")
+PY
+    chmod 0644 "${1%.wim}.json"
+}
+
 # winre_from_image <wim> <out>: pull Winre.wim out of an OS image; false if it has none.
 winre_from_image() {
     local tmp f; tmp="$(mktemp -d "$BUILD_DIR/winre.XXXXXX")"
@@ -99,6 +123,16 @@ winre_from_image() {
 }
 
 mkdir -p "$BUILD_DIR"
+if (( SIDECARS )); then
+    n=0
+    for w in "$HTTP_DIR"/images/*.winre.wim; do
+        [[ -f "$w" ]] || continue
+        winre_sidecar "$w" "re-described from the file by stage-image --sidecars (staged before sidecars existed)"
+        n=$((n + 1))
+    done
+    (( n )) || die "no images/*.winre.wim to describe"
+    exit 0
+fi
 # publish_captured <wim> <source-json>: verify a captured image and publish it
 # as http/images/$NAME.wim with a sidecar and a companion recovery image.
 publish_captured() {
@@ -118,9 +152,11 @@ publish_captured() {
     winre="$HTTP_DIR/images/$NAME.winre.wim"
     if winre_from_image "$out" "$winre"; then
         info "$NAME.winre.wim: taken from the captured image"
+        winre_sidecar "$winre" "Windows/System32/Recovery/Winre.wim of $NAME.wim"
     elif [[ -f "$HTTP_DIR/images/base.winre.wim" ]]; then
         cp -f "$HTTP_DIR/images/base.winre.wim" "$winre"
         info "$NAME.winre.wim: copied from base.winre.wim (a captured Windows volume carries no Winre.wim)"
+        winre_sidecar "$winre" "copied from base.winre.wim"
     else
         warn "no Winre.wim in the image and no images/base.winre.wim to copy: step 45-winre will fail for this image. Run bin/stage-image first."
     fi
@@ -163,6 +199,7 @@ if [[ -f "$OUT" && -f "$SIDECAR" && $FORCE == 0 && $LIST == 0 ]]; then
         winre_from_image "$OUT" "$OUT_DIR/$NAME.winre.wim" && info "$NAME.winre.wim: extracted from the image" \
             || warn "$NAME.wim contains no Windows/System32/Recovery/Winre.wim"
     fi
+    [[ ! -f "$OUT_DIR/$NAME.winre.wim" || -f "$OUT_DIR/$NAME.winre.json" ]] || winre_sidecar "$OUT_DIR/$NAME.winre.wim" "Windows/System32/Recovery/Winre.wim of $NAME.wim"
     exit 0
 fi
 
@@ -189,8 +226,12 @@ else
     wimlib-imagex export "$WORK" "$INDEX" "$OUT" --compress=LZX || die "wimlib export failed"
 fi
 chmod 0644 "$OUT"
-winre_from_image "$OUT" "$OUT_DIR/$NAME.winre.wim" && info "$NAME.winre.wim: extracted from the image" \
-    || warn "$NAME.wim contains no Windows/System32/Recovery/Winre.wim"
+if winre_from_image "$OUT" "$OUT_DIR/$NAME.winre.wim"; then
+    info "$NAME.winre.wim: extracted from the image"
+    winre_sidecar "$OUT_DIR/$NAME.winre.wim" "Windows/System32/Recovery/Winre.wim of $NAME.wim"
+else
+    warn "$NAME.wim contains no Windows/System32/Recovery/Winre.wim"
+fi
 
 info "writing sidecar $NAME.json (hashing the image)..."
 sidecar "$OUT" "$SIDECAR" base "{\"iso\": \"$(basename "$ISO_PATH")\", \"path\": \"$SRC\", \"index\": $INDEX}"

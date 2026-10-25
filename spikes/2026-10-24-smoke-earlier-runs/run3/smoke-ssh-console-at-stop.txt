@@ -1,0 +1,32 @@
+=== smoke-ssh  25s old
+# cols=120 rows=30 cursor=0,7 viewport=0-29 title=Administrator:  pdt-deploy
+[pdt] id c4c52b1d-4098-4ae2-81ea-587674977cf1  server http://10.0.2.2:8090
+[pdt] starting the network (wpeinit)...
+[pdt] run 2785321266  mode deploy  model "lab-vm"
+[pdt] 15-preflight ...
+[pdt] 17-diskguard ...
+[pdt] 20-disk ...
+[pdt] 25-download ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

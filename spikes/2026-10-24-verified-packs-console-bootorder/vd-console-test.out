@@ -1,0 +1,110 @@
+### vd: replace the tool (the loop runs it every 2 s, so retry until the copy sticks)
+replaced on try 1
+### frames now?  18:37:42
+   1  18:37:33     459 B  # cols=120 rows=30 cursor=20,8 viewport=0-29 title=Administrator:  pdt-deploy
+### the latest frame
+=== vd  8s old
+# cols=120 rows=30 cursor=20,8 viewport=0-29 title=Administrator:  pdt-deploy
+[pdt] id 3626e3ec-c381-484f-9fae-17754411089c  server http://10.0.2.2:8090
+[pdt] starting the network (wpeinit)...
+[pdt] run 10698757  mode deploy  model "lab-vm"
+[pdt] 15-preflight ...
+[pdt] 17-diskguard ...
+[pdt] STOP_BEFORE=20-disk: stopped before 20-disk. Try it by hand: X:\pdt\steps\20-disk.cmd
+[pdt] then carry on with:  deploy 20
+
+X:\Windows\System32>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### keys: a dir listing typed into the deploy window  18:37:42
+vd: typed 'dir X:\\pdt{enter}' into the pdt-deploy window
+=== vd  6s old
+# cols=120 rows=30 cursor=20,62 viewport=33-62 title=Administrator:  pdt-deploy
+10/24/2026  10:29 PM                 3 disk.txt
+10/24/2026  10:37 PM         3,072,054 screen.bmp
+10/24/2026  10:32 PM                58 cmd-1.cmd
+10/24/2026  10:32 PM               290 cmd-1.out
+10/24/2026  10:32 PM               111 cmd-2.cmd
+10/24/2026  10:32 PM                41 cmd-2.out
+10/24/2026  10:32 PM               109 cmd-3.cmd
+10/24/2026  10:32 PM                40 cmd-3.out
+10/24/2026  10:32 PM                90 t2.txt
+10/24/2026  10:32 PM                73 cmd-4.cmd
+10/24/2026  10:32 PM               236 cmd-4.out
+10/24/2026  10:32 PM                44 cmd-5.cmd
+10/24/2026  10:32 PM               281 cmd-5.out
+10/24/2026  10:32 PM                21 cmd-6.cmd
+10/24/2026  10:32 PM               118 cmd-6.out
+10/24/2026  10:35 PM                31 cmd-7.cmd
+10/24/2026  10:35 PM               109 cmd-7.out
+10/24/2026  10:35 PM               183 cmd-8.cmd
+10/24/2026  10:35 PM               863 cmd-8.out
+10/24/2026  10:35 PM               832 list.txt
+10/24/2026  10:37 PM               244 cmd-9.cmd
+10/24/2026  10:37 PM                38 cmd-9.out
+10/24/2026  10:37 PM            45,056 pdt-console.exe
+10/24/2026  10:37 PM               459 console.txt
+10/24/2026  10:37 PM                92 cmd-10.cmd
+10/24/2026  10:37 PM                 0 cmd-10.out
+              42 File(s)      3,179,813 bytes
+               3 Dir(s)     529,354,752 bytes free
+
+X:\Windows\System32>
+### control: a title nobody has
+rc=2 
+no file written
+### keys: carry on with the deploy  18:37:53
+vd: typed 'deploy 20{enter}' into the pdt-deploy window
+vd: frame of 18:38:27 contains '30-apply'
+await rc=0
+=== vd  0s old
+# cols=120 rows=30 cursor=0,67 viewport=38-67 title=Administrator:  pdt-deploy
+10/24/2026  10:32 PM                41 cmd-2.out
+10/24/2026  10:32 PM               109 cmd-3.cmd
+10/24/2026  10:32 PM                40 cmd-3.out
+10/24/2026  10:32 PM                90 t2.txt
+10/24/2026  10:32 PM                73 cmd-4.cmd
+10/24/2026  10:32 PM               236 cmd-4.out
+10/24/2026  10:32 PM                44 cmd-5.cmd
+10/24/2026  10:32 PM               281 cmd-5.out
+10/24/2026  10:32 PM                21 cmd-6.cmd
+10/24/2026  10:32 PM               118 cmd-6.out
+10/24/2026  10:35 PM                31 cmd-7.cmd
+10/24/2026  10:35 PM               109 cmd-7.out
+10/24/2026  10:35 PM               183 cmd-8.cmd
+10/24/2026  10:35 PM               863 cmd-8.out
+10/24/2026  10:35 PM               832 list.txt
+10/24/2026  10:37 PM               244 cmd-9.cmd
+10/24/2026  10:37 PM                38 cmd-9.out
+10/24/2026  10:37 PM            45,056 pdt-console.exe
+10/24/2026  10:37 PM               459 console.txt
+10/24/2026  10:37 PM                92 cmd-10.cmd
+10/24/2026  10:37 PM                 0 cmd-10.out
+              42 File(s)      3,179,813 bytes
+               3 Dir(s)     529,354,752 bytes free
+
+X:\Windows\System32>deploy 20
+[pdt] run 10698757  mode deploy  model "lab-vm"
+[pdt] 20-disk ...
+[pdt] 25-download ...
+[pdt] 30-apply ...
+

@@ -1,0 +1,20 @@
+created VM wr
+  uuid 5602dd30-d274-41fb-9534-c34519abbe13   mac 52:54:00:db:16:0f   monitor 127.0.0.1:7001
+  disk 64G   net user   machines entry: MODE=deploy
+next: bin/vm-boot wr
+VM wr running: pid 1492127, nic e1000e, boot disk then network, monitor 127.0.0.1:7001
+id for bin/status and bin/await: 5602dd30-d274-41fb-9534-c34519abbe13
+$ bin/await wr stop 420
+await: 2026-10-24T22:55:20-04:00 stop ok
+rc=0
+$ bin/status wr | grep 45-winre
+  2026-10-24T22:55:19-04:00  +  119.3s  (+   0.3s)  45-winre    start 
+  2026-10-24T22:55:20-04:00  +  120.1s  (+   0.8s)  45-winre    ok    msg=Winre.wim from the image itself, W:\Windows\System32\Recovery
+  2026-10-24T22:55:20-04:00  +  120.3s  (+   0.2s)  stop        ok    after=45-winre
+$ ts.log, the 45-winre section
+[pdt] ===== 45-winre
+[pdt] beacon 45-winre start
+W:\Windows\System32\Recovery\winre.wim
+1 File(s) copied
+Directory set to: \\?\GLOBALROOT\device\harddisk0\partition4\Recovery\WindowsRE
+
