@@ -1,0 +1,5 @@
+VM rh-w2 running: pid 2935616, nic virtio-net-pci, firmware OVMF_CODE_4M.secboot.fd smm=on, boot disk then network, monitor 127.0.0.1:7006
+id for bin/status and bin/await: 2f572fe4-432c-46aa-9efb-89c880923c59
+00:39:23 deploying: VM rh-w2 running: pid 2935616, nic virtio-net-pci, firmware OVMF_CODE_4M.secboot.fd smm=on, boot disk then network, monitor 127.0.0.1:7006
+await: FAILED before ts-done: 2026-10-25T00:40:58-04:00 20-disk fail rc=-2147212269
+00:40:58 no ts-done in 1500 s: not a reboot problem, giving up

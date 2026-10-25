@@ -1,0 +1,97 @@
+VM rh-hog running: pid 2917696, nic virtio-net-pci, firmware OVMF_CODE_4M.secboot.fd smm=on, boot disk then network, monitor 127.0.0.1:7004
+id for bin/status and bin/await: dc157bed-f4ef-4b5b-98db-2abe92aa1d63
+00:34:53 cold boot: VM rh-hog running: pid 2917696, nic virtio-net-pci, firmware OVMF_CODE_4M.secboot.fd smm=on, boot disk then network, monitor 127.0.0.1:7004
+5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e  /home/sqs/scripts/Windows-install-via-Linux/vms/rh-hog/vars.fd
+await: 2026-10-25T00:35:35-04:00 shell ok
+00:35:35 cold boot reached WinPE in 42 s
+timeout after 20 s: no output for cmd 1 (run 716031310); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+await: 2026-10-25T00:36:27-04:00 shell ok
+00:36:27 cycle 1: PASS, back in WinPE after 51 s
+timeout after 20 s: no output for cmd 1 (run 732311675); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+await: 2026-10-25T00:37:23-04:00 shell ok
+00:37:24 cycle 2: PASS, back in WinPE after 51 s
+timeout after 20 s: no output for cmd 1 (run 750313013); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+await: 2026-10-25T00:38:13-04:00 shell ok
+00:38:14 cycle 3: PASS, back in WinPE after 44 s
+timeout after 20 s: no output for cmd 1 (run 76604649); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+await: 2026-10-25T00:39:15-04:00 shell ok
+00:39:15 cycle 4: PASS, back in WinPE after 55 s
+timeout after 20 s: no output for cmd 1 (run 78694419); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+await: 2026-10-25T00:40:21-04:00 shell ok
+00:40:21 cycle 5: PASS, back in WinPE after 60 s
+timeout after 20 s: no output for cmd 1 (run 80784189); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+await: 2026-10-25T00:41:33-04:00 shell ok
+00:41:34 cycle 6: PASS, back in WinPE after 67 s
+timeout after 20 s: no output for cmd 1 (run 831324410); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+await: 2026-10-25T00:42:32-04:00 shell ok
+00:42:32 cycle 7: PASS, back in WinPE after 52 s
+timeout after 20 s: no output for cmd 1 (run 850913954); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+await: 2026-10-25T00:43:40-04:00 shell ok
+00:43:41 cycle 8: PASS, back in WinPE after 63 s
+timeout after 20 s: no output for cmd 1 (run 872713202); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+await: 2026-10-25T00:44:49-04:00 shell ok
+00:44:49 cycle 9: PASS, back in WinPE after 62 s
+timeout after 20 s: no output for cmd 1 (run 894023720); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+await: 2026-10-25T00:45:55-04:00 shell ok
+00:45:55 cycle 10: PASS, back in WinPE after 60 s
+timeout after 20 s: no output for cmd 1 (run 91521470); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+await: 2026-10-25T00:46:58-04:00 shell ok
+00:46:58 cycle 11: PASS, back in WinPE after 57 s
+timeout after 20 s: no output for cmd 1 (run 936411989); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+await: 2026-10-25T00:47:54-04:00 shell ok
+00:47:55 cycle 12: PASS, back in WinPE after 51 s
+timeout after 20 s: no output for cmd 1 (run 954724076); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+await: 2026-10-25T00:48:53-04:00 shell ok
+00:48:53 cycle 13: PASS, back in WinPE after 52 s
+timeout after 20 s: no output for cmd 1 (run 974624368); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+await: 2026-10-25T00:49:56-04:00 shell ok
+00:49:56 cycle 14: PASS, back in WinPE after 57 s
+timeout after 20 s: no output for cmd 1 (run 993625184); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+await: 2026-10-25T00:51:04-04:00 shell ok
+00:51:04 cycle 15: PASS, back in WinPE after 62 s
+timeout after 20 s: no output for cmd 1 (run 1015113683); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+await: 2026-10-25T00:52:08-04:00 shell ok
+00:52:08 cycle 16: PASS, back in WinPE after 58 s
+timeout after 20 s: no output for cmd 1 (run 103771659); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+await: 2026-10-25T00:53:14-04:00 shell ok
+00:53:15 cycle 17: PASS, back in WinPE after 61 s
+timeout after 20 s: no output for cmd 1 (run 105861429); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+await: 2026-10-25T00:54:24-04:00 shell ok
+00:54:24 cycle 18: PASS, back in WinPE after 63 s
+timeout after 20 s: no output for cmd 1 (run 10804676); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+await: 2026-10-25T00:55:27-04:00 shell ok
+00:55:28 cycle 19: PASS, back in WinPE after 58 s
+timeout after 20 s: no output for cmd 1 (run 1101022466); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+await: 2026-10-25T00:56:35-04:00 shell ok
+00:56:35 cycle 20: PASS, back in WinPE after 61 s
+timeout after 20 s: no output for cmd 1 (run 1123232461); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+await: 2026-10-25T00:57:29-04:00 shell ok
+00:57:29 cycle 21: PASS, back in WinPE after 48 s
+timeout after 20 s: no output for cmd 1 (run 114121032); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+await: 2026-10-25T00:58:23-04:00 shell ok
+00:58:24 cycle 22: PASS, back in WinPE after 49 s
+timeout after 20 s: no output for cmd 1 (run 115822893); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+await: 2026-10-25T00:59:37-04:00 shell ok
+00:59:38 cycle 23: PASS, back in WinPE after 68 s
+await: 2026-10-25T01:00:00-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 118201094); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+01:00:04 cycle 24: PASS, back in WinPE after 20 s
+await: 2026-10-25T01:00:27-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 119216615); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+01:00:30 cycle 25: PASS, back in WinPE after 20 s
+await: 2026-10-25T01:00:53-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 120091910); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+01:00:56 cycle 26: PASS, back in WinPE after 20 s
+await: 2026-10-25T01:01:20-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 120918476); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+01:01:22 cycle 27: PASS, back in WinPE after 20 s
+await: 2026-10-25T01:01:46-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 1218214519); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+01:01:48 cycle 28: PASS, back in WinPE after 20 s
+timeout after 20 s: no output for cmd 1 (run 1226421086); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+await: 2026-10-25T01:02:24-04:00 shell ok
+01:02:25 cycle 29: PASS, back in WinPE after 31 s
+await: 2026-10-25T01:02:48-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 1236526606); if it is still running, bin/logs rh-hog --cat cmd-1.out later
+01:02:51 cycle 30: PASS, back in WinPE after 20 s
+01:02:56 RESULT rh-hog: 30 of 30 reboots fine, 0 hung (boot options: none; PRE='' IDLE=0 LOAD=48 busy threads on 32 host threads)

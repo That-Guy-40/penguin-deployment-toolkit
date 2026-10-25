@@ -1,0 +1,34 @@
+1: no 'shell ok' within 300 s of 'wpeutil reboot'; recorded 00:27:32
+VM status: running
+
+-- registers
+CPU#0
+RIP=fffff801ad6563bf RFL=00040282 [--S----] CPL=0 II=0 A20=1 SMM=0 HLT=1
+CPU#1
+RIP=fffff801ad6563bf RFL=00040282 [--S----] CPL=0 II=0 A20=1 SMM=0 HLT=1
+CPU#2
+RIP=fffff801ad6563bf RFL=00040282 [--S----] CPL=0 II=0 A20=1 SMM=0 HLT=1
+CPU#3
+RIP=fffff801ad6563bf RFL=00040282 [--S----] CPL=0 II=0 A20=1 SMM=0 HLT=1
+-- 2 s later
+CPU#0
+RIP=fffff801ad6563bf RFL=00040282 [--S----] CPL=0 II=0 A20=1 SMM=0 HLT=1
+CPU#1
+RIP=fffff801ad6563bf RFL=00040282 [--S----] CPL=0 II=0 A20=1 SMM=0 HLT=1
+CPU#2
+RIP=fffff801ad6563bf RFL=00040282 [--S----] CPL=0 II=0 A20=1 SMM=0 HLT=1
+CPU#3
+RIP=fffff801ad6563bf RFL=00040282 [--S----] CPL=0 II=0 A20=1 SMM=0 HLT=1
+-- CPU#0 code bytes at 0xfffff801ad6563bf (this QEMU has no disassembler; objdump them on the host)
+fffff801ad6563bf: 0xc3 0xcc 0xcc 0xcc 0xcc 0xcc 0xcc 0x66
+fffff801ad6563c7: 0x66 0x0f 0x1f 0x84 0x00 0x00 0x00 0x00
+fffff801ad6563cf: 0x00 0xeb 0x00 0xeb 0x00 0xc3 0xcc 0xcc
+fffff801ad6563d7: 0xcc 0xcc 0xcc 0xcc 0x0f 0x1f 0x44 0x00
+fffff801ad6563df: 0x00 0x8b 0xff 0x48 0x8b 0x4f 0x70 0x48
+fffff801ad6563e7: 0x8b 0x87 0xa0 0x00 0x00 0x00 0x48 0x8b
+
+-- memory dumps: 
+-- serial.log: 2026-10-25 00:27:22.165231942 -0400 61780 bytes
+-- disk.qcow2: 2026-10-24 23:57:06.446494791 -0400
+-- vars.fd now: fe613cf1639b1c00
+-- qemu:       10:39 44.9

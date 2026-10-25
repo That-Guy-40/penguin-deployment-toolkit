@@ -261,6 +261,14 @@ sleep 20; shot "$A" applying; shot "$B" applying; pushed "$B" applying
 # its disk (the install is on it; vars.fd is kept once the disk has data) and
 # keep waiting. Exit: 0 deployed, 1 a step failed, 2 timeout; writes
 # <vm>-reboot-hang.txt when it had to recover one.
+# hang_hook <vm> <label>: with SMOKE_HANG_HOOK=<executable> in the environment,
+# run it as <hook> <vm> <vm>-<label> <out-dir> on the hung VM before it is
+# force-stopped (spikes/2026-10-25-reboot-hang/smoke-hang-hook.sh dumps the
+# firmware's memory, stack and I/O map for the reboot-hang bisection).
+hang_hook() {
+    [[ -n "${SMOKE_HANG_HOOK:-}" ]] || return 0
+    if [[ -x "$SMOKE_HANG_HOOK" ]]; then "$SMOKE_HANG_HOOK" "$1" "$1-$2" "$OUT" 2>&1; else echo "SMOKE_HANG_HOOK=$SMOKE_HANG_HOOK is not executable"; fi
+}
 deploy_watch() {
     local v="$1" end=$(( $(date +%s) + $2 )) fwd="$3" rc f="$OUT/$1-reboot-hang.txt"
     "$BIN/await" "$v" ts-done "$2" >> "$OUT/await.out" 2>&1 || return $?
@@ -269,6 +277,7 @@ deploy_watch() {
             echo "ts-done at $(event_line "$v" ts-done | awk '{ print $1 }'), no specialize within 300 s; QEMU at $(date -Is):"
             vm_monitor "$v" "info status"; vm_monitor "$v" "info registers -a" | grep -aE "^CPU|RIP"
             echo "serial.log: $(stat -c '%y %s bytes' "$VMS_DIR/$v/serial.log")  disk.qcow2: $(stat -c '%y' "$VMS_DIR/$v/disk.qcow2")"
+            hang_hook "$v" reboot-1
             echo "recovering: vm-stop --force, vm-boot --fwd $fwd"
             "$BIN/vm-stop" "$v" --force; "$BIN/vm-boot" "$v" --fwd "$fwd"
         } > "$f" 2>&1
@@ -283,6 +292,7 @@ deploy_watch() {
             echo "specialize at $(event_line "$v" specialize | awk '{ print $1 }'), no firstlogon within 420 s; QEMU at $(date -Is):"
             vm_monitor "$v" "info status"; vm_monitor "$v" "info registers -a" | grep -aE "^CPU|RIP"
             echo "serial.log: $(stat -c '%y %s bytes' "$VMS_DIR/$v/serial.log")  disk.qcow2: $(stat -c '%y' "$VMS_DIR/$v/disk.qcow2")"
+            hang_hook "$v" reboot-2
             echo "recovering: vm-stop --force, vm-boot --fwd $fwd"
             "$BIN/vm-stop" "$v" --force; "$BIN/vm-boot" "$v" --fwd "$fwd"
         } >> "$f" 2>&1

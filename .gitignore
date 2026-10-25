@@ -41,3 +41,6 @@ http/collector/
 
 # Evidence kept in spikes/ is tracked even when it is a log
 !spikes/**/*.log
+spikes/2026-10-25-reboot-hang/layout/*.bin.gz
+spikes/2026-10-25-reboot-hang/smoke-rerun-[2-9]/
+spikes/2026-10-25-reboot-hang/*.stdout

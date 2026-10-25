@@ -97,12 +97,36 @@ parked are in `DEFERRED.md`, not here.
   watcher caught it at 300 s and recovered it unattended
   (`spikes/2026-10-24-smoke/smoke-rdp-reboot-hang.txt`). Score for
   guest-initiated reboots in the smoke runs: 3 hung of 10; the virtio + SD
-  card VM hung twice, the AHCI + USB stick VM once. Next step when this is
-  picked up: the same VM with `-machine q35,smm=off` (needs the non-SMM OVMF
-  build) and without the SD card, ten reboots each, to split firmware from
-  hardware variant.
+  card VM hung twice, the AHCI + USB stick VM once.
+  **2026-10-25, bisection (`spikes/2026-10-25-reboot-hang/`): 147 guest-initiated
+  reboots, 0 hung**, same QEMU/OVMF/kernel as on the hang days: fresh WinPE
+  30× with SMM on and 30× with the non-SMM OVMF (`bin/vm-boot --smm off`,
+  new), 30× under a 48-thread host CPU hog, 4× after 10 min idle; three full
+  deployments with the update pack (six installer reboots watched), 42 reboots
+  of the installed Windows over SSH (counted from the guests' event logs), two
+  deployments side by side, and `bin/smoke` itself again (5 reboots, 0 FAIL).
+  So SMM, the removable media, host load, uptime and the install context are
+  each ruled out on their own; the trigger is something those two days had
+  and this one did not (unknown). What the five records *are*: the firmware's
+  memory layout is deterministic, so their RIPs map to modules: the AHCI-variant
+  hangs (10-22 r8, smoke run 3) are at the same `in eax,dx` of the ACPI PM
+  timer read in **CpuMpPei** (a PEI MP-init delay/timeout loop); the
+  virtio-variant hangs (10-22 s3, runs 4 and 5) alternate between the GCD
+  map walk and `CoreRestoreTpl` in **DxeCore** with the APs in CpuDxe's halt
+  loop. Likely the same as edk2 issue #12441 (QEMU 10.2, OVMF 202511, warm
+  reset only, headless). Next time it happens: `bin/smoke` with
+  `SMOKE_HANG_HOOK=spikes/2026-10-25-reboot-hang/smoke-hang-hook.sh` (or the
+  spike's loops) dumps memory, stack, lapics and the I/O map before recovery;
+  `find-module.py` names the frames. Untried: a real display instead of
+  `-display none` (the upstream report says it matters), an older QEMU.
   `bin/smoke` now watches for it (no `specialize` within 5 min of `ts-done`),
   records QEMU's registers and recovers the same way; the row is a FAIL.
+- [ ] `bin/vm-stop` (the ACPI button) at an installed Windows's login screen
+  is honoured within 60 s sometimes and ignored sometimes: smoke run 3 ignored,
+  runs 4-5 and the 2026-10-25 rerun honoured (all `demo-rdp`); the three
+  `demo-ssh` machines of the 2026-10-25 reboot spike all ignored it and were
+  ended by QEMU. Both roles have `FASTSTARTUP=off`. Not understood; `--full`
+  (typed `shutdown /s`) is the reliable way.
 - [ ] Real hardware has still seen none of this (Phase 5). In particular:
   enrolling the Secure Boot certificate in real firmware, and proxy-DHCP on a
   real switch next to a real router. (A bridge on the real host, and

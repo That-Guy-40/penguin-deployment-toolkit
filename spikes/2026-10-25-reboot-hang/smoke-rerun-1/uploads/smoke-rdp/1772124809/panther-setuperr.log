@@ -1,0 +1,2 @@
+﻿2026-10-25 05:44:22, Error                        [setup.exe] System disks found
+2026-10-25 05:45:59, Error                 CBS    Failed to compute delta for LastSuccessfullScavenge.: HRESULT_FROM_WIN32(534)

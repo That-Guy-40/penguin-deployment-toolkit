@@ -1,0 +1,132 @@
+WIN-SKGDG1OPCF3
+00:34:59 SKIP_DEPLOY: rh-win already installed, 15 reboots over SSH
+Connection to 127.0.0.1 closed by remote host.
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+kex_exchange_identification: read: Connection reset by peer
+WIN-SKGDG1OPCF3
+00:36:00 cycle 1: PASS, sshd back after 61 s
+Connection to 127.0.0.1 closed by remote host.
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+kex_exchange_identification: read: Connection reset by peer
+Connection timed out during banner exchange
+WIN-SKGDG1OPCF3
+00:37:25 cycle 2: PASS, sshd back after 75 s
+Connection to 127.0.0.1 closed by remote host.
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+kex_exchange_identification: read: Connection reset by peer
+Connection timed out during banner exchange
+WIN-SKGDG1OPCF3
+00:38:59 cycle 3: PASS, sshd back after 84 s
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+WIN-SKGDG1OPCF3
+00:40:57 cycle 4: PASS, sshd back after 108 s
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+kex_exchange_identification: read: Connection reset by peer
+WIN-SKGDG1OPCF3
+00:42:19 cycle 5: PASS, sshd back after 72 s
+Connection to 127.0.0.1 closed by remote host.
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+kex_exchange_identification: read: Connection reset by peer
+Connection timed out during banner exchange
+WIN-SKGDG1OPCF3
+00:43:44 cycle 6: PASS, sshd back after 75 s
+Connection to 127.0.0.1 closed by remote host.
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+WIN-SKGDG1OPCF3
+00:45:13 cycle 7: PASS, sshd back after 79 s
+Connection to 127.0.0.1 closed by remote host.
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+kex_exchange_identification: read: Connection reset by peer
+Connection timed out during banner exchange
+WIN-SKGDG1OPCF3
+00:46:43 cycle 8: PASS, sshd back after 80 s
+Connection to 127.0.0.1 closed by remote host.
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+WIN-SKGDG1OPCF3
+00:48:14 cycle 9: PASS, sshd back after 81 s
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+kex_exchange_identification: read: Connection reset by peer
+Connection timed out during banner exchange
+WIN-SKGDG1OPCF3
+00:49:51 cycle 10: PASS, sshd back after 87 s
+Connection to 127.0.0.1 closed by remote host.
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+kex_exchange_identification: read: Connection reset by peer
+Connection timed out during banner exchange
+WIN-SKGDG1OPCF3
+00:51:33 cycle 11: PASS, sshd back after 92 s
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+WIN-SKGDG1OPCF3
+00:53:07 cycle 12: PASS, sshd back after 84 s
+Connection to 127.0.0.1 closed by remote host.
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+WIN-SKGDG1OPCF3
+00:54:28 cycle 13: PASS, sshd back after 71 s
+Connection to 127.0.0.1 closed by remote host.
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+WIN-SKGDG1OPCF3
+00:55:48 cycle 14: PASS, sshd back after 70 s
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+kex_exchange_identification: read: Connection reset by peer
+Connection timed out during banner exchange
+WIN-SKGDG1OPCF3
+00:57:25 cycle 15: PASS, sshd back after 87 s
+00:57:35 RESULT rh-win: 15 fine, 0 hung, of 15 guest-initiated reboots: 1=pass 2=pass 3=pass 4=pass 5=pass 6=pass 7=pass 8=pass 9=pass 10=pass 11=pass 12=pass 13=pass 14=pass 15=pass (boot options: --fwd 2226:22; SKIP_DEPLOY=1 LOAD=48 busy threads on 32 host threads)

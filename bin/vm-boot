@@ -26,12 +26,17 @@
 #             fetches pxe/ipxe.efi: the path real hardware takes, and the one on
 #             which Secure Boot judges our ipxe.efi (virtio NIC only: OVMF has
 #             no e1000e driver of its own)
+##   --smm off diagnostic: the non-SMM OVMF build (OVMF_CODE_NOSMM, default
+#             /usr/share/OVMF/OVMF_CODE_4M.fd) on -machine q35,smm=off, no
+#             secure pflash. No Secure Boot at all, so not for Phase 5 work;
+#             it exists to split the firmware's SMM reset path from everything
+#             else when a guest-initiated reboot hangs (TODO.md)
 #
 # Watch it with bin/status, bin/vm-shot <name>; stop it with bin/vm-stop <name>.
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 need qemu-system-x86_64 qemu-img python3
 
-NAME="" DISPLAY_MODE="none" PXE_FIRST=0 NIC="" NO_ROM=0 FWD=""
+NAME="" DISPLAY_MODE="none" PXE_FIRST=0 NIC="" NO_ROM=0 FWD="" SMM="on"
 while (( $# )); do
     case "$1" in
         --gui) DISPLAY_MODE="gtk"; shift ;;
@@ -39,7 +44,8 @@ while (( $# )); do
         --nic) NIC="${2:?}"; shift 2 ;;
         --no-rom) NO_ROM=1; shift ;;
         --fwd) FWD="${2:?}"; shift 2 ;;
-        -h|--help) sed -n '2,25p' "$0"; exit 0 ;;
+        --smm) SMM="${2:?}"; [[ "$SMM" =~ ^(on|off)$ ]] || die "--smm wants on or off"; shift 2 ;;
+        -h|--help) sed -n '2,36p' "$0"; exit 0 ;;
         -*) die "unknown option: $1" ;;
         *)  [[ -z "$NAME" ]] || die "one VM name only"; NAME="$1"; shift ;;
     esac
@@ -49,7 +55,9 @@ vm_load "$NAME"
 NIC="${NIC:-$VM_NIC}"
 
 if pid="$(vm_pid "$NAME")"; then die "VM $NAME is already running (pid $pid)"; fi
-[[ -f "${OVMF_CODE:?}" ]] || die "OVMF firmware not found: $OVMF_CODE"
+CODE="${OVMF_CODE:?}"
+if [[ "$SMM" == off ]]; then CODE="${OVMF_CODE_NOSMM:-/usr/share/OVMF/OVMF_CODE_4M.fd}"; fi
+[[ -f "$CODE" ]] || die "OVMF firmware not found: $CODE"
 [[ -f "$PXE_DIR/ipxe.efi" ]] || die "pxe/ipxe.efi not found; run bin/build-ipxe"
 
 case "$NIC" in
@@ -111,14 +119,14 @@ fi
 QEMU=(
     qemu-system-x86_64
     -name "pdt-$NAME" -enable-kvm -cpu host
-    # smm + secure pflash are required by the Secure-Boot OVMF build.
-    -machine q35,smm=on
-    -global driver=cfi.pflash01,property=secure,value=on
+    # smm + secure pflash are required by the Secure-Boot OVMF build (--smm off
+    # swaps in the non-SMM build and drops both, for the reboot-hang bisection).
+    -machine "q35,smm=$SMM"
     -global ICH9-LPC.disable_s3=1
     -m "$VM_MEMORY" -smp "$VM_CPUS"
     -uuid "$VM_UUID"
     -smbios "type=1,manufacturer=PDT,product=lab-vm,serial=$VM_NAME"
-    -drive "if=pflash,format=raw,unit=0,readonly=on,file=$OVMF_CODE"
+    -drive "if=pflash,format=raw,unit=0,readonly=on,file=$CODE"
     -drive "if=pflash,format=raw,unit=1,file=$VM_DIR/vars.fd"
     -drive "file=$VM_DIR/disk.qcow2,format=qcow2,if=none,id=hd0"
     -device "$DISK_DEV,bootindex=$DISK_IDX"
@@ -129,6 +137,7 @@ QEMU=(
     -serial "file:$VM_DIR/serial.log"
     -pidfile "$VM_DIR/qemu.pid"
 )
+if [[ "$SMM" == on ]]; then QEMU+=(-global driver=cfi.pflash01,property=secure,value=on); fi
 if [[ "$DISPLAY_MODE" == none ]]; then
     QEMU+=(-display none -daemonize)
     "${QEMU[@]}" || die "QEMU failed to start"
@@ -138,5 +147,5 @@ else
     sleep 1
 fi
 pid="$(vm_pid "$NAME")" || die "QEMU exited immediately"
-info "VM $NAME running: pid $pid, nic $NIC, boot $([[ $PXE_FIRST == 1 ]] && echo 'network first' || echo 'disk then network'), monitor 127.0.0.1:$VM_MONITOR_PORT"
+info "VM $NAME running: pid $pid, nic $NIC, firmware $(basename "$CODE") smm=$SMM, boot $([[ $PXE_FIRST == 1 ]] && echo 'network first' || echo 'disk then network'), monitor 127.0.0.1:$VM_MONITOR_PORT"
 info "id for bin/status and bin/await: $VM_UUID"

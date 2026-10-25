@@ -1,0 +1,16 @@
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/await smoke-ssh stop 900
+await: 2026-10-25T01:30:02-04:00 stop ok
+rc=0
+await: 2026-10-25T01:43:45-04:00 ts-done ok
+await: 2026-10-25T01:44:55-04:00 specialize ok
+await: 2026-10-25T01:45:07-04:00 ts-done ok
+await: 2026-10-25T01:46:01-04:00 firstlogon ok
+await: 2026-10-25T01:46:27-04:00 specialize ok
+await: 2026-10-25T01:46:44-04:00 deployed ok
+await: 2026-10-25T01:47:26-04:00 firstlogon ok
+await: 2026-10-25T01:47:58-04:00 deployed ok
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/await smoke-rdp deploy-removed 600 --run latest
+await: 2026-10-25T01:49:13-04:00 deploy-removed ok
+rc=0

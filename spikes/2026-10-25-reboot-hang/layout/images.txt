@@ -1,0 +1,400 @@
+== virtio-sd-smm-7a000000.bin (base 0x7a000000), the smoke runs' RIPs placed:
+193 PE images in /tmp/claude-1000/-home-sqs-scripts-Windows-install-via-Linux/db333f61-18fb-420a-8c91-36dad1f2e3d0/scratchpad/tmp.bin (33554432 bytes at 0x7a000000):
+  0x7a3cf000..0x7a468000    626688  virtio-net.efidrv
+  0x7a468000..0x7a5ac280   1327744  TlsDxe
+  0x7a61c034..0x7a6384b4    115840  UiApp  (header says ImageBase 0x0)
+  0x7a671000..0x7a67c080     45184  TcpDxe
+  0x7a67d034..0x7a688274     45632  BootManagerMenuApp  (header says ImageBase 0x0)
+  0x7a689000..0x7a68c980     14720  EmmcDxe
+  0x7a68d000..0x7a693540     25920  SdMmcPciHcDxe
+  0x7a698000..0x7a69ac40     11328  SdDxe
+  0x7a69b000..0x7a69e8c0     14528  VirtioGpuDxe
+  0x7a69f000..0x7a6a1dc0     11712  QemuVideoDxe
+  0x7a6a2000..0x7a6a5500     13568  UsbMassStorageDxe
+  0x7a6a6000..0x7a6a9880     14464  UsbKbDxe
+  0x7a6aa000..0x7a6b0f40     28480  XhciDxe
+  0x7a6b3000..0x7a6b72c0     17088  UsbBusDxe
+  0x7a6b8000..0x7a6c5600     54784  HttpBootDxe
+  0x7a6c6000..0x7a6ca3c0     17344  EhciDxe
+  0x7a6ce000..0x7a6cf200      4608  VirtioRngDxe
+  0x7a6d0000..0x7a6d3a00     14848  UhciDxe
+  0x7a6d4000..0x7a6dde40     40512  HttpDxe
+  0x7a6de000..0x7a6e7280     37504  DnsDxe
+  0x7a6ea000..0x7a6ed580     13696  VirtioNetDxe
+  0x7a6f2000..0x7a7e7a80   1006208  SecureBootConfigDxe
+  0x7a80f000..0x7a81d140     57664  UefiPxeBcDxe
+  0x7a81e000..0x7a833f40     89920  Ip6Dxe
+  0x7a843000..0x7a849d80     28032  Mtftp6Dxe
+  0x7a84a000..0x7a8512c0     29376  Dhcp6Dxe
+  0x7a854000..0x7a85a000     24576  Udp6Dxe
+  0x7a85a000..0x7a869240     62016  Ip4Dxe
+  0x7a86d000..0x7a873640     26176  Mtftp4Dxe
+  0x7a874000..0x7a879fc0     24512  Udp4Dxe
+  0x7a87a000..0x7a880f80     28544  Dhcp4Dxe
+  0x7a881000..0x7a887280     25216  MnpDxe
+  0x7a88f000..0x7a893900     18688  VlanConfigDxe
+  0x7a894000..0x7a899140     20800  SnpDxe
+  0x7a89d000..0x7a89fec0     11968  ArpDxe
+  0x7a8a0000..0x7a8a5d00     23808  VirtioFsDxe
+  0x7a8a6000..0x7a8ac040     24640  Fat
+  0x7a8b1000..0x7a8b31c0      8640  Hash2DxeCrypto
+  0x7a8b4000..0x7a8b8280     17024  PciSioSerialDxe
+  0x7a8b9000..0x7a8bf880     26752  NvmExpressDxe
+  0x7a8c0000..0x7a8c3700     14080  UdfDxe
+  0x7a8c4000..0x7a8c6fc0     12224  Ps2KeyboardDxe
+  0x7a8c7000..0x7a8cd780     26496  AtaAtapiPassThruDxe
+  0x7a8ce000..0x7a8d5a00     31232  ScsiDisk
+  0x7a8da000..0x7a8dd240     12864  AtaBusDxe
+  0x7ac02000..0x7ac032c0      4800  SioBusDxe
+  0x7ac04000..0x7ac05240      4672  SataController
+  0x7ac06000..0x7ac09540     13632  PartitionDxe
+  0x7ac0a000..0x7ac0bdc0      7616  ScsiBus
+  0x7ac0e000..0x7ac12980     18816  TerminalDxe
+  0x7ac16000..0x7ac17c00      7168  DiskIoDxe
+  0x7ac1a000..0x7ac1d700     14080  GraphicsConsoleDxe
+  0x7ac1e000..0x7ac22bc0     19392  ConSplitterDxe
+  0x7ac28000..0x7ac29a40      6720  ConPlatformDxe
+  0x7ac2a000..0x7ac2d0c0     12480  VirtioSerialDxe
+  0x7ac2e000..0x7ac38400     41984  PciBusDxe
+  0x7ac39000..0x7ac3b040      8256  VirtioKeyboardDxe
+  0x7ac3f000..0x7ac40c40      7232  VirtioScsiDxe
+  0x7ac41000..0x7ac43300      8960  Virtio10
+  0x7ac44000..0x7ac58580     83328  BdsDxe
+  0x7ac59000..0x7ac5a600      5632  VirtioBlkDxe
+  0x7ac5c000..0x7ac5d000      4096  VirtioPciDeviceDxe
+  0x7ac5e000..0x7ac655c0     30144  TlsAuthConfigDxe
+  0x7ac66000..0x7ac698c0     14528  PlatformDxe
+  0x7ac6e000..0x7ac715c0     13760  FirmwareSecvarUpdater
+  0x7acb6000..0x7acb7140      4416  SmbiosMeasurementDxe
+  0x7acb9000..0x7acc7bc0     60352  DisplayEngine
+  0x7acd5000..0x7acd6100      4352  SmbiosPlatformDxe
+  0x7acd7000..0x7acde1c0     29120  RamDiskDxe
+  0x7ace7000..0x7acead40     15680  DriverHealthManagerDxe
+  0x7aceb000..0x7acfc140     69952  SetupBrowser
+  0x7ad05000..0x7ad08580     13696  LogoDxe
+  0x7ad09000..0x7ad0bb00     11008  QemuFwCfgAcpiPlatform
+  0x7ad0c000..0x7ad0e380      9088  SmbiosDxe
+  0x7ad0f000..0x7ad134c0     17600  PciHostBridgeDxe
+  0x7ad19000..0x7ad2e480     87168  HiiDatabase
+  0x7ad59000..0x7ad6fa40     92736  CpuDxe
+  0x7ad76000..0x7ad77480      5248  RngDxe
+  0x7ad7a000..0x7ad7cd00     11520  IoMmuDxe
+  0x7ad7d000..0x7ad81840     18496  AcpiTableDxe
+  0x7ad83000..0x7ad84600      5632  VirtHstiDxe
+  0x7b087000..0x7b19cd40   1137984  SecurityStubDxe
+  0x7b1a2000..0x7b1a3d80      7552  PciHotPlugInitDxe
+  0x7b2ab000..0x7b2aee80     16000  EbcDxe
+  0x7b2b3000..0x7b2b5000      8192  TdxDxe
+  0x7b2b5000..0x7b2be4c0     38080  DevicePathDxe
+  0x7b2c4000..0x7b2c6780     10112  PcdDxe
+  0x7b2ca070..0x7b2cb1b0      4416  SmbiosMeasurementDxe  (header says ImageBase 0x0)
+  0x7b2cc034..0x7b2cf9b4     14720  EmmcDxe  (header says ImageBase 0x0)
+  0x7b2d0034..0x7b2d2c74     11328  SdDxe  (header says ImageBase 0x0)
+  0x7b2d4134..0x7b2da674     25920  SdMmcPciHcDxe  (header says ImageBase 0x0)
+  0x7b2db034..0x7b2dc234      4608  VirtioRngDxe  (header says ImageBase 0x0)
+  0x7b2dd05c..0x7b2de4dc      5248  RngDxe  (header says ImageBase 0x0)
+  0x7b2e0144..0x7b2e83c4     33408  Tcg2ConfigDxe  (header says ImageBase 0x0)
+  0x7b2eb0c8..0x7b2f6588     46272  Tcg2Dxe  (header says ImageBase 0x0)
+  0x7b2f705c..0x7b2fa05c     12288  TcgDxe  (header says ImageBase 0x0)
+  0x7b2fb080..0x7b2ffd80     19712  TdTcg2Dxe  (header says ImageBase 0x0)
+  0x7b31805c..0x7b31965c      5632  VirtHstiDxe  (header says ImageBase 0x0)
+  0x7b31a05c..0x7b31cd5c     11520  IoMmuDxe  (header says ImageBase 0x0)
+  0x7b31d05c..0x7b31ecdc      7296  AmdSevDxe  (header says ImageBase 0x0)
+  0x7b3200ec..0x7b3239ac     14528  PlatformDxe  (header says ImageBase 0x0)
+  0x7b324034..0x7b3278f4     14528  VirtioGpuDxe  (header says ImageBase 0x0)
+  0x7b328084..0x7b329d04      7296  QemuRamfbDxe  (header says ImageBase 0x0)
+  0x7b32a034..0x7b32cdf4     11712  QemuVideoDxe  (header says ImageBase 0x0)
+  0x7b32d134..0x7b330634     13568  UsbMassStorageDxe  (header says ImageBase 0x0)
+  0x7b332034..0x7b3358b4     14464  UsbKbDxe  (header says ImageBase 0x0)
+  0x7b336034..0x7b33a2f4     17088  UsbBusDxe  (header says ImageBase 0x0)
+  0x7b33b034..0x7b341f74     28480  XhciDxe  (header says ImageBase 0x0)
+  0x7b342034..0x7b3463f4     17344  EhciDxe  (header says ImageBase 0x0)
+  0x7b347034..0x7b34aa34     14848  UhciDxe  (header says ImageBase 0x0)
+  0x7b34c134..0x7b34f6b4     13696  VirtioNetDxe  (header says ImageBase 0x0)
+  0x7b35017c..0x7b3698bc    104256  IScsiDxe  (header says ImageBase 0x0)
+  0x7b36a158..0x7b377758     54784  HttpBootDxe  (header says ImageBase 0x0)
+  0x7b37a124..0x7b383f64     40512  HttpDxe  (header says ImageBase 0x0)
+  0x7b384124..0x7b38d3a4     37504  DnsDxe  (header says ImageBase 0x0)
+  0x7b38e144..0x7b395704     30144  TlsAuthConfigDxe  (header says ImageBase 0x0)
+  0x7b396034..0x7b4da2b4   1327744  TlsDxe  (header says ImageBase 0x0)
+  0x7b4dc148..0x7b4ea288     57664  UefiPxeBcDxe  (header says ImageBase 0x0)
+  0x7b4eb134..0x7b4f61b4     45184  TcpDxe  (header says ImageBase 0x0)
+  0x7b4f7124..0x7b4fdea4     28032  Mtftp6Dxe  (header says ImageBase 0x0)
+  0x7b4fe124..0x7b504124     24576  Udp6Dxe  (header says ImageBase 0x0)
+  0x7b50617c..0x7b51c0bc     89920  Ip6Dxe  (header says ImageBase 0x0)
+  0x7b51d124..0x7b5243e4     29376  Dhcp6Dxe  (header says ImageBase 0x0)
+  0x7b525124..0x7b52b764     26176  Mtftp4Dxe  (header says ImageBase 0x0)
+  0x7b52c124..0x7b5320e4     24512  Udp4Dxe  (header says ImageBase 0x0)
+  0x7b53417c..0x7b5433bc     62016  Ip4Dxe  (header says ImageBase 0x0)
+  0x7b544124..0x7b54b0a4     28544  Dhcp4Dxe  (header says ImageBase 0x0)
+  0x7b54c124..0x7b54efe4     11968  ArpDxe  (header says ImageBase 0x0)
+  0x7b550124..0x7b5563a4     25216  MnpDxe  (header says ImageBase 0x0)
+  0x7b558158..0x7b55ca58     18688  VlanConfigDxe  (header says ImageBase 0x0)
+  0x7b55d124..0x7b562264     20800  SnpDxe  (header says ImageBase 0x0)
+  0x7b564034..0x7b5661f4      8640  Hash2DxeCrypto  (header says ImageBase 0x0)
+  0x7b56705c..0x7b56905c      8192  TdxDxe  (header says ImageBase 0x0)
+  0x7b56a070..0x7b56d5f0     13696  LogoDxe  (header says ImageBase 0x0)
+  0x7b56f034..0x7b574d34     23808  VirtioFsDxe  (header says ImageBase 0x0)
+  0x7b575034..0x7b578734     14080  UdfDxe  (header says ImageBase 0x0)
+  0x7b579034..0x7b57f074     24640  Fat  (header says ImageBase 0x0)
+  0x7b581070..0x7b591e30     69056  BootScriptExecutorDxe  (header says ImageBase 0x0)
+  0x7b59305c..0x7b595f9c     12096  S3SaveStateDxe  (header says ImageBase 0x0)
+  0x7b596094..0x7b598b94     11008  QemuFwCfgAcpiPlatform  (header says ImageBase 0x0)
+  0x7b59905c..0x7b59d89c     18496  AcpiTableDxe  (header says ImageBase 0x0)
+  0x7b59e094..0x7b59f194      4352  SmbiosPlatformDxe  (header says ImageBase 0x0)
+  0x7b5a0084..0x7b5a2404      9088  SmbiosDxe  (header says ImageBase 0x0)
+  0x7b5a4034..0x7b5a6ff4     12224  Ps2KeyboardDxe  (header says ImageBase 0x0)
+  0x7b5a8034..0x7b5ac2b4     17024  PciSioSerialDxe  (header says ImageBase 0x0)
+  0x7b5ad034..0x7b5ae2f4      4800  SioBusDxe  (header says ImageBase 0x0)
+  0x7b5af0c0..0x7b5bdc80     60352  DisplayEngine  (header says ImageBase 0x0)
+  0x7b5be094..0x7b5cf1d4     69952  SetupBrowser  (header says ImageBase 0x0)
+  0x7b5d005c..0x7b5e54dc     87168  HiiDatabase  (header says ImageBase 0x0)
+  0x7b5e6034..0x7b5ec8b4     26752  NvmExpressDxe  (header says ImageBase 0x0)
+  0x7b5ed034..0x7b5f37b4     26496  AtaAtapiPassThruDxe  (header says ImageBase 0x0)
+  0x7b5f40fc..0x7b6e9b7c   1006208  SecureBootConfigDxe  (header says ImageBase 0x0)
+  0x7b6ea05c..0x7b7ffd9c   1137984  SecurityStubDxe  (header says ImageBase 0x0)
+  0x7b802034..0x7b805274     12864  AtaBusDxe  (header says ImageBase 0x0)
+  0x7b807034..0x7b808274      4672  SataController  (header says ImageBase 0x0)
+  0x7b809034..0x7b810a34     31232  ScsiDisk  (header says ImageBase 0x0)
+  0x7b811034..0x7b812df4      7616  ScsiBus  (header says ImageBase 0x0)
+  0x7b8140d8..0x7b81b298     29120  RamDiskDxe  (header says ImageBase 0x0)
+  0x7b81d034..0x7b820574     13632  PartitionDxe  (header says ImageBase 0x0)
+  0x7b821034..0x7b822c34      7168  DiskIoDxe  (header says ImageBase 0x0)
+  0x7b82303c..0x7b82c4fc     38080  DevicePathDxe  (header says ImageBase 0x0)
+  0x7b82d094..0x7b82fe94     11776  QemuKernelLoaderFsDxe  (header says ImageBase 0x0)
+  0x7b8300f0..0x7b844670     83328  BdsDxe  (header says ImageBase 0x0)
+  0x7b8460f0..0x7b849e30     15680  DriverHealthManagerDxe  (header says ImageBase 0x0)
+  0x7b84a034..0x7b84e9b4     18816  TerminalDxe  (header says ImageBase 0x0)
+  0x7b84f034..0x7b852734     14080  GraphicsConsoleDxe  (header says ImageBase 0x0)
+  0x7b853034..0x7b857bf4     19392  ConSplitterDxe  (header says ImageBase 0x0)
+  0x7b859034..0x7b85aa74      6720  ConPlatformDxe  (header says ImageBase 0x0)
+  0x7b864070..0x7b867630     13760  FirmwareSecvarUpdater  (header says ImageBase 0x0)
+  0x7b869034..0x7b86b074      8256  VirtioKeyboardDxe  (header says ImageBase 0x0)
+  0x7b86c034..0x7b86f0f4     12480  VirtioSerialDxe  (header says ImageBase 0x0)
+  0x7b871034..0x7b872c74      7232  VirtioScsiDxe  (header says ImageBase 0x0)
+  0x7b873034..0x7b874634      5632  VirtioBlkDxe  (header says ImageBase 0x0)
+  0x7b875034..0x7b877334      8960  Virtio10  (header says ImageBase 0x0)
+  0x7b878034..0x7b879034      4096  VirtioPciDeviceDxe  (header says ImageBase 0x0)
+  0x7b886034..0x7b890434     41984  PciBusDxe  (header says ImageBase 0x0)
+  0x7b8910c8..0x7b895588     17600  PciHostBridgeDxe  (header says ImageBase 0x0)
+  0x7b89605c..0x7b897ddc      7552  PciHotPlugInitDxe  (header says ImageBase 0x0)
+  0x7b89a070..0x7b8ab470     70656  CpuDxe  (header says ImageBase 0x0)
+  0x7b8ad070..0x7b8c3ab0     92736  CpuDxe  (header says ImageBase 0x0)
+  0x7b8c504c..0x7b8c8ecc     16000  EbcDxe  (header says ImageBase 0x0)
+  0x7b8ce1d8..0x7b8d0958     10112  PcdDxe  (header says ImageBase 0x0)
+  0x7bf7c000..0x7bf9fb40    146240  DxeCore
+  0x7bfa0000..0x7bfa1d00      7424  Tcg2PlatformPei
+  0x7bfa2000..0x7bfa9d80     32128  Tcg2Pei
+  0x7bfaa000..0x7bfac300      8960  TcgPei
+  0x7bfad000..0x7bfae580      5504  Tcg2ConfigPei
+  0x7bfe1000..0x7bfeda00     51712  CpuMpPei
+  0x7bfef000..0x7bff0500      5376  PeiVariable
+  0x7bff2000..0x7bff3e40      7744  S3Resume2Pei
+  0x7bff4000..0x7bff5f00      7936  DxeIpl
+  0x7bff6000..0x7bff7f00      7936  PcdPeim
+  0x7bff8000..0x7bfff0c0     28864  PeiCore
+RIP 0x7bf7c483: in DxeCore at image offset 0x483 (image at 0x7bf7c000)
+RIP 0x7bf8689a: in DxeCore at image offset 0xa89a (image at 0x7bf7c000)
+RIP 0x7ad65d71: in CpuDxe at image offset 0xcd71 (image at 0x7ad59000)
+RIP 0x7ad59266: in CpuDxe at image offset 0x266 (image at 0x7ad59000)
+RIP 0x7bfe35d3: in CpuMpPei at image offset 0x25d3 (image at 0x7bfe1000)
+== ahci-usb-smm-7a000000.bin (base 0x7a000000), the smoke runs' RIPs placed:
+193 PE images in /tmp/claude-1000/-home-sqs-scripts-Windows-install-via-Linux/db333f61-18fb-420a-8c91-36dad1f2e3d0/scratchpad/tmp.bin (33554432 bytes at 0x7a000000):
+  0x7a3cf000..0x7a468000    626688  808610d3.efidrv
+  0x7a468000..0x7a5ac280   1327744  TlsDxe
+  0x7a61e034..0x7a63a4b4    115840  UiApp  (header says ImageBase 0x0)
+  0x7a671000..0x7a67c080     45184  TcpDxe
+  0x7a67d034..0x7a688274     45632  BootManagerMenuApp  (header says ImageBase 0x0)
+  0x7a689000..0x7a68c980     14720  EmmcDxe
+  0x7a68d000..0x7a693540     25920  SdMmcPciHcDxe
+  0x7a698000..0x7a69ac40     11328  SdDxe
+  0x7a69b000..0x7a69e8c0     14528  VirtioGpuDxe
+  0x7a69f000..0x7a6a1dc0     11712  QemuVideoDxe
+  0x7a6a2000..0x7a6a5500     13568  UsbMassStorageDxe
+  0x7a6a6000..0x7a6a9880     14464  UsbKbDxe
+  0x7a6aa000..0x7a6b0f40     28480  XhciDxe
+  0x7a6b3000..0x7a6b72c0     17088  UsbBusDxe
+  0x7a6b8000..0x7a6c5600     54784  HttpBootDxe
+  0x7a6c6000..0x7a6ca3c0     17344  EhciDxe
+  0x7a6ce000..0x7a6cf200      4608  VirtioRngDxe
+  0x7a6d0000..0x7a6d3a00     14848  UhciDxe
+  0x7a6d4000..0x7a6dde40     40512  HttpDxe
+  0x7a6de000..0x7a6e7280     37504  DnsDxe
+  0x7a6ea000..0x7a6ed580     13696  VirtioNetDxe
+  0x7a6f2000..0x7a7e7a80   1006208  SecureBootConfigDxe
+  0x7a80f000..0x7a81d140     57664  UefiPxeBcDxe
+  0x7a81e000..0x7a833f40     89920  Ip6Dxe
+  0x7a843000..0x7a849d80     28032  Mtftp6Dxe
+  0x7a84a000..0x7a8512c0     29376  Dhcp6Dxe
+  0x7a854000..0x7a85a000     24576  Udp6Dxe
+  0x7a85a000..0x7a869240     62016  Ip4Dxe
+  0x7a86d000..0x7a873640     26176  Mtftp4Dxe
+  0x7a874000..0x7a879fc0     24512  Udp4Dxe
+  0x7a87a000..0x7a880f80     28544  Dhcp4Dxe
+  0x7a881000..0x7a887280     25216  MnpDxe
+  0x7a88f000..0x7a893900     18688  VlanConfigDxe
+  0x7a894000..0x7a899140     20800  SnpDxe
+  0x7a89d000..0x7a89fec0     11968  ArpDxe
+  0x7a8a0000..0x7a8a5d00     23808  VirtioFsDxe
+  0x7a8a6000..0x7a8ac040     24640  Fat
+  0x7a8b1000..0x7a8b31c0      8640  Hash2DxeCrypto
+  0x7a8b4000..0x7a8b8280     17024  PciSioSerialDxe
+  0x7a8b9000..0x7a8bf880     26752  NvmExpressDxe
+  0x7a8c0000..0x7a8c3700     14080  UdfDxe
+  0x7a8c4000..0x7a8c6fc0     12224  Ps2KeyboardDxe
+  0x7a8c7000..0x7a8cd780     26496  AtaAtapiPassThruDxe
+  0x7a8ce000..0x7a8d5a00     31232  ScsiDisk
+  0x7a8da000..0x7a8dd240     12864  AtaBusDxe
+  0x7ac02000..0x7ac032c0      4800  SioBusDxe
+  0x7ac04000..0x7ac05240      4672  SataController
+  0x7ac06000..0x7ac09540     13632  PartitionDxe
+  0x7ac0a000..0x7ac0bdc0      7616  ScsiBus
+  0x7ac0e000..0x7ac12980     18816  TerminalDxe
+  0x7ac16000..0x7ac17c00      7168  DiskIoDxe
+  0x7ac1a000..0x7ac1d700     14080  GraphicsConsoleDxe
+  0x7ac1e000..0x7ac22bc0     19392  ConSplitterDxe
+  0x7ac28000..0x7ac29a40      6720  ConPlatformDxe
+  0x7ac2a000..0x7ac2d0c0     12480  VirtioSerialDxe
+  0x7ac2e000..0x7ac38400     41984  PciBusDxe
+  0x7ac39000..0x7ac3b040      8256  VirtioKeyboardDxe
+  0x7ac3f000..0x7ac40c40      7232  VirtioScsiDxe
+  0x7ac41000..0x7ac43300      8960  Virtio10
+  0x7ac44000..0x7ac58580     83328  BdsDxe
+  0x7ac59000..0x7ac5a600      5632  VirtioBlkDxe
+  0x7ac5c000..0x7ac5d000      4096  VirtioPciDeviceDxe
+  0x7ac5e000..0x7ac655c0     30144  TlsAuthConfigDxe
+  0x7ac66000..0x7ac698c0     14528  PlatformDxe
+  0x7ac6e000..0x7ac715c0     13760  FirmwareSecvarUpdater
+  0x7acb6000..0x7acb7140      4416  SmbiosMeasurementDxe
+  0x7acb9000..0x7acc7bc0     60352  DisplayEngine
+  0x7acd5000..0x7acd6100      4352  SmbiosPlatformDxe
+  0x7acd7000..0x7acde1c0     29120  RamDiskDxe
+  0x7ace7000..0x7acead40     15680  DriverHealthManagerDxe
+  0x7aceb000..0x7acfc140     69952  SetupBrowser
+  0x7ad05000..0x7ad08580     13696  LogoDxe
+  0x7ad09000..0x7ad0bb00     11008  QemuFwCfgAcpiPlatform
+  0x7ad0c000..0x7ad0e380      9088  SmbiosDxe
+  0x7ad0f000..0x7ad134c0     17600  PciHostBridgeDxe
+  0x7ad19000..0x7ad2e480     87168  HiiDatabase
+  0x7ad59000..0x7ad6fa40     92736  CpuDxe
+  0x7ad76000..0x7ad77480      5248  RngDxe
+  0x7ad7a000..0x7ad7cd00     11520  IoMmuDxe
+  0x7ad7d000..0x7ad81840     18496  AcpiTableDxe
+  0x7ad83000..0x7ad84600      5632  VirtHstiDxe
+  0x7b087000..0x7b19cd40   1137984  SecurityStubDxe
+  0x7b1a2000..0x7b1a3d80      7552  PciHotPlugInitDxe
+  0x7b2ab000..0x7b2aee80     16000  EbcDxe
+  0x7b2b3000..0x7b2b5000      8192  TdxDxe
+  0x7b2b5000..0x7b2be4c0     38080  DevicePathDxe
+  0x7b2c4000..0x7b2c6780     10112  PcdDxe
+  0x7b2ca070..0x7b2cb1b0      4416  SmbiosMeasurementDxe  (header says ImageBase 0x0)
+  0x7b2cc034..0x7b2cf9b4     14720  EmmcDxe  (header says ImageBase 0x0)
+  0x7b2d0034..0x7b2d2c74     11328  SdDxe  (header says ImageBase 0x0)
+  0x7b2d4134..0x7b2da674     25920  SdMmcPciHcDxe  (header says ImageBase 0x0)
+  0x7b2db034..0x7b2dc234      4608  VirtioRngDxe  (header says ImageBase 0x0)
+  0x7b2dd05c..0x7b2de4dc      5248  RngDxe  (header says ImageBase 0x0)
+  0x7b2e0144..0x7b2e83c4     33408  Tcg2ConfigDxe  (header says ImageBase 0x0)
+  0x7b2eb0c8..0x7b2f6588     46272  Tcg2Dxe  (header says ImageBase 0x0)
+  0x7b2f705c..0x7b2fa05c     12288  TcgDxe  (header says ImageBase 0x0)
+  0x7b2fb080..0x7b2ffd80     19712  TdTcg2Dxe  (header says ImageBase 0x0)
+  0x7b31805c..0x7b31965c      5632  VirtHstiDxe  (header says ImageBase 0x0)
+  0x7b31a05c..0x7b31cd5c     11520  IoMmuDxe  (header says ImageBase 0x0)
+  0x7b31d05c..0x7b31ecdc      7296  AmdSevDxe  (header says ImageBase 0x0)
+  0x7b3200ec..0x7b3239ac     14528  PlatformDxe  (header says ImageBase 0x0)
+  0x7b324034..0x7b3278f4     14528  VirtioGpuDxe  (header says ImageBase 0x0)
+  0x7b328084..0x7b329d04      7296  QemuRamfbDxe  (header says ImageBase 0x0)
+  0x7b32a034..0x7b32cdf4     11712  QemuVideoDxe  (header says ImageBase 0x0)
+  0x7b32d134..0x7b330634     13568  UsbMassStorageDxe  (header says ImageBase 0x0)
+  0x7b332034..0x7b3358b4     14464  UsbKbDxe  (header says ImageBase 0x0)
+  0x7b336034..0x7b33a2f4     17088  UsbBusDxe  (header says ImageBase 0x0)
+  0x7b33b034..0x7b341f74     28480  XhciDxe  (header says ImageBase 0x0)
+  0x7b342034..0x7b3463f4     17344  EhciDxe  (header says ImageBase 0x0)
+  0x7b347034..0x7b34aa34     14848  UhciDxe  (header says ImageBase 0x0)
+  0x7b34c134..0x7b34f6b4     13696  VirtioNetDxe  (header says ImageBase 0x0)
+  0x7b35017c..0x7b3698bc    104256  IScsiDxe  (header says ImageBase 0x0)
+  0x7b36a158..0x7b377758     54784  HttpBootDxe  (header says ImageBase 0x0)
+  0x7b37a124..0x7b383f64     40512  HttpDxe  (header says ImageBase 0x0)
+  0x7b384124..0x7b38d3a4     37504  DnsDxe  (header says ImageBase 0x0)
+  0x7b38e144..0x7b395704     30144  TlsAuthConfigDxe  (header says ImageBase 0x0)
+  0x7b396034..0x7b4da2b4   1327744  TlsDxe  (header says ImageBase 0x0)
+  0x7b4dc148..0x7b4ea288     57664  UefiPxeBcDxe  (header says ImageBase 0x0)
+  0x7b4eb134..0x7b4f61b4     45184  TcpDxe  (header says ImageBase 0x0)
+  0x7b4f7124..0x7b4fdea4     28032  Mtftp6Dxe  (header says ImageBase 0x0)
+  0x7b4fe124..0x7b504124     24576  Udp6Dxe  (header says ImageBase 0x0)
+  0x7b50617c..0x7b51c0bc     89920  Ip6Dxe  (header says ImageBase 0x0)
+  0x7b51d124..0x7b5243e4     29376  Dhcp6Dxe  (header says ImageBase 0x0)
+  0x7b525124..0x7b52b764     26176  Mtftp4Dxe  (header says ImageBase 0x0)
+  0x7b52c124..0x7b5320e4     24512  Udp4Dxe  (header says ImageBase 0x0)
+  0x7b53417c..0x7b5433bc     62016  Ip4Dxe  (header says ImageBase 0x0)
+  0x7b544124..0x7b54b0a4     28544  Dhcp4Dxe  (header says ImageBase 0x0)
+  0x7b54c124..0x7b54efe4     11968  ArpDxe  (header says ImageBase 0x0)
+  0x7b550124..0x7b5563a4     25216  MnpDxe  (header says ImageBase 0x0)
+  0x7b558158..0x7b55ca58     18688  VlanConfigDxe  (header says ImageBase 0x0)
+  0x7b55d124..0x7b562264     20800  SnpDxe  (header says ImageBase 0x0)
+  0x7b564034..0x7b5661f4      8640  Hash2DxeCrypto  (header says ImageBase 0x0)
+  0x7b56705c..0x7b56905c      8192  TdxDxe  (header says ImageBase 0x0)
+  0x7b56a070..0x7b56d5f0     13696  LogoDxe  (header says ImageBase 0x0)
+  0x7b56f034..0x7b574d34     23808  VirtioFsDxe  (header says ImageBase 0x0)
+  0x7b575034..0x7b578734     14080  UdfDxe  (header says ImageBase 0x0)
+  0x7b579034..0x7b57f074     24640  Fat  (header says ImageBase 0x0)
+  0x7b581070..0x7b591e30     69056  BootScriptExecutorDxe  (header says ImageBase 0x0)
+  0x7b59305c..0x7b595f9c     12096  S3SaveStateDxe  (header says ImageBase 0x0)
+  0x7b596094..0x7b598b94     11008  QemuFwCfgAcpiPlatform  (header says ImageBase 0x0)
+  0x7b59905c..0x7b59d89c     18496  AcpiTableDxe  (header says ImageBase 0x0)
+  0x7b59e094..0x7b59f194      4352  SmbiosPlatformDxe  (header says ImageBase 0x0)
+  0x7b5a0084..0x7b5a2404      9088  SmbiosDxe  (header says ImageBase 0x0)
+  0x7b5a4034..0x7b5a6ff4     12224  Ps2KeyboardDxe  (header says ImageBase 0x0)
+  0x7b5a8034..0x7b5ac2b4     17024  PciSioSerialDxe  (header says ImageBase 0x0)
+  0x7b5ad034..0x7b5ae2f4      4800  SioBusDxe  (header says ImageBase 0x0)
+  0x7b5af0c0..0x7b5bdc80     60352  DisplayEngine  (header says ImageBase 0x0)
+  0x7b5be094..0x7b5cf1d4     69952  SetupBrowser  (header says ImageBase 0x0)
+  0x7b5d005c..0x7b5e54dc     87168  HiiDatabase  (header says ImageBase 0x0)
+  0x7b5e6034..0x7b5ec8b4     26752  NvmExpressDxe  (header says ImageBase 0x0)
+  0x7b5ed034..0x7b5f37b4     26496  AtaAtapiPassThruDxe  (header says ImageBase 0x0)
+  0x7b5f40fc..0x7b6e9b7c   1006208  SecureBootConfigDxe  (header says ImageBase 0x0)
+  0x7b6ea05c..0x7b7ffd9c   1137984  SecurityStubDxe  (header says ImageBase 0x0)
+  0x7b802034..0x7b805274     12864  AtaBusDxe  (header says ImageBase 0x0)
+  0x7b807034..0x7b808274      4672  SataController  (header says ImageBase 0x0)
+  0x7b809034..0x7b810a34     31232  ScsiDisk  (header says ImageBase 0x0)
+  0x7b811034..0x7b812df4      7616  ScsiBus  (header says ImageBase 0x0)
+  0x7b8140d8..0x7b81b298     29120  RamDiskDxe  (header says ImageBase 0x0)
+  0x7b81d034..0x7b820574     13632  PartitionDxe  (header says ImageBase 0x0)
+  0x7b821034..0x7b822c34      7168  DiskIoDxe  (header says ImageBase 0x0)
+  0x7b82303c..0x7b82c4fc     38080  DevicePathDxe  (header says ImageBase 0x0)
+  0x7b82d094..0x7b82fe94     11776  QemuKernelLoaderFsDxe  (header says ImageBase 0x0)
+  0x7b8300f0..0x7b844670     83328  BdsDxe  (header says ImageBase 0x0)
+  0x7b8460f0..0x7b849e30     15680  DriverHealthManagerDxe  (header says ImageBase 0x0)
+  0x7b84a034..0x7b84e9b4     18816  TerminalDxe  (header says ImageBase 0x0)
+  0x7b84f034..0x7b852734     14080  GraphicsConsoleDxe  (header says ImageBase 0x0)
+  0x7b853034..0x7b857bf4     19392  ConSplitterDxe  (header says ImageBase 0x0)
+  0x7b859034..0x7b85aa74      6720  ConPlatformDxe  (header says ImageBase 0x0)
+  0x7b864070..0x7b867630     13760  FirmwareSecvarUpdater  (header says ImageBase 0x0)
+  0x7b869034..0x7b86b074      8256  VirtioKeyboardDxe  (header says ImageBase 0x0)
+  0x7b86c034..0x7b86f0f4     12480  VirtioSerialDxe  (header says ImageBase 0x0)
+  0x7b871034..0x7b872c74      7232  VirtioScsiDxe  (header says ImageBase 0x0)
+  0x7b873034..0x7b874634      5632  VirtioBlkDxe  (header says ImageBase 0x0)
+  0x7b875034..0x7b877334      8960  Virtio10  (header says ImageBase 0x0)
+  0x7b878034..0x7b879034      4096  VirtioPciDeviceDxe  (header says ImageBase 0x0)
+  0x7b886034..0x7b890434     41984  PciBusDxe  (header says ImageBase 0x0)
+  0x7b8910c8..0x7b895588     17600  PciHostBridgeDxe  (header says ImageBase 0x0)
+  0x7b89605c..0x7b897ddc      7552  PciHotPlugInitDxe  (header says ImageBase 0x0)
+  0x7b89a070..0x7b8ab470     70656  CpuDxe  (header says ImageBase 0x0)
+  0x7b8ad070..0x7b8c3ab0     92736  CpuDxe  (header says ImageBase 0x0)
+  0x7b8c504c..0x7b8c8ecc     16000  EbcDxe  (header says ImageBase 0x0)
+  0x7b8ce1d8..0x7b8d0958     10112  PcdDxe  (header says ImageBase 0x0)
+  0x7bf7c000..0x7bf9fb40    146240  DxeCore
+  0x7bfa0000..0x7bfa1d00      7424  Tcg2PlatformPei
+  0x7bfa2000..0x7bfa9d80     32128  Tcg2Pei
+  0x7bfaa000..0x7bfac300      8960  TcgPei
+  0x7bfad000..0x7bfae580      5504  Tcg2ConfigPei
+  0x7bfe1000..0x7bfeda00     51712  CpuMpPei
+  0x7bfef000..0x7bff0500      5376  PeiVariable
+  0x7bff2000..0x7bff3e40      7744  S3Resume2Pei
+  0x7bff4000..0x7bff5f00      7936  DxeIpl
+  0x7bff6000..0x7bff7f00      7936  PcdPeim
+  0x7bff8000..0x7bfff0c0     28864  PeiCore
+RIP 0x7bf7c483: in DxeCore at image offset 0x483 (image at 0x7bf7c000)
+RIP 0x7bf8689a: in DxeCore at image offset 0xa89a (image at 0x7bf7c000)
+RIP 0x7ad65d71: in CpuDxe at image offset 0xcd71 (image at 0x7ad59000)
+RIP 0x7ad59266: in CpuDxe at image offset 0x266 (image at 0x7ad59000)
+RIP 0x7bfe35d3: in CpuMpPei at image offset 0x25d3 (image at 0x7bfe1000)

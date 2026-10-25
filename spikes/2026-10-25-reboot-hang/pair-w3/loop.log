@@ -1,0 +1,105 @@
+VM rh-w3 running: pid 2935709, nic e1000e, firmware OVMF_CODE_4M.secboot.fd smm=on, boot disk then network, monitor 127.0.0.1:7007
+id for bin/status and bin/await: 065e0a24-c416-487d-9a4e-0f905a040220
+00:39:25 deploying: VM rh-w3 running: pid 2935709, nic e1000e, firmware OVMF_CODE_4M.secboot.fd smm=on, boot disk then network, monitor 127.0.0.1:7007
+await: TIMEOUT after 1500s waiting for ts-done ok; last event: 35-updates start at 2026-10-25T00:50:59-04:00
+01:04:26 no ts-done in 1500 s: not a reboot problem, giving up
+01:05:07 REJOIN: rh-w3 is deploying, watching from ts-done on
+await: 2026-10-25T01:12:14-04:00 ts-done ok
+01:12:15 ts-done; watching the two reboots of the installation
+await: 2026-10-25T01:13:33-04:00 specialize ok
+01:13:33 install-1: PASS (specialize)
+await: 2026-10-25T01:14:45-04:00 firstlogon ok
+01:14:46 install-2: PASS (firstlogon)
+await: 2026-10-25T01:15:20-04:00 deployed ok
+01:15:20 deployed:   2026-10-25T01:14:45-04:00  + 2100.2s  (+  72.2s)  firstlogon  ok    host=WIN-269M7UM5CSI build=26100.9550 secureboot=False user=deploy
+WIN-269M7UM5CSI
+WIN-269M7UM5CSI
+01:15:24 ssh up; 10 reboots of the installed Windows
+true : The term 'true' is not recognized as the name of a cmdlet, function, script file, or 
+operable program. Check the spelling of the name, or if a path was included, verify that the path 
+is correct and try again.
+At line:1 char:1
++ true
++ ~~~~
+    + CategoryInfo          : ObjectNotFound: (true:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+Connection to 127.0.0.1 closed by remote host.
+Connection timed out during banner exchange
+WIN-269M7UM5CSI
+01:17:52 cycle 1: PASS, sshd back after 148 s
+true : The term 'true' is not recognized as the name of a cmdlet, function, script file, or 
+operable program. Check the spelling of the name, or if a path was included, verify that the path 
+is correct and try again.
+At line:1 char:1
++ true
++ ~~~~
+    + CategoryInfo          : ObjectNotFound: (true:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+WIN-269M7UM5CSI
+01:18:09 cycle 2: PASS, sshd back after 7 s
+The interface is unknown.(1717)
+true : The term 'true' is not recognized as the name of a cmdlet, function, script file, or 
+operable program. Check the spelling of the name, or if a path was included, verify that the path 
+is correct and try again.
+At line:1 char:1
++ true
++ ~~~~
+    + CategoryInfo          : ObjectNotFound: (true:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+Connection to 127.0.0.1 closed by remote host.
+Connection timed out during banner exchange
+WIN-269M7UM5CSI
+01:18:41 cycle 3: PASS, sshd back after 22 s
+true : The term 'true' is not recognized as the name of a cmdlet, function, script file, or 
+operable program. Check the spelling of the name, or if a path was included, verify that the path 
+is correct and try again.
+At line:1 char:1
++ true
++ ~~~~
+    + CategoryInfo          : ObjectNotFound: (true:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+WIN-269M7UM5CSI
+Connection to 127.0.0.1 closed by remote host.
+Connection timed out during banner exchange
+kex_exchange_identification: read: Connection reset by peer
+WIN-269M7UM5CSI
+01:19:20 cycle 4: PASS, sshd back after 29 s
+true : The term 'true' is not recognized as the name of a cmdlet, function, script file, or 
+operable program. Check the spelling of the name, or if a path was included, verify that the path 
+is correct and try again.
+At line:1 char:1
++ true
++ ~~~~
+    + CategoryInfo          : ObjectNotFound: (true:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+WIN-269M7UM5CSI
+01:19:37 cycle 5: PASS, sshd back after 7 s
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+WIN-269M7UM5CSI
+01:19:58 cycle 6: PASS, sshd back after 11 s
+Connection to 127.0.0.1 closed by remote host.
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+WIN-269M7UM5CSI
+01:20:32 cycle 7: PASS, sshd back after 24 s
+Connection to 127.0.0.1 closed by remote host.
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+WIN-269M7UM5CSI
+01:21:06 cycle 8: PASS, sshd back after 24 s
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+WIN-269M7UM5CSI
+01:21:39 cycle 9: PASS, sshd back after 22 s
+Connection to 127.0.0.1 closed by remote host.
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+WIN-269M7UM5CSI
+01:22:12 cycle 10: PASS, sshd back after 23 s
+01:22:22 RESULT rh-w3: 12 fine, 0 hung, of 12 guest-initiated reboots: install-1=pass install-2=pass 1=pass 2=pass 3=pass 4=pass 5=pass 6=pass 7=pass 8=pass 9=pass 10=pass (boot options: --fwd 2228:22; SKIP_DEPLOY= LOAD=rh-w2 deploying beside it; host hog 00:34-00:59 during download/apply)

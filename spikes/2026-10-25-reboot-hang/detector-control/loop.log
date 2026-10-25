@@ -1,0 +1,16 @@
+VM rh-base running: pid 2400300, nic virtio-net-pci, firmware OVMF_CODE_4M.secboot.fd smm=on, boot disk then network, monitor 127.0.0.1:7001
+id for bin/status and bin/await: 49ba4cce-7bae-4813-b3d7-b72d543957ad
+23:58:33 cold boot: VM rh-base running: pid 2400300, nic virtio-net-pci, firmware OVMF_CODE_4M.secboot.fd smm=on, boot disk then network, monitor 127.0.0.1:7001
+5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e  /home/sqs/scripts/Windows-install-via-Linux/vms/rh-base/vars.fd
+await: 2026-10-24T23:58:49-04:00 shell ok
+23:58:49 cold boot reached WinPE in 16 s
+await: TIMEOUT after 1s waiting for shell ok; no event from this machine at all
+timeout after 20 s: no output for cmd 1 (run 3274410544); if it is still running, bin/logs rh-base --cat cmd-1.out later
+/home/sqs/scripts/Windows-install-via-Linux/spikes/2026-10-25-reboot-hang/control/hang-1.png
+23:59:13 HANG 1 recorded in spikes/2026-10-25-reboot-hang/control/hang-1.txt; RIP=fffff801794563bf RFL=00040282 [--S----] CPL=0 II=0 A20=1 SMM=0 HLT=1
+VM rh-base stopped
+VM rh-base running: pid 2410041, nic virtio-net-pci, firmware OVMF_CODE_4M.secboot.fd smm=on, boot disk then network, monitor 127.0.0.1:7001
+id for bin/status and bin/await: 49ba4cce-7bae-4813-b3d7-b72d543957ad
+await: 2026-10-24T23:59:30-04:00 shell ok
+23:59:31 cycle 1: recovered by vm-stop --force + vm-boot
+23:59:36 RESULT rh-base: 0 of 1 reboots fine, 1 hung (boot options: none)

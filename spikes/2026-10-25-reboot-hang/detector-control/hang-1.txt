@@ -1,0 +1,38 @@
+cycle 1: no 'shell ok' within 1 s of 'wpeutil reboot' at 23:59:11
+QEMU 10.2.1 monitor - type 'help' for more information
+(qemu) i[K[Din[K[D[Dinf[K[D[D[Dinfo[K[D[D[D[Dinfo [K[D[D[D[D[Dinfo s[K[D[D[D[D[D[Dinfo st[K[D[D[D[D[D[D[Dinfo sta[K[D[D[D[D[D[D[D[Dinfo stat[K[D[D[D[D[D[D[D[D[Dinfo statu[K[D[D[D[D[D[D[D[D[D[Dinfo status[K
+VM status: running
+(qemu) -- registers
+CPU#0
+RIP=fffff801794563bf RFL=00040282 [--S----] CPL=0 II=0 A20=1 SMM=0 HLT=1
+CPU#1
+RIP=fffff801794563bf RFL=00040282 [--S----] CPL=0 II=0 A20=1 SMM=0 HLT=1
+CPU#2
+RIP=fffff801794563bf RFL=00040282 [--S----] CPL=0 II=0 A20=1 SMM=0 HLT=1
+CPU#3
+RIP=fffff801794563bf RFL=00040282 [--S----] CPL=0 II=0 A20=1 SMM=0 HLT=1
+-- 2 s later
+CPU#0
+RIP=fffff801794563bf RFL=00040282 [--S----] CPL=0 II=0 A20=1 SMM=0 HLT=1
+CPU#1
+RIP=fffff801794563bf RFL=00040282 [--S----] CPL=0 II=0 A20=1 SMM=0 HLT=1
+CPU#2
+RIP=fffff801794563bf RFL=00040282 [--S----] CPL=0 II=0 A20=1 SMM=0 HLT=1
+CPU#3
+RIP=fffff801794563bf RFL=00040282 [--S----] CPL=0 II=0 A20=1 SMM=0 HLT=1
+-- CPU#0 code bytes at 0xfffff801794563bf (this QEMU has no disassembler: objdump them on the host)
+QEMU 10.2.1 monitor - type 'help' for more information
+(qemu) x[K[Dx [K[D[Dx /[K[D[D[Dx /4[K[D[D[D[Dx /48[K[D[D[D[D[Dx /48x[K[D[D[D[D[D[Dx /48xb[K[D[D[D[D[D[D[Dx /48xb [K[D[D[D[D[D[D[D[Dx /48xb 0[K[D[D[D[D[D[D[D[D[Dx /48xb 0x[K[D[D[D[D[D[D[D[D[D[Dx /48xb 0xf[K[D[D[D[D[D[D[D[D[D[D[Dx /48xb 0xff[K[D[D[D[D[D[D[D[D[D[D[D[Dx /48xb 0xfff[K[D[D[D[D[D[D[D[D[D[D[D[D[Dx /48xb 0xffff[K[D[D[D[D[D[D[D[D[D[D[D[D[D[Dx /48xb 0xfffff[K[D[D[D[D[D[D[D[D[D[D[D[D[D[D[Dx /48xb 0xfffff8[K[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[Dx /48xb 0xfffff80[K[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[Dx /48xb 0xfffff801[K[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[Dx /48xb 0xfffff8017[K[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[Dx /48xb 0xfffff80179[K[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[Dx /48xb 0xfffff801794[K[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[Dx /48xb 0xfffff8017945[K[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[Dx /48xb 0xfffff80179456[K[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[Dx /48xb 0xfffff801794563[K[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[Dx /48xb 0xfffff801794563b[K[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[Dx /48xb 0xfffff801794563bf[K
+fffff801794563bf: 0xc3 0xcc 0xcc 0xcc 0xcc 0xcc 0xcc 0x66
+fffff801794563c7: 0x66 0x0f 0x1f 0x84 0x00 0x00 0x00 0x00
+fffff801794563cf: 0x00 0xeb 0x00 0xeb 0x00 0xc3 0xcc 0xcc
+fffff801794563d7: 0xcc 0xcc 0xcc 0xcc 0x0f 0x1f 0x44 0x00
+fffff801794563df: 0x00 0x8b 0xff 0x48 0x8b 0x4f 0x70 0x48
+fffff801794563e7: 0x8b 0x87 0xa0 0x00 0x00 0x00 0x48 0x8b
+(qemu) basename: missing operand
+Try 'basename --help' for more information.
+-- memory dumps: 
+-- serial.log: 2026-10-24 23:59:00.865076541 -0400 61780 bytes
+-- disk.qcow2: 2026-10-24 23:57:06.446494791 -0400
+-- vars.fd now: be5740a73ac464da  at boot: 5d2ac383371b4083
+-- qemu:       00:39  126

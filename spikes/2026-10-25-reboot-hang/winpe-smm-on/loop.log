@@ -1,0 +1,97 @@
+VM rh-base running: pid 2439418, nic virtio-net-pci, firmware OVMF_CODE_4M.secboot.fd smm=on, boot disk then network, monitor 127.0.0.1:7001
+id for bin/status and bin/await: 49ba4cce-7bae-4813-b3d7-b72d543957ad
+00:01:20 cold boot: VM rh-base running: pid 2439418, nic virtio-net-pci, firmware OVMF_CODE_4M.secboot.fd smm=on, boot disk then network, monitor 127.0.0.1:7001
+5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e  /home/sqs/scripts/Windows-install-via-Linux/vms/rh-base/vars.fd
+await: 2026-10-25T00:01:36-04:00 shell ok
+00:01:36 cold boot reached WinPE in 16 s
+await: 2026-10-25T00:01:54-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 5213288); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:01:57 cycle 1: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:02:21-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 57722171); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:02:24 cycle 2: PASS, back in WinPE after 21 s
+await: 2026-10-25T00:02:47-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 66517466); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:02:50 cycle 3: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:03:12-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 74624032); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:03:16 cycle 4: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:03:38-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 82519850); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:03:42 cycle 5: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:04:05-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 91315145); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:04:08 cycle 6: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:04:31-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 99521711); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:04:34 cycle 7: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:04:56-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 108317006); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:05:00 cycle 8: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:05:23-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 11582076); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:05:26 cycle 9: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:05:49-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 124319390); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:05:52 cycle 10: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:06:16-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 13283937); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:06:18 cycle 11: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:06:40-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 141632000); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:06:44 cycle 12: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:07:07-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 149117069); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:07:10 cycle 13: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:07:33-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 157912364); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:07:36 cycle 14: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:08:00-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 166429678); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:08:02 cycle 15: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:08:26-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 17463477); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:08:29 cycle 16: PASS, back in WinPE after 21 s
+await: 2026-10-25T00:08:51-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 183120791); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:08:55 cycle 17: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:09:18-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 191227357); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:09:21 cycle 18: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:09:45-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 199711904); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:09:47 cycle 19: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:10:09-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 208229219); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:10:13 cycle 20: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:10:36-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 216025036); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:10:39 cycle 21: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:11:03-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 22459583); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:11:05 cycle 22: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:11:28-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 233026897); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:11:31 cycle 23: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:11:55-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 240922715); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:11:57 cycle 24: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:12:20-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 24937262); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:12:23 cycle 25: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:12:47-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 25723079); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:12:49 cycle 26: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:13:13-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 265720394); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:13:15 cycle 27: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:13:38-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 27424941); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:13:41 cycle 28: PASS, back in WinPE after 20 s
+await: 2026-10-25T00:14:05-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 2820758); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:14:08 cycle 29: PASS, back in WinPE after 21 s
+await: 2026-10-25T00:14:30-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 290518073); if it is still running, bin/logs rh-base --cat cmd-1.out later
+00:14:34 cycle 30: PASS, back in WinPE after 20 s
+00:14:39 RESULT rh-base: 30 of 30 reboots fine, 0 hung (boot options: none)

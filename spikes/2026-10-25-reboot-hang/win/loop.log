@@ -1,0 +1,71 @@
+VM rh-win running: pid 2559341, nic virtio-net-pci, firmware OVMF_CODE_4M.secboot.fd smm=on, boot disk then network, monitor 127.0.0.1:7003
+id for bin/status and bin/await: 199f3bc0-be03-4b75-a48f-4207a937ddb6
+00:08:48 deploying: VM rh-win running: pid 2559341, nic virtio-net-pci, firmware OVMF_CODE_4M.secboot.fd smm=on, boot disk then network, monitor 127.0.0.1:7003
+await: 2026-10-25T00:22:50-04:00 ts-done ok
+00:22:51 ts-done; watching the two reboots of the installation
+await: 2026-10-25T00:24:00-04:00 specialize ok
+00:24:00 install-1: PASS (specialize)
+await: 2026-10-25T00:24:50-04:00 firstlogon ok
+00:24:51 install-2: PASS (firstlogon)
+await: 2026-10-25T00:25:19-04:00 deployed ok
+00:25:20 deployed:   2026-10-25T00:24:50-04:00  +  955.1s  (+  50.3s)  firstlogon  ok    host=WIN-SKGDG1OPCF3 build=26100.9550 secureboot=False user=deploy
+WIN-SKGDG1OPCF3
+WIN-SKGDG1OPCF3
+00:25:23 ssh up; 10 reboots of the installed Windows
+true : The term 'true' is not recognized as the name of a cmdlet, function, script file, or 
+operable program. Check the spelling of the name, or if a path was included, verify that the path 
+is correct and try again.
+At line:1 char:1
++ true
++ ~~~~
+    + CategoryInfo          : ObjectNotFound: (true:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+Connection to 127.0.0.1 closed by remote host.
+Connection timed out during banner exchange
+WIN-SKGDG1OPCF3
+00:27:49 cycle 1: PASS, sshd back after 146 s
+Connection to 127.0.0.1 closed by remote host.
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+WIN-SKGDG1OPCF3
+00:28:22 cycle 2: PASS, sshd back after 23 s
+Connection to 127.0.0.1 closed by remote host.
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+WIN-SKGDG1OPCF3
+00:28:56 cycle 3: PASS, sshd back after 24 s
+Connection to 127.0.0.1 closed by remote host.
+Connection timed out during banner exchange
+kex_exchange_identification: read: Connection reset by peer
+WIN-SKGDG1OPCF3
+00:29:23 cycle 4: PASS, sshd back after 17 s
+Connection to 127.0.0.1 closed by remote host.
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+WIN-SKGDG1OPCF3
+00:29:56 cycle 5: PASS, sshd back after 23 s
+Connection to 127.0.0.1 closed by remote host.
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+WIN-SKGDG1OPCF3
+00:30:29 cycle 6: PASS, sshd back after 23 s
+Connection to 127.0.0.1 closed by remote host.
+Connection timed out during banner exchange
+kex_exchange_identification: read: Connection reset by peer
+WIN-SKGDG1OPCF3
+00:30:56 cycle 7: PASS, sshd back after 17 s
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+WIN-SKGDG1OPCF3
+00:31:29 cycle 8: PASS, sshd back after 23 s
+Connection to 127.0.0.1 closed by remote host.
+Connection timed out during banner exchange
+kex_exchange_identification: read: Connection reset by peer
+WIN-SKGDG1OPCF3
+00:31:56 cycle 9: PASS, sshd back after 17 s
+Connection timed out during banner exchange
+Connection timed out during banner exchange
+WIN-SKGDG1OPCF3
+00:32:29 cycle 10: PASS, sshd back after 23 s
+00:32:39 RESULT rh-win: 12 fine, 0 hung, of 12 guest-initiated reboots (2 of the installation + 10): install-1=pass install-2=pass 1=pass 2=pass 3=pass 4=pass 5=pass 6=pass 7=pass 8=pass 9=pass 10=pass (boot options: --fwd 2226:22)
