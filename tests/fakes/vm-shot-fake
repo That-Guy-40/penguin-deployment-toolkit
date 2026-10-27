@@ -1,0 +1,3 @@
+#!/bin/bash
+# stands in for bin/vm-shot inside the sandbox (hang-record.sh calls it): writes an empty png
+: > "${2:?}"

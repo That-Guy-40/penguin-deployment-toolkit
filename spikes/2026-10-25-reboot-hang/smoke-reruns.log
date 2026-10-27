@@ -10,3 +10,5 @@ rerun 9 rc=0 (OVMF 2024.11 via VM_BOOT_FIRMWARE, traced, hook + 4800 s wait)
 rerun 10 rc=0 (OVMF 2024.11 via VM_BOOT_FIRMWARE, traced, hook + 4800 s wait)
 rerun 11 rc=0 (OVMF 2024.11 via VM_BOOT_FIRMWARE, traced, hook + 4800 s wait)
 rerun 12 rc=0 (OVMF 2024.11 via VM_BOOT_FIRMWARE, traced, hook + 4800 s wait)
+18:27:58 starting 8 alternating smoke runs on the self-built OVMF 2025.11 images (nocache, stock) x4
+smoke-nocache-1 rc=0 (self-built OVMF 2025.11 nocache, traced, hook, no wait)

@@ -1,0 +1,12 @@
+#!/bin/bash
+# fake socat, standing in for the QEMU monitor: logs the HMP command it was sent to
+# $FAKE_MONITOR_LOG, answers with the contents of $FAKE_MONITOR_REPLY (if that file
+# exists), and, with FAKE_ACPI_HONOURED=1, treats system_powerdown as a guest that
+# obeys: it ends the fake QEMU named by the pidfile next to the sandbox's VM.
+cmd="$(cat)"
+echo "$cmd" >> "${FAKE_MONITOR_LOG:?}"
+if [[ "$cmd" == system_powerdown && -n "${FAKE_ACPI_HONOURED:-}" ]]; then
+    for f in "${T:?}"/vms/*/qemu.pid; do [[ -f "$f" ]] && kill "$(cat "$f")" 2>/dev/null; done
+fi
+[[ -f "${FAKE_MONITOR_REPLY:-/nonexistent}" ]] && cat "$FAKE_MONITOR_REPLY"
+exit 0

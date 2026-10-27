@@ -1,0 +1,24 @@
+#!/bin/bash
+# fake qemu-system-x86_64: records its argv (one per line) in $FAKE_QEMU_ARGV, honours
+# -pidfile and -daemonize by leaving a child named like itself alive (bin/lib.sh's
+# vm_pid checks the pidfile AND that the process's comm starts with qemu-system-),
+# and fails on request (FAKE_QEMU_FAIL=1) so the "QEMU failed to start" path can be tested.
+if [[ "${1:-}" == --fake-child ]]; then
+    # stay a bash process named like this script (comm "qemu-system-x86"): an exec
+    # of sleep would make comm "sleep" and vm_pid would not recognise it
+    echo $$ > "$2"
+    while :; do sleep 1; done
+fi
+printf '%s\n' "$@" > "${FAKE_QEMU_ARGV:?}"
+[[ -z "${FAKE_QEMU_FAIL:-}" ]] || { echo "fake qemu: failing as asked" >&2; exit 1; }
+pidfile="" daemon=0
+args=("$@")
+for (( i = 0; i < ${#args[@]}; i++ )); do
+    case "${args[i]}" in -pidfile) pidfile="${args[i+1]}" ;; -daemonize) daemon=1 ;; esac
+done
+if (( daemon )) && [[ -n "$pidfile" ]]; then
+    rm -f "$pidfile"
+    setsid "$0" --fake-child "$pidfile" >/dev/null 2>&1 </dev/null &
+    for _ in $(seq 1 50); do [[ -s "$pidfile" ]] && break; sleep 0.1; done
+fi
+exit 0

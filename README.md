@@ -122,6 +122,7 @@ lab on a real host bridge, with root, is `docs/LAB_FROM_SCRATCH.md`.
 | `bin/await <id\|vm> <step> [secs]` | block until that step reports ok; exit 1 on any `fail`, 2 on timeout. Makes the lab scriptable |
 | `bin/logs <id\|vm> [--cat ts.log]` | what the machine uploaded: `ts.log`, `dism.log`, `reagentc.txt`, Setup's Panther logs. Pushed every 20 s while a step runs, so `--tail 5 ts.log` follows a long step live |
 | `bin/lint [-v]` | static check of `http/` and the host set-up; self-tests by injecting known defects |
+| `bin/tests [-v] [name...]` | the host-side suite: every lab-driving `bin/` script against a sandbox repo and a fake QEMU, the Python helpers, the reboot-hang spike's tools; a test file that fires no control fails (`tests/README.md` says what is covered where) |
 | `bin/vm-shot`, `bin/vm-type` | screenshot / type into a lab VM through the QEMU monitor (last resort; VMs only) |
 | `bin/shell <id\|vm> '<command>'` | the same for any machine in WinPE, over HTTP: output in ~2 s, exit code passed through; `--off` stops the loop (`docs/REMOTE_VISIBILITY.md`) |
 

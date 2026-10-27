@@ -1,0 +1,50 @@
+#!/bin/bash
+# tests - run the host-side test suite in tests/: every bin/ script that drives the lab,
+# exercised for real against a sandbox repo and a fake QEMU, plus the Python helpers
+# and the reboot-hang spike's tools. Nothing here boots a VM or touches vms/, run/ or
+# http/ of this checkout. Seconds, not minutes.
+#
+#   tests            run every tests/*.t.sh and tests/*.t.py, summarise; exit 1 on any FAIL
+#   tests -v         also list every PASS row
+#   tests <name>...  only these (e.g. tests vm-boot await)
+#
+# Rows are PASS, FAIL, CONTROL or UNKNOWN (tests/lib.sh). CONTROL is a check that
+# must refuse or fail and did, so the assertion is known to bite; a test file that
+# fires no CONTROL fails the run, because all-PASS is indistinguishable from
+# checking nothing. UNKNOWN is "could not check here" and is never a pass.
+# bin/lint --selftest is the same idea for lint; bin/smoke is the lab tier (two real
+# installs); docs/MANUAL_TESTING.md is the procedure by hand. tests/README.md says
+# what is covered where.
+set -u
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$HERE" || exit 1
+VERBOSE=0; ONLY=()
+for a in "$@"; do case "$a" in -v) VERBOSE=1 ;; -h|--help) sed -n '2,19p' "$0"; exit 0 ;; *) ONLY+=("$a") ;; esac; done
+
+files=()
+for f in tests/*.t.sh tests/*.t.py; do
+    [[ -f "$f" ]] || continue
+    n="$(basename "$f")"; n="${n%.t.sh}"; n="${n%.t.py}"
+    if (( ${#ONLY[@]} )); then ok=0; for o in "${ONLY[@]}"; do [[ "$o" == "$n" ]] && ok=1; done; (( ok )) || continue; fi
+    files+=("$f")
+done
+(( ${#files[@]} )) || { echo "no test files match: ${ONLY[*]}" >&2; exit 2; }
+
+TP=0 TF=0 TC=0 TU=0 BAD=0
+for f in "${files[@]}"; do
+    n="$(basename "$f")"; n="${n%.t.sh}"; n="${n%.t.py}"
+    t0=$(date +%s.%N)
+    if [[ "$f" == *.py ]]; then out="$(python3 -I "$f" 2>&1)"; rc=$?; else out="$(bash "$f" 2>&1)"; rc=$?; fi
+    dt="$(printf '%.1f' "$(bc -l <<<"$(date +%s.%N) - $t0" 2>/dev/null || echo 0)")"
+    p=$(grep -cE '^PASS ' <<<"$out" || true); fl=$(grep -cE '^FAIL ' <<<"$out" || true)
+    c=$(grep -cE '^CONTROL ' <<<"$out" || true); u=$(grep -cE '^UNKNOWN ' <<<"$out" || true)
+    other="$(grep -vE '^(PASS|FAIL|CONTROL|UNKNOWN) ' <<<"$out" | grep -vE '^$' || true)"
+    echo "== $n  ($p PASS, $c CONTROL, $fl FAIL, $u UNKNOWN; ${dt}s)"
+    if (( VERBOSE )); then echo "$out" | sed 's/^/   /'; else grep -E '^(FAIL|UNKNOWN) ' <<<"$out" | sed 's/^/   /' || true; fi
+    if [[ -n "$other" ]]; then echo "   noise (not a row):"; echo "$other" | head -20 | sed 's/^/      /'; fi
+    if (( c == 0 )); then echo "   FAIL     $n fired no CONTROL: an all-PASS file proves nothing"; fl=$((fl + 1)); fi
+    if (( rc != 0 && fl == 0 )); then echo "   FAIL     $n exited $rc without a FAIL row (crashed?)"; fl=$((fl + 1)); fi
+    TP=$((TP + p)); TF=$((TF + fl)); TC=$((TC + c)); TU=$((TU + u))
+done
+echo "$TP PASS, $TC controls fired, $TF FAIL, $TU UNKNOWN  (${#files[@]} files)" $([[ $TU -gt 0 ]] && echo "  (UNKNOWN = not checked, not fine)")
+exit $(( TF > 0 ))

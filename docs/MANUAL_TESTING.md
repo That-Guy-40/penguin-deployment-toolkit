@@ -23,7 +23,18 @@ without; exit 0 only if nothing failed and at least one control fired. Read
 `report.md`: a FAIL row is a finding, an UNKNOWN row is something it could
 not check on this host. The sections below are what it does, by hand.
 
+Below the lab: `bin/tests` runs the host-side suite in `tests/` in about a
+minute, every `bin/` script that drives the lab against a sandbox repo and a
+fake QEMU, with the same PASS/FAIL/CONTROL/UNKNOWN rows and the rule that a
+test file firing no control fails. `tests/README.md` is the map of what is
+checked at which tier; nothing in WinPE or Windows is checked anywhere but on
+the lab (`bin/smoke`) and here.
+
 ## 0. The checker itself
+
+- [ ] `bin/tests` ends `0 FAIL` with controls fired in every file; `bin/tests -v` lists
+      the rows. Control: `bin/tests repo-rules` after planting `date +%3N` in a
+      `bin/` script → one FAIL naming the line.
 
 - [ ] `bin/lint --selftest` says `50/50 injected defects were reported as FAIL`.
 - [ ] Control: `echo 'MODE=wipe' > http/machines/00000000-0000-0000-0000-000000000000.cfg; bin/lint; rm http/machines/00000000-*.cfg`

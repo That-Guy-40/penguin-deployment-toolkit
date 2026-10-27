@@ -1,0 +1,10 @@
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/vm-boot smoke-ssh --fwd 2224:22,3392:3389
+VM smoke-ssh running: pid 1752284, nic e1000e, firmware /tmp/claude-1000/-home-sqs-scripts-Windows-install-via-Linux/db333f61-18fb-420a-8c91-36dad1f2e3d0/scratchpad/ovmf-builds/OVMF_CODE_4M.secboot.nocache.fd smm=on, boot disk then network, monitor 127.0.0.1:7001
+id for bin/status and bin/await: 3bf1564a-284b-4da5-8b92-5265c4ea729e
+rc=0
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/vm-boot smoke-rdp --fwd 3391:3389,2225:22
+VM smoke-rdp running: pid 1752478, nic virtio-net-pci, firmware /tmp/claude-1000/-home-sqs-scripts-Windows-install-via-Linux/db333f61-18fb-420a-8c91-36dad1f2e3d0/scratchpad/ovmf-builds/OVMF_CODE_4M.secboot.nocache.fd smm=on, boot disk then network, monitor 127.0.0.1:7002
+id for bin/status and bin/await: 908ac4ff-df01-401b-845e-6ca4ec2f2b15
+rc=0

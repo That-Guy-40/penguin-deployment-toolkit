@@ -179,6 +179,17 @@ parked are in `DEFERRED.md`, not here.
 
 ## Done
 
+- [x] **The host-side test suite (2026-10-27).** `bin/tests` runs `tests/*.t.sh`
+  and `tests/*.t.py` against a sandbox copy of `bin/` and a fake QEMU, monitor and
+  `qemu-img` (`tests/fakes/`): `vm-create`, `vm-boot` (the whole argv, the vars.fd
+  rule, `--firmware`/`VM_BOOT_FIRMWARE`, `--smm off`), `vm-stop`, `await`, `shell`,
+  `status`, `_pdt.py`, and the reboot-hang spike's `hang-record.sh`, hang hook and
+  `find-module.py`. 163 PASS, 45 controls, 1 UNKNOWN (the 60 s ACPI-ignored stop)
+  in about a minute; a file that fires no control fails the run. Its one flaky
+  run found a host defect: Ubuntu 26.04's `date` (uutils 0.10.0) prints `%3N`
+  wrong in the first 100 ms of every second, so timestamps run backwards;
+  `tests/repo-rules.t.sh` bans the format, `tests/README.md` "Host notes" has
+  the repro (the real beacon log is nginx's `$msec`, never affected).
 - [x] **Every download verified, the console as text, the second-disk boot
   order (2026-10-24).** `ts/verified.cmd` behind `25-download`, `35-updates`,
   `40-drivers` and `45-winre` (sidecars with `sha256` for every pack and

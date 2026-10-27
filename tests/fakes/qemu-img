@@ -1,0 +1,8 @@
+#!/bin/bash
+# fake qemu-img: 'create' makes an empty file; 'info --output=json' reports the file's
+# size as actual-size (so a test makes a disk "installed" with truncate -s 200M).
+case "$1" in
+    create) f="${*: -2:1}"; : > "$f" ;;
+    info)   f="${*: -1}"; printf '{"actual-size": %s}\n' "$(stat -c %s "$f")" ;;
+    *) echo "fake qemu-img: unsupported: $*" >&2; exit 1 ;;
+esac
