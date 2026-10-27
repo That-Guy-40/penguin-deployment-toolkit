@@ -1,0 +1,4 @@
+31f25d2816b819d21abf011519f7fa7cd2dd37fd8efc0e84ee3085c70225c61d  X:\pdt\ctl-bad.exe
+42036e3927c92ae32bc012262a080b8de3ee480e9f0d1f95ff4196d81336d72e  X:\pdt\cmd-smoke-bad.json (sidecar)
+MISMATCH: the file is not the one the sidecar describes
+[pdt] exit code 1

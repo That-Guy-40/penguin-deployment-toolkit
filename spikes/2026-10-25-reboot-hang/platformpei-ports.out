@@ -1,0 +1,68 @@
+# PlatformPei.efi extracted from the PEI volume of /usr/share/OVMF/OVMF_CODE_4M.secboot.fd (2025.11-3ubuntu7.3), objdump -d -M intel; the lines that carry the two CPU-hotplug register-block bases (PlatformInitLib: ICH9 0xcd8 / PIIX4 0xaf00) and the fw_cfg ports (selector 0x510, DMA 0x514/0x518)
+1957:  83d7fa:	b9 10 05 00 00       	mov    ecx,0x510
+2137:  83da2b:	b9 14 05 00 00       	mov    ecx,0x514
+2142:  83da3f:	b9 18 05 00 00       	mov    ecx,0x518
+10584:  84575d:	be 00 af 00 00       	mov    esi,0xaf00
+10587:  84576a:	be d8 0c 00 00       	mov    esi,0xcd8
+# the probe loop around 0x84576a (first 60 lines after the base is chosen)
+  84576a:	be d8 0c 00 00       	mov    esi,0xcd8
+  84576f:	31 d2                	xor    edx,edx
+  845771:	48 89 f1             	mov    rcx,rsi
+  845774:	e8 f2 80 ff ff       	call   0x83d86b
+  845779:	31 d2                	xor    edx,edx
+  84577b:	48 89 f1             	mov    rcx,rsi
+  84577e:	e8 e8 80 ff ff       	call   0x83d86b
+  845783:	48 8d 4e 05          	lea    rcx,[rsi+0x5]
+  845787:	31 d2                	xor    edx,edx
+  845789:	e8 3b 7f ff ff       	call   0x83d6c9
+  84578e:	48 89 f1             	mov    rcx,rsi
+  845791:	e8 72 80 ff ff       	call   0x83d808
+  845796:	89 c7                	mov    edi,eax
+  845798:	85 c0                	test   eax,eax
+  84579a:	75 77                	jne    0x845813
+  84579c:	31 d2                	xor    edx,edx
+  84579e:	48 89 f1             	mov    rcx,rsi
+  8457a1:	45 31 ed             	xor    r13d,r13d
+  8457a4:	e8 c2 80 ff ff       	call   0x83d86b
+  8457a9:	48 8d 46 04          	lea    rax,[rsi+0x4]
+  8457ad:	48 89 85 70 fe ff ff 	mov    QWORD PTR [rbp-0x190],rax
+  8457b4:	48 8d 46 08          	lea    rax,[rsi+0x8]
+  8457b8:	48 89 85 68 fe ff ff 	mov    QWORD PTR [rbp-0x198],rax
+  8457bf:	48 8b 8d 70 fe ff ff 	mov    rcx,QWORD PTR [rbp-0x190]
+  8457c6:	41 ff c5             	inc    r13d
+  8457c9:	e8 f0 82 ff ff       	call   0x83dabe
+  8457ce:	48 89 f1             	mov    rcx,rsi
+  8457d1:	44 89 ea             	mov    edx,r13d
+  8457d4:	83 e0 01             	and    eax,0x1
+  8457d7:	01 c7                	add    edi,eax
+  8457d9:	e8 8d 80 ff ff       	call   0x83d86b
+  8457de:	48 8b 8d 68 fe ff ff 	mov    rcx,QWORD PTR [rbp-0x198]
+  8457e5:	e8 1e 80 ff ff       	call   0x83d808
+  8457ea:	85 c0                	test   eax,eax
+  8457ec:	75 d1                	jne    0x8457bf
+  8457ee:	85 ff                	test   edi,edi
+  8457f0:	75 2e                	jne    0x845820
+  8457f2:	48 8b 95 78 fe ff ff 	mov    rdx,QWORD PTR [rbp-0x188]
+  8457f9:	48 8d 0d 3a 25 00 00 	lea    rcx,[rip+0x253a]        # 0x847d3a
+  845800:	e8 17 c3 ff ff       	call   0x841b1c
+  845805:	48 85 c0             	test   rax,rax
+  845808:	75 0f                	jne    0x845819
+  84580a:	80 bd a8 fe ff ff 00 	cmp    BYTE PTR [rbp-0x158],0x0
+  845811:	74 06                	je     0x845819
+  845813:	45 0f b7 ec          	movzx  r13d,r12w
+  845817:	eb 12                	jmp    0x84582b
+  845819:	e8 96 6e ff ff       	call   0x83c6b4
+  84581e:	eb 08                	jmp    0x845828
+  845820:	41 0f b7 c4          	movzx  eax,r12w
+  845824:	39 f8                	cmp    eax,edi
+  845826:	74 03                	je     0x84582b
+  845828:	41 89 fc             	mov    r12d,edi
+  84582b:	41 81 fd ff 00 00 00 	cmp    r13d,0xff
+  845832:	76 66                	jbe    0x84589a
+  845834:	e8 12 87 ff ff       	call   0x83df4b
+  845839:	84 c0                	test   al,al
+  84583b:	74 5d                	je     0x84589a
+  84583d:	e8 71 89 ff ff       	call   0x83e1b3
+  845842:	48 ff c8             	dec    rax
+  845845:	75 53                	jne    0x84589a
+  845847:	bf 1b 00 00 00       	mov    edi,0x1b

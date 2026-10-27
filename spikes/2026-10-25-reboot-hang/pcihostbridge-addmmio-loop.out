@@ -1,0 +1,55 @@
+# PciHostBridgeDxe as loaded at 0x7ad0f000 (bytes from the healthy layout dump; the image is identical on every boot, layout/images.txt), objdump -d -M intel.
+# The hung BSP's stack (smoke-rerun-5/hang-smoke-ssh-reboot-2.txt) holds the return address 0x7ad1286b: the call at 0x7ad12868 is gDS->GetMemorySpaceDescriptor ([gDS+0x38]) in AddMemoryMappedIoSpace's verification loop:
+#   7ad12852: rcx = Base; rdi = Base+Length; loop: if rcx >= rdi exit; GetMemorySpaceDescriptor(rcx, &Descriptor); rcx = Descriptor.BaseAddress + Descriptor.Length; repeat.  The status is never tested (RELEASE build: ASSERT_EFI_ERROR compiled out).
+    7ad127c7:	48 85 c0             	test   rax,rax
+    7ad127ca:	0f 88 b1 00 00 00    	js     0x7ad12881
+    7ad127d0:	48 ff c7             	inc    rdi
+    7ad127d3:	4c 29 ff             	sub    rdi,r15
+    7ad127d6:	45 31 ff             	xor    r15d,r15d
+    7ad127d9:	4c 8d 1c 3e          	lea    r11,[rsi+rdi*1]
+    7ad127dd:	4c 3b bd 38 ff ff ff 	cmp    r15,QWORD PTR [rbp-0xc8]
+    7ad127e4:	73 6c                	jae    0x7ad12852
+    7ad127e6:	49 6b cf 38          	imul   rcx,r15,0x38
+    7ad127ea:	48 03 8d 50 ff ff ff 	add    rcx,QWORD PTR [rbp-0xb0]
+    7ad127f1:	8b 41 20             	mov    eax,DWORD PTR [rcx+0x20]
+    7ad127f4:	83 f8 03             	cmp    eax,0x3
+    7ad127f7:	75 0b                	jne    0x7ad12804
+    7ad127f9:	f6 41 10 01          	test   BYTE PTR [rcx+0x10],0x1
+    7ad127fd:	74 05                	je     0x7ad12804
+    7ad127ff:	49 ff c7             	inc    r15
+    7ad12802:	eb d9                	jmp    0x7ad127dd
+    7ad12804:	4c 8b 01             	mov    r8,QWORD PTR [rcx]
+    7ad12807:	4c 39 c6             	cmp    rsi,r8
+    7ad1280a:	4c 89 c2             	mov    rdx,r8
+    7ad1280d:	48 0f 43 d6          	cmovae rdx,rsi
+    7ad12811:	4c 03 41 08          	add    r8,QWORD PTR [rcx+0x8]
+    7ad12815:	4d 39 d8             	cmp    r8,r11
+    7ad12818:	4d 0f 47 c3          	cmova  r8,r11
+    7ad1281c:	4c 39 c2             	cmp    rdx,r8
+    7ad1281f:	73 de                	jae    0x7ad127ff
+    7ad12821:	85 c0                	test   eax,eax
+    7ad12823:	75 50                	jne    0x7ad12875
+    7ad12825:	48 8b 05 04 0b 00 00 	mov    rax,QWORD PTR [rip+0xb04]        # 0x7ad13330
+    7ad1282c:	4c 89 9d 70 fe ff ff 	mov    QWORD PTR [rbp-0x190],r11
+    7ad12833:	49 29 d0             	sub    r8,rdx
+    7ad12836:	41 b9 01 00 00 00    	mov    r9d,0x1
+    7ad1283c:	b9 03 00 00 00       	mov    ecx,0x3
+    7ad12841:	ff 50 18             	call   QWORD PTR [rax+0x18]
+    7ad12844:	4c 8b 9d 70 fe ff ff 	mov    r11,QWORD PTR [rbp-0x190]
+    7ad1284b:	48 85 c0             	test   rax,rax
+    7ad1284e:	79 af                	jns    0x7ad127ff
+    7ad12850:	eb 23                	jmp    0x7ad12875
+    7ad12852:	48 89 f1             	mov    rcx,rsi
+    7ad12855:	48 01 f7             	add    rdi,rsi
+    7ad12858:	48 39 f9             	cmp    rcx,rdi
+    7ad1285b:	73 18                	jae    0x7ad12875
+    7ad1285d:	48 8b 05 cc 0a 00 00 	mov    rax,QWORD PTR [rip+0xacc]        # 0x7ad13330
+    7ad12864:	48 8d 55 88          	lea    rdx,[rbp-0x78]
+    7ad12868:	ff 50 38             	call   QWORD PTR [rax+0x38]
+    7ad1286b:	48 8b 4d 90          	mov    rcx,QWORD PTR [rbp-0x70]
+    7ad1286f:	48 03 4d 88          	add    rcx,QWORD PTR [rbp-0x78]
+    7ad12873:	eb e3                	jmp    0x7ad12858
+    7ad12875:	48 8b 8d 50 ff ff ff 	mov    rcx,QWORD PTR [rbp-0xb0]
+    7ad1287c:	e8 d7 d7 ff ff       	call   0x7ad10058
+    7ad12881:	49 8b 46 08          	mov    rax,QWORD PTR [r14+0x8]
+    7ad12885:	48 8b 8d 20 ff ff ff 	mov    rcx,QWORD PTR [rbp-0xe0]

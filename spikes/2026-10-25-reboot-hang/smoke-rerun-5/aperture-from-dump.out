@@ -1,0 +1,22 @@
+# smoke-rerun-5 hang: R14 of the hung BSP points at the root bridge's MemAbove4G aperture {Base, Limit} inside the PCI_ROOT_BRIDGE; qwords from hang-smoke-ssh-reboot-2-ap-7ad60000.bin (guest-physical):
+0x7ad756a8: 0x0000000000070069
+0x7ad756b0: 0x0000000000000000
+0x7ad756b8: 0x0000000000000003
+0x7ad756c0: 0x0000000000000000
+0x7ad756c8: 0x00000000000000ff
+0x7ad756d0: 0x0000000000000000
+0x7ad756d8: 0x0000000000006000  # Bus {Base,Limit}? (0..0xff)
+0x7ad756e0: 0x000000000000ffff
+0x7ad756e8: 0x0000000000000000  # Io  {0x6000, 0xffff}
+0x7ad756f0: 0x0000000080000000  # Io.Limit
+0x7ad756f8: 0x00000000dfffffff  # Mem.Base 0x80000000
+0x7ad75700: 0x0000000000000000  # Mem.Limit 0xdfffffff
+0x7ad75708: 0x800b201000000000  # <-- MemAbove4G.Base  (healthy boot: 0x380000000000)
+0x7ad75710: 0x800b2017ffffffff  # <-- MemAbove4G.Limit (healthy boot: 0x3fffffffffff); size here = 32 GiB, the classic OVMF default
+0x7ad75718: 0x0000000000000000
+0x7ad75720: 0xffffffffffffffff  # PMem.Base = MAX_UINT64 (none)
+0x7ad75728: 0x0000000000000000
+0x7ad75730: 0x0000000000000000
+0x7ad75738: 0xffffffffffffffff
+0x7ad75740: 0x0000000000000000
+# healthy GCD memory map (spikes/2026-10-25-reboot-hang/layout, 32 MB dump of a healthy boot): 57 entries, last two 0x380000000000..0x3fffffffffff MMIO: the address space ends at 2^46; GetMemorySpaceDescriptor(0x400000000000) cannot succeed.

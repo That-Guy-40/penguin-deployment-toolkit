@@ -121,12 +121,43 @@ parked are in `DEFERRED.md`, not here.
   `-display none` (the upstream report says it matters), an older QEMU.
   `bin/smoke` now watches for it (no `specialize` within 5 min of `ts-done`),
   records QEMU's registers and recovers the same way; the row is a FAIL.
+  **2026-10-25 03:00, caught with the recorder armed** (smoke rerun 3,
+  `smoke-ssh`, AHCI variant, the reboot out of WinPE; `spikes/2026-10-25-reboot-hang/smoke-rerun-3/`,
+  README section "Caught"): CPU#0 is in CpuMpPei's `TimedWaitForApFinish`
+  with all 3 APs finished, waiting for **31** APs with a **71.6-minute**
+  (`MAX_UINT32` µs) time limit: `PcdCpuBootLogicalProcessorNumber` (PEI PCD
+  token 0x11, 4 on a healthy boot) read **32** at that warm reset. OVMF's
+  PlatformPei derives it from fw_cfg `nb_cpus` and the CPU-hotplug register
+  block at I/O 0xcd8 (`-smp 4`: four slots, so the block alone cannot say
+  32); which input lied is open. Predicted, not yet observed: the VM boots
+  by itself about 72 min after the reboot (untested). **Reruns 5 and 6 caught
+  the other (DXE) variant with memory**, on the AHCI machine: PciHostBridgeDxe
+  loops for ever in `AddMemoryMappedIoSpace`'s ASSERT-only verification loop
+  because PlatformPei computed the 64-bit PCI aperture base as garbage
+  (`0x800b201000000000`, `0xb00006e800000000`; healthy `0x380000000000`),
+  from an `etc/e820` end-of-RAM candidate that was wrong during the boot's
+  first e820 scan only; every other field of the HOB list is healthy. So
+  both variants are one fault: a fw_cfg value PlatformPei reads at a warm
+  reset comes back wrong now and then (cold boots hide it: zeroed RAM is
+  harmless in both places). OVMF 2025.11 reads fw_cfg through the cache
+  added in edk2 on 2025-03-20 (`QemuFwCfgCache.c`; a failed cached read
+  leaves the caller's buffer untouched); OVMF 2024.11 has no cache. **Result
+  of the firmware comparison (same smoke, same QEMU): 2025.11 3 hangs in 8
+  runs / 80 reboots; 2024.11 (`VM_BOOT_FIRMWARE`, reruns 9-12) 0 in 4 runs /
+  40 reboots.** Chance of 40 clean reboots at the new firmware's rate is
+  about 0.22, so suggestive, not proof. Next: more 2024.11 runs or a 2025.11
+  build with the cache compiled out; then upstream (edk2 #12441) with the
+  dumps and the table.
 - [ ] `bin/vm-stop` (the ACPI button) at an installed Windows's login screen
   is honoured within 60 s sometimes and ignored sometimes: smoke run 3 ignored,
-  runs 4-5 and the 2026-10-25 rerun honoured (all `demo-rdp`); the three
-  `demo-ssh` machines of the 2026-10-25 reboot spike all ignored it and were
-  ended by QEMU. Both roles have `FASTSTARTUP=off`. Not understood; `--full`
-  (typed `shutdown /s`) is the reliable way.
+  runs 4-5 and the 2026-10-25 reruns 1, 2, 4, 7-12 honoured, reruns 3, 5 and 6 ignored (all
+  `demo-rdp`); the three `demo-ssh` machines of the 2026-10-25 reboot spike
+  all ignored it and were ended by QEMU. Both roles have `FASTSTARTUP=off`. Not understood; `--full`
+  (typed `shutdown /s`) is the reliable way. Lead, untested: the three ignoring
+  runs are exactly the three in which the other machine hung and was recorded,
+  so `smoke-rdp` sat at its login screen 20-40 min longer than usual; an idle
+  login screen (display off, lock-screen timer) that stops honouring the power
+  button would couple the two items.
 - [ ] Real hardware has still seen none of this (Phase 5). In particular:
   enrolling the Secure Boot certificate in real firmware, and proxy-DHCP on a
   real switch next to a real router. (A bridge on the real host, and

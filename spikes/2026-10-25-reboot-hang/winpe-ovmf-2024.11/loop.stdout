@@ -1,0 +1,8 @@
+04:35:30 cold boot: VM rh-base running: pid 2016289, nic virtio-net-pci, firmware OVMF_CODE_4M.secboot.fd smm=on, boot disk then network, monitor 127.0.0.1:7001
+04:35:46 cold boot reached WinPE in 16 s
+04:36:07 cycle 1: PASS, back in WinPE after 20 s
+04:36:34 cycle 2: PASS, back in WinPE after 21 s
+04:37:00 cycle 3: PASS, back in WinPE after 20 s
+04:37:26 cycle 4: PASS, back in WinPE after 20 s
+04:37:52 cycle 5: PASS, back in WinPE after 20 s
+04:37:57 RESULT rh-base: 5 of 5 reboots fine, 0 hung (boot options: --firmware /tmp/claude-1000/-home-sqs-scripts-Windows-install-via-Linux/db333f61-18fb-420a-8c91-36dad1f2e3d0/scratchpad/ovmf-2024.11-dl/x/usr/share/OVMF/OVMF_CODE_4M.secboot.fd; PRE='' IDLE=0 LOAD=)

@@ -1,0 +1,19 @@
+winget.cmd Sun 10/25/2026  7:31:58.05 apps=C:\pdt\role\apps.txt
+=== download post/winget/
+=== Add-AppxProvisionedPackage (all users, licensed) + Add-AppxPackage (this user)
+add rc 0
+=== winget --version
+v1.29.380
+=== winget install 7zip.7zip  --scope machine
+The `msstore` source requires that you view the following agreements before using.
+Terms of Transaction: https://aka.ms/microsoft-store-terms-of-transaction
+The source requires the current machine's 2-letter geographic region to be sent to the backend service to function properly (ex. "US").
+
+Found 7-Zip [7zip.7zip] Version 26.05
+This application is licensed to you by its owner.
+Microsoft is not responsible for, nor does it grant any licenses to, third-party packages.
+Downloading https://github.com/ip7z/7zip/releases/download/26.05/7z2605-x64.msi
+Successfully verified installer hash
+Starting package install...
+Successfully installed
+rc 0

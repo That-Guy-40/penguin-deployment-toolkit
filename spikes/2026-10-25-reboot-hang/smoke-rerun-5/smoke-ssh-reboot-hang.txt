@@ -1,0 +1,19 @@
+specialize at 2026-10-25T03:32:44-04:00, no firstlogon within 420 s; QEMU at 2026-10-25T03:39:45-04:00:
+QEMU 10.2.1 monitor - type 'help' for more information
+(qemu) i[K[Din[K[D[Dinf[K[D[D[Dinfo[K[D[D[D[Dinfo [K[D[D[D[D[Dinfo s[K[D[D[D[D[D[Dinfo st[K[D[D[D[D[D[D[Dinfo sta[K[D[D[D[D[D[D[D[Dinfo stat[K[D[D[D[D[D[D[D[D[Dinfo statu[K[D[D[D[D[D[D[D[D[D[Dinfo status[K
+VM status: running
+(qemu) CPU#0
+RIP=000000007bf7c49a RFL=00000246 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=0
+CPU#1
+RIP=000000007ad65d71 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1
+CPU#2
+RIP=000000007ad65d71 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1
+CPU#3
+RIP=000000007ad65d71 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1
+serial.log: 2026-10-25 03:31:35.489398647 -0400 28544 bytes  disk.qcow2: 2026-10-25 03:32:48.397746153 -0400
+HANG smoke-ssh-reboot-2 recorded in /home/sqs/scripts/Windows-install-via-Linux/spikes/2026-10-25-reboot-hang/smoke-rerun-5/hang-smoke-ssh-reboot-2.txt; RIP=000000007bf7c4b1 RFL=00000246 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=0
+HANG smoke-ssh-reboot-2: the VM recovered by itself after 60 s (/home/sqs/scripts/Windows-install-via-Linux/spikes/2026-10-25-reboot-hang/smoke-rerun-5/hang-smoke-ssh-reboot-2-wait.txt)
+recovering: vm-stop --force, vm-boot --fwd 2224:22,3392:3389
+VM smoke-ssh stopped
+VM smoke-ssh running: pid 1233972, nic e1000e, firmware OVMF_CODE_4M.secboot.fd smm=on, boot disk then network, monitor 127.0.0.1:7002
+id for bin/status and bin/await: 5ef6adb7-3254-4efd-8086-1ba5f5f0e5cf

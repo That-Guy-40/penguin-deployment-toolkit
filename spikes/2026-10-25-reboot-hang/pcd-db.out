@@ -1,0 +1,16 @@
+== /tmp/claude-1000/-home-sqs-scripts-Windows-install-via-Linux/db333f61-18fb-420a-8c91-36dad1f2e3d0/scratchpad/healthy.bin @ 0x7a000000
+ database @0x7b2c9098: version 7, 392 bytes (+95 uninitialised), 35 local tokens, 0 ex, 1 guids
+ database @0x7b2c9c98: version 7, 392 bytes (+95 uninitialised), 35 local tokens, 0 ex, 1 guids
+ database @0x7b8ce034: version 7, 392 bytes (+95 uninitialised), 35 local tokens, 0 ex, 1 guids
+ database @0x7b8e4ac8: version 7, 328 bytes (+128 uninitialised), 32 local tokens, 3 ex, 1 guids
+   token 0x11: u32 at db+0x1bc (uninitialised area) = 4
+   token 0x12: u32 at db+0x70 (initialised) = 4
+ database @0x7b8e9158: version 7, 328 bytes (+128 uninitialised), 32 local tokens, 3 ex, 1 guids
+   token 0x11: u32 at db+0x1bc (uninitialised area) = 2947526575
+   token 0x12: u32 at db+0x70 (initialised) = 64
+== spikes/2026-10-25-reboot-hang/smoke-rerun-3/hang-smoke-ssh-reboot-1-bsp-7be00000.bin @ 0x7be00000
+== /tmp/claude-1000/-home-sqs-scripts-Windows-install-via-Linux/db333f61-18fb-420a-8c91-36dad1f2e3d0/scratchpad/ovmf-dxe-fv.bin @ 0x0
+ database @0x7304: version 7, 328 bytes (+128 uninitialised), 32 local tokens, 3 ex, 1 guids
+   token 0x11: u32 at db+0x1bc (uninitialised area) = 0
+   token 0x12: u32 at db+0x70 (initialised) = 64
+ database @0xfae4c: version 7, 392 bytes (+95 uninitialised), 35 local tokens, 0 ex, 1 guids

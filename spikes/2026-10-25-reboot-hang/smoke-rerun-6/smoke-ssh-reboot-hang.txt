@@ -1,0 +1,19 @@
+ts-done at 2026-10-25T04:01:12-04:00, no specialize within 300 s; QEMU at 2026-10-25T04:06:13-04:00:
+QEMU 10.2.1 monitor - type 'help' for more information
+(qemu) i[K[Din[K[D[Dinf[K[D[D[Dinfo[K[D[D[D[Dinfo [K[D[D[D[D[Dinfo s[K[D[D[D[D[D[Dinfo st[K[D[D[D[D[D[D[Dinfo sta[K[D[D[D[D[D[D[D[Dinfo stat[K[D[D[D[D[D[D[D[D[Dinfo statu[K[D[D[D[D[D[D[D[D[D[Dinfo status[K
+VM status: running
+(qemu) CPU#0
+RIP=000000007bf8689a RFL=00000293 [--S-A-C] CPL=0 II=0 A20=1 SMM=0 HLT=0
+CPU#1
+RIP=000000007ad65d71 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1
+CPU#2
+RIP=000000007ad65d71 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1
+CPU#3
+RIP=000000007ad65d71 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1
+serial.log: 2026-10-25 03:45:27.390516496 -0400 28134 bytes  disk.qcow2: 2026-10-25 04:01:18.005835764 -0400
+HANG smoke-ssh-reboot-1 recorded in /home/sqs/scripts/Windows-install-via-Linux/spikes/2026-10-25-reboot-hang/smoke-rerun-6/hang-smoke-ssh-reboot-1.txt; RIP=000000007ad59267 RFL=00000206 [-----P-] CPL=0 II=0 A20=1 SMM=0 HLT=0
+Terminated                 "$SMOKE_HANG_HOOK" "$1" "$1-$2" "$OUT" 2>&1
+recovering: vm-stop --force, vm-boot --fwd 2224:22,3392:3389
+VM smoke-ssh stopped
+VM smoke-ssh running: pid 2187667, nic e1000e, firmware OVMF_CODE_4M.secboot.fd smm=on, boot disk then network, monitor 127.0.0.1:7002
+id for bin/status and bin/await: c1f4e849-0d21-47cc-a590-533e7bc193b3

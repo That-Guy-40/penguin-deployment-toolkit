@@ -1,0 +1,8 @@
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/keys smoke-ssh deploy 30{enter}
+smoke-ssh: typed 'deploy 30{enter}' into the pdt-deploy window
+rc=0
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/console smoke-ssh --await 30-apply --timeout 180
+smoke-ssh: frame of 03:17:03 contains '30-apply'
+rc=0

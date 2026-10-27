@@ -1,0 +1,22 @@
+VM rh-base running: pid 2016289, nic virtio-net-pci, firmware OVMF_CODE_4M.secboot.fd smm=on, boot disk then network, monitor 127.0.0.1:7001
+id for bin/status and bin/await: 49ba4cce-7bae-4813-b3d7-b72d543957ad
+04:35:30 cold boot: VM rh-base running: pid 2016289, nic virtio-net-pci, firmware OVMF_CODE_4M.secboot.fd smm=on, boot disk then network, monitor 127.0.0.1:7001
+5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e  /home/sqs/scripts/Windows-install-via-Linux/vms/rh-base/vars.fd
+await: 2026-10-25T04:35:46-04:00 shell ok
+04:35:46 cold boot reached WinPE in 16 s
+await: 2026-10-25T04:36:04-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 2147231213); if it is still running, bin/logs rh-base --cat cmd-1.out later
+04:36:07 cycle 1: PASS, back in WinPE after 20 s
+await: 2026-10-25T04:36:31-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 2153128077); if it is still running, bin/logs rh-base --cat cmd-1.out later
+04:36:34 cycle 2: PASS, back in WinPE after 21 s
+await: 2026-10-25T04:36:57-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 2161512623); if it is still running, bin/logs rh-base --cat cmd-1.out later
+04:37:00 cycle 3: PASS, back in WinPE after 20 s
+await: 2026-10-25T04:37:22-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 2170029938); if it is still running, bin/logs rh-base --cat cmd-1.out later
+04:37:26 cycle 4: PASS, back in WinPE after 20 s
+await: 2026-10-25T04:37:48-04:00 shell ok
+timeout after 20 s: no output for cmd 1 (run 2177925756); if it is still running, bin/logs rh-base --cat cmd-1.out later
+04:37:52 cycle 5: PASS, back in WinPE after 20 s
+04:37:57 RESULT rh-base: 5 of 5 reboots fine, 0 hung (boot options: --firmware /tmp/claude-1000/-home-sqs-scripts-Windows-install-via-Linux/db333f61-18fb-420a-8c91-36dad1f2e3d0/scratchpad/ovmf-2024.11-dl/x/usr/share/OVMF/OVMF_CODE_4M.secboot.fd; PRE='' IDLE=0 LOAD=)

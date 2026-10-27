@@ -1,0 +1,5 @@
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/lint
+PASS     lint self-test: 59/59 injected defects were reported as FAIL
+231 PASS, 0 FAIL, 0 UNKNOWN   (-v lists every row)
+rc=0

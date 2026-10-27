@@ -1,0 +1,14 @@
+sha256 0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279 matches images/base.json
+0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279  W:\image.wim
+0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279  X:\pdt\images-base.json (sidecar)
+match
+ Volume in drive W is Windows
+ Volume Serial Number is 06F9-6F0A
+
+ Directory of W:\
+
+10/25/2026  06:13 AM     3,563,286,653 image.wim
+10/25/2026  06:13 AM    <DIR>          Scratch
+               1 File(s)  3,563,286,653 bytes
+               1 Dir(s)  63,691,657,216 bytes free
+[pdt] exit code 0

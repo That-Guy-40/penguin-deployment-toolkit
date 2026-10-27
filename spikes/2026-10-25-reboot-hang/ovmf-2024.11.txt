@@ -1,0 +1,8 @@
+# OVMF 2024.11 (Debian ovmf_2024.11-3_all.deb, the last upstream release before the fw_cfg cache of 2025-03-20) used for the firmware bisection, NOT vendored:
+url    https://snapshot.debian.org/archive/debian/20250115T000000Z/pool/main/e/edk2/ovmf_2024.11-3_all.deb
+sha256 7a0834c27c02f43336c28749908d0c229d5ec0c13338f2bb41b6f5afe71a9a93  ovmf_2024.11-3_all.deb
+file   usr/share/OVMF/OVMF_CODE_4M.secboot.fd (3653632 bytes), booted with: bin/vm-boot <vm> --firmware <that file>
+sha256 129253b3751ba712d6c106d1033f7ab7d716c42cc3b349acfd4bfd6510eab2c4  OVMF_CODE_4M.secboot.fd
+# fw_cfg selects per firmware run, same lab VM (rh-base, shell mode), QEMU_TRACE='fw_cfg_select,fw_cfg_read,cpuhp_acpi_*':
+#   2025.11 (Ubuntu 2025.11-3ubuntu7.3): 31 selects, etc/e820 once, file_dir 9 times   (qemu-trace-baseline-rh-base.log)
+#   2024.11 (Debian 2024.11-3):          94 selects, etc/e820 8 times, file_dir 38 times (qemu-trace-ovmf-2024.11-rh-base.log)

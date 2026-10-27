@@ -31,12 +31,21 @@
 #             secure pflash. No Secure Boot at all, so not for Phase 5 work;
 #             it exists to split the firmware's SMM reset path from everything
 #             else when a guest-initiated reboot hangs (TODO.md)
+#   --firmware <OVMF_CODE file> diagnostic: boot this VM from another OVMF code
+#             image (4M layout, so the VM's vars.fd still fits), e.g. an older
+#             package's build, to bisect a firmware behaviour. config.sh's
+#             OVMF_CODE stays the default for every other boot. The environment
+#             variable VM_BOOT_FIRMWARE=<file> means the same and reaches the
+#             vm-boot calls inside bin/smoke and the hang hook's recovery.
+#   QEMU_TRACE=<event,pattern,...> (environment) diagnostic: QEMU's own trace
+#             events to vms/<name>/qemu-trace.log, e.g. 'fw_cfg_select,cpuhp_acpi_*'
+#             for the firmware's CPU-count inputs (spikes/2026-10-25-reboot-hang/)
 #
 # Watch it with bin/status, bin/vm-shot <name>; stop it with bin/vm-stop <name>.
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 need qemu-system-x86_64 qemu-img python3
 
-NAME="" DISPLAY_MODE="none" PXE_FIRST=0 NIC="" NO_ROM=0 FWD="" SMM="on"
+NAME="" DISPLAY_MODE="none" PXE_FIRST=0 NIC="" NO_ROM=0 FWD="" SMM="on" FIRMWARE="${VM_BOOT_FIRMWARE:-}"
 while (( $# )); do
     case "$1" in
         --gui) DISPLAY_MODE="gtk"; shift ;;
@@ -45,18 +54,20 @@ while (( $# )); do
         --no-rom) NO_ROM=1; shift ;;
         --fwd) FWD="${2:?}"; shift 2 ;;
         --smm) SMM="${2:?}"; [[ "$SMM" =~ ^(on|off)$ ]] || die "--smm wants on or off"; shift 2 ;;
-        -h|--help) sed -n '2,36p' "$0"; exit 0 ;;
+        --firmware) FIRMWARE="${2:?}"; shift 2 ;;
+        -h|--help) sed -n '2,44p' "$0"; exit 0 ;;
         -*) die "unknown option: $1" ;;
         *)  [[ -z "$NAME" ]] || die "one VM name only"; NAME="$1"; shift ;;
     esac
 done
-[[ -n "$NAME" ]] || die "usage: vm-boot <name> [--gui] [--pxe] [--nic <model>] [--fwd host:guest,...]"
+[[ -n "$NAME" ]] || die "usage: vm-boot <name> [--gui] [--pxe] [--nic <model>] [--fwd host:guest,...] [--smm on|off] [--firmware <file>]"
 vm_load "$NAME"
 NIC="${NIC:-$VM_NIC}"
 
 if pid="$(vm_pid "$NAME")"; then die "VM $NAME is already running (pid $pid)"; fi
 CODE="${OVMF_CODE:?}"
 if [[ "$SMM" == off ]]; then CODE="${OVMF_CODE_NOSMM:-/usr/share/OVMF/OVMF_CODE_4M.fd}"; fi
+if [[ -n "$FIRMWARE" ]]; then CODE="$FIRMWARE"; fi
 [[ -f "$CODE" ]] || die "OVMF firmware not found: $CODE"
 [[ -f "$PXE_DIR/ipxe.efi" ]] || die "pxe/ipxe.efi not found; run bin/build-ipxe"
 
@@ -138,6 +149,14 @@ QEMU=(
     -pidfile "$VM_DIR/qemu.pid"
 )
 if [[ "$SMM" == on ]]; then QEMU+=(-global driver=cfi.pflash01,property=secure,value=on); fi
+# QEMU_TRACE="fw_cfg_*,cpuhp_acpi_*": QEMU's own trace events (see
+# qemu-system-x86_64 -trace help) to $VM_DIR/qemu-trace.log. Diagnostic only
+# (the reboot-hang bisection, spikes/2026-10-25-reboot-hang/).
+if [[ -n "${QEMU_TRACE:-}" ]]; then
+    IFS=, read -ra trace_events <<<"$QEMU_TRACE"
+    for t in "${trace_events[@]}"; do QEMU+=(-trace "enable=$t"); done
+    QEMU+=(-trace "file=$VM_DIR/qemu-trace.log")
+fi
 if [[ "$DISPLAY_MODE" == none ]]; then
     QEMU+=(-display none -daemonize)
     "${QEMU[@]}" || die "QEMU failed to start"
@@ -147,5 +166,5 @@ else
     sleep 1
 fi
 pid="$(vm_pid "$NAME")" || die "QEMU exited immediately"
-info "VM $NAME running: pid $pid, nic $NIC, firmware $(basename "$CODE") smm=$SMM, boot $([[ $PXE_FIRST == 1 ]] && echo 'network first' || echo 'disk then network'), monitor 127.0.0.1:$VM_MONITOR_PORT"
+info "VM $NAME running: pid $pid, nic $NIC, firmware $([[ -n "$FIRMWARE" ]] && echo "$CODE" || basename "$CODE") smm=$SMM, boot $([[ $PXE_FIRST == 1 ]] && echo 'network first' || echo 'disk then network'), monitor 127.0.0.1:$VM_MONITOR_PORT"
 info "id for bin/status and bin/await: $VM_UUID"

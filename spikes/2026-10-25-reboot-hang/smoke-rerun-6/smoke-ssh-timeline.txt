@@ -1,0 +1,30 @@
+c1f4e849-0d21-47cc-a590-533e7bc193b3  smoke-ssh
+  2026-10-25T03:45:24-04:00  +    0.0s  (+   0.0s)  ipxe        ok    product=lab-vm mac=52:54:00:56:6b:ad nic=01:80:86:10:d3 chip=82574l bootsrv=10.0.2.2 serial=smoke-ssh mfr=PDT
+  2026-10-25T03:45:26-04:00  +    1.7s  (+   1.7s)  wim         ok    msg=475 MiB in 1.4s (330 MiB/s)
+  2026-10-25T03:45:35-04:00  +   10.4s  (+   8.7s)  ts-start    ok    mode=deploy model=lab-vm product=lab-vm mac=52:54:00:56:6b:ad
+  2026-10-25T03:45:35-04:00  +   10.8s  (+   0.4s)  15-preflight start 
+  2026-10-25T03:45:36-04:00  +   11.6s  (+   0.7s)  15-preflight ok    
+  2026-10-25T03:45:36-04:00  +   11.8s  (+   0.3s)  17-diskguard start 
+  2026-10-25T03:45:37-04:00  +   12.3s  (+   0.4s)  17-diskguard ok    msg=disk 0:QEMU HARDDISK 64GiB of 2 (the only fixed disk)
+  2026-10-25T03:45:37-04:00  +   12.5s  (+   0.3s)  20-disk     start 
+  2026-10-25T03:45:46-04:00  +   22.2s  (+   9.6s)  20-disk     ok    
+  2026-10-25T03:45:47-04:00  +   22.4s  (+   0.3s)  25-download start 
+  2026-10-25T03:46:11-04:00  +   46.8s  (+  24.3s)  25-download ok    msg=sha256 0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279 matches images/base.json
+  2026-10-25T03:46:11-04:00  +   46.9s  (+   0.2s)  stop        ok    after=25-download
+  2026-10-25T03:46:56-04:00  +   92.1s  (+  45.2s)  30-apply    start 
+  2026-10-25T03:48:14-04:00  +  169.4s  (+  77.2s)  30-apply    ok    
+  2026-10-25T03:48:14-04:00  +  169.7s  (+   0.3s)  35-updates  start 
+  2026-10-25T04:01:08-04:00  +  943.2s  (+ 773.5s)  35-updates  ok    msg=package 26100.9550 is installed in the image; sha256 254b71a462b33ea450ef84eca1749c67599284272115b881a31d76326646c697 matches updates/lcu.json
+  2026-10-25T04:01:08-04:00  +  943.6s  (+   0.4s)  40-drivers  start 
+  2026-10-25T04:01:08-04:00  +  943.8s  (+   0.2s)  40-drivers  ok    msg=skipped: no DRIVERS set
+  2026-10-25T04:01:08-04:00  +  944.2s  (+   0.4s)  45-winre    start 
+  2026-10-25T04:01:09-04:00  +  945.0s  (+   0.9s)  45-winre    ok    msg=Winre.wim from the image itself, W:\Windows\System32\Recovery
+  2026-10-25T04:01:10-04:00  +  945.4s  (+   0.4s)  50-boot     start 
+  2026-10-25T04:01:10-04:00  +  946.0s  (+   0.6s)  50-boot     ok    msg=boot files written; the firmware boots Windows Boot Manager first
+  2026-10-25T04:01:11-04:00  +  946.4s  (+   0.4s)  60-unattend start 
+  2026-10-25T04:01:11-04:00  +  947.2s  (+   0.8s)  60-unattend ok    
+  2026-10-25T04:01:12-04:00  +  947.5s  (+   0.3s)  90-reboot   start 
+  2026-10-25T04:01:12-04:00  +  947.6s  (+   0.1s)  90-reboot   ok    
+  2026-10-25T04:01:12-04:00  +  947.8s  (+   0.2s)  ts-done     ok    
+  2026-10-25T04:48:46-04:00  + 3801.8s  (+2854.0s)  specialize  ok    
+  2026-10-25T04:49:46-04:00  + 3861.9s  (+  60.1s)  firstlogon  ok    host=WIN-SMA9FB7OEG6 build=26100.9550 secureboot=False user=deploy

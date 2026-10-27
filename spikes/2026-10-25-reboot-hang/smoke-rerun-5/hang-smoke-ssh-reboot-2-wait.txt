@@ -1,0 +1,3 @@
+smoke-ssh-reboot-2: waiting up to 4800 s for the firmware to move on by itself (started 03:39:47; serial.log 28544 bytes)
+03:40:47 +60s CPU#0 RIP=000000007ad5926e serial.log 28544 bytes, disk.qcow2 03:32:48
+RECOVERED BY ITSELF after 60s (serial.log changed or CPU#0 left the firmware)

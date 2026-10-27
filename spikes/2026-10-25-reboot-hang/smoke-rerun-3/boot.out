@@ -1,0 +1,10 @@
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/vm-boot smoke-ssh --fwd 2224:22,3392:3389
+VM smoke-ssh running: pid 10512, nic e1000e, firmware OVMF_CODE_4M.secboot.fd smm=on, boot disk then network, monitor 127.0.0.1:7008
+id for bin/status and bin/await: db73b097-0cda-4d84-b7f8-8c248e31732c
+rc=0
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/vm-boot smoke-rdp --fwd 3391:3389,2225:22
+VM smoke-rdp running: pid 10650, nic virtio-net-pci, firmware OVMF_CODE_4M.secboot.fd smm=on, boot disk then network, monitor 127.0.0.1:7009
+id for bin/status and bin/await: f0822a70-008e-424a-b336-ea33bbdae9b8
+rc=0

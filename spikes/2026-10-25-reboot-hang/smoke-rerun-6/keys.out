@@ -1,0 +1,7 @@
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/fetch-tools keys
+roles/demo-ssh/authorized_keys: ssh-ed25519 sqs@lab-create-microvm
+roles/demo-ssh/carol.pub: ssh-ed25519 pdt-lab-carol (ssh -i build/lab-carol carol@<machine>)
+roles/lab-apps/authorized_keys: ssh-ed25519 sqs@lab-create-microvm
+roles/lab-apps/alice.pub: ssh-ed25519 pdt-lab-alice (ssh -i build/lab-alice alice@<machine>)
+rc=0

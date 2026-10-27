@@ -1,0 +1,8 @@
+   1  02:13:05     343 B  # cols=120 rows=30 cursor=0,6 viewport=0-29 title=Administrator:  pdt-deploy
+   2  02:13:07     404 B  # cols=120 rows=30 cursor=0,9 viewport=0-29 title=Administrator:  pdt-deploy
+   3  02:13:17     426 B  # cols=120 rows=30 cursor=0,10 viewport=0-29 title=Administrator:  pdt-deploy
+   4  02:13:34     444 B  # cols=120 rows=30 cursor=0,11 viewport=0-29 title=Administrator:  pdt-deploy
+   5  02:14:44     464 B  # cols=120 rows=30 cursor=0,12 viewport=0-29 title=Administrator:  pdt-deploy
+   6  02:27:02     484 B  # cols=120 rows=30 cursor=0,13 viewport=0-29 title=Administrator:  pdt-deploy
+   7  02:27:05     519 B  # cols=120 rows=30 cursor=0,15 viewport=0-29 title=Administrator:  pdt-deploy
+   8  02:27:07     771 B  # cols=120 rows=30 cursor=20,21 viewport=0-29 title=Administrator:  pdt-deploy

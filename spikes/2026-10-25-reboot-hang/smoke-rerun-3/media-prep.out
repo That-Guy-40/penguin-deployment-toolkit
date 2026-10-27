@@ -1,0 +1,52 @@
+
+$ media_prep /home/sqs/scripts/Windows-install-via-Linux/vms/smoke-ssh/usb.qcow2 pdt smoke marker: smoke-ssh usb stick 2026-10-25T02:12:47-04:00 PDTUSB
+mkfs.fat 4.2 (2021-01-31)
+pdt smoke marker: smoke-ssh usb stick 2026-10-25T02:12:47-04:00
+image: /home/sqs/scripts/Windows-install-via-Linux/vms/smoke-ssh/usb.qcow2
+file format: qcow2
+virtual size: 8 GiB (8589934592 bytes)
+disk size: 516 KiB
+cluster_size: 65536
+Format specific information:
+    compat: 1.1
+    compression type: zlib
+    lazy refcounts: false
+    refcount bits: 16
+    corrupt: false
+    extended l2: false
+Child node '/file':
+    filename: /home/sqs/scripts/Windows-install-via-Linux/vms/smoke-ssh/usb.qcow2
+    protocol type: file
+    file length: 576 KiB (589824 bytes)
+    disk size: 516 KiB
+rc=0
+
+$ media_prep /home/sqs/scripts/Windows-install-via-Linux/vms/smoke-rdp/sd.qcow2 pdt smoke marker: smoke-rdp sd card 2026-10-25T02:12:47-04:00 PDTSD
+mkfs.fat 4.2 (2021-01-31)
+pdt smoke marker: smoke-rdp sd card 2026-10-25T02:12:47-04:00
+image: /home/sqs/scripts/Windows-install-via-Linux/vms/smoke-rdp/sd.qcow2
+file format: qcow2
+virtual size: 8 GiB (8589934592 bytes)
+disk size: 520 KiB
+cluster_size: 65536
+Format specific information:
+    compat: 1.1
+    compression type: zlib
+    lazy refcounts: false
+    refcount bits: 16
+    corrupt: false
+    extended l2: false
+Child node '/file':
+    filename: /home/sqs/scripts/Windows-install-via-Linux/vms/smoke-rdp/sd.qcow2
+    protocol type: file
+    file length: 576 KiB (589824 bytes)
+    disk size: 520 KiB
+rc=0
+
+$ media_read /home/sqs/scripts/Windows-install-via-Linux/vms/smoke-ssh/usb.qcow2
+pdt smoke marker: smoke-ssh usb stick 2026-10-25T02:12:47-04:00
+rc=0
+
+$ media_read /home/sqs/scripts/Windows-install-via-Linux/vms/smoke-rdp/sd.qcow2
+pdt smoke marker: smoke-rdp sd card 2026-10-25T02:12:47-04:00
+rc=0

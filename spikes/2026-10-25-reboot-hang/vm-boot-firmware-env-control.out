@@ -1,0 +1,9 @@
+# VM_BOOT_FIRMWARE control, 2026-10-25T04:41:05-04:00: does the env var reach QEMU's pflash unit 0, and does the status line say which file? (pid taken from vm-boot's own line; a pgrep -f pattern matched this shell)
+## positive: VM_BOOT_FIRMWARE=/tmp/claude-1000/-home-sqs-scripts-Windows-install-via-Linux/db333f61-18fb-420a-8c91-36dad1f2e3d0/scratchpad/ovmf-2024.11-dl/x/usr/share/OVMF/OVMF_CODE_4M.secboot.fd
+VM rh-base running: pid 2094376, nic virtio-net-pci, firmware /tmp/claude-1000/-home-sqs-scripts-Windows-install-via-Linux/db333f61-18fb-420a-8c91-36dad1f2e3d0/scratchpad/ovmf-2024.11-dl/x/usr/share/OVMF/OVMF_CODE_4M.secboot.fd smm=on, boot
+qemu pid 2094376 comm=qemu-system-x86 pflash unit 0: /tmp/claude-1000/-home-sqs-scripts-Windows-install-via-Linux/db333f61-18fb-420a-8c91-36dad1f2e3d0/scratchpad/ovmf-2024.11-dl/x/usr/share/OVMF/OVMF_CODE_4M.secboot.fd
+VM rh-base stopped
+## negative: variable unset
+VM rh-base running: pid 2094899, nic virtio-net-pci, firmware OVMF_CODE_4M.secboot.fd smm=on, boot disk then network, monitor 127.0.0.1:7001
+qemu pid 2094899 comm=qemu-system-x86 pflash unit 0: /usr/share/OVMF/OVMF_CODE_4M.secboot.fd
+VM rh-base stopped

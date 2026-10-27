@@ -1,0 +1,11 @@
+OpenSSL 3.5.9 29 Sep 2026 (Library: OpenSSL 3.5.9 29 Sep 2026)
+built on: Thu Jan  1 00:00:01 1970 UTC
+platform: mingw64
+options:  bn(64,64)
+compiler: x86_64-w64-mingw32-gcc -m64 -Wall -O3 -s -DL_ENDIAN -DUNICODE -D_UNICODE -DWIN32_LEAN_AND_MEAN -D_MT -DOPENSSL_BUILDING_OPENSSL -DNDEBUG
+OPENSSLDIR: "/pdt/ssl"
+ENGINESDIR: "/pdt/lib64/engines-3"
+MODULESDIR: "/pdt/lib64/ossl-modules"
+Seeding source: os-specific
+CPUINFO: OPENSSL_ia32cap=0xfff83203078bffff:0x18405f4ef1bf07ab:0x000000309c000110:0x0000000000000000:0x0000000000000000
+[pdt] exit code 0

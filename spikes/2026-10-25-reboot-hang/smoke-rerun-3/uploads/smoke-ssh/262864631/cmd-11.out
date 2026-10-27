@@ -1,0 +1,3 @@
+0|Fixed hard disk media|IDE|64|QEMU HARDDISK|eligible
+1|Removable Media|USB|8|QEMU QEMU HARDDISK USB Device|not eligible: removable media (Removable Media)
+[pdt] exit code 0

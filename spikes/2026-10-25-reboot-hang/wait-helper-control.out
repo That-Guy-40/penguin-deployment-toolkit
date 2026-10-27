@@ -1,0 +1,31 @@
+# wait_for_self_recovery controls, 2026-10-25 03:5x, after the second fix (the regex on the monitor's 16-digit RIP)
+# strings taken from real records:
+000000007ad5926e -> still in firmware
+000000007bfe35d3 -> still in firmware
+fffff8018b6563bf -> recovered
+# live VM (rh-base, WinPE):
+control: waiting up to 130 s for the firmware to move on by itself (started 03:42:57; serial.log 30890 bytes)
+03:43:57 +60s CPU#0 RIP=fffff8057e0563bf serial.log 30890 bytes, disk.qcow2 23:57:06
+RECOVERED BY ITSELF after 60s (serial.log changed or CPU#0 left the firmware)
+# the first version's false positive, rerun 5: smoke-rerun-5/hang-smoke-ssh-reboot-2-wait.txt said RECOVERED at 60 s on RIP 000000007ad5926e (CpuDxe)
+
+# 2026-10-25T04:48:55-04:00 SMOKE_HANG_WAIT_RIP gate (smoke-hang-hook.sh): wait only for a CpuMpPei RIP, 0x7bfe1000..0x7bfeda00 on the 2025.11 layout. Inputs are the recorded RIPs as the monitor prints them.
+000000007bfe35d3 PEI-rerun3: expected wait, got wait  ok
+000000007bf7c483 DXE-rerun6-DxeCore: expected no-wait, got no-wait  ok
+000000007ad5926e DXE-rerun5-CpuDxe: expected no-wait, got no-wait  ok
+000000007bfe0fff just-below-CpuMpPei: expected no-wait, got no-wait  ok
+000000007bfee000 just-above-CpuMpPei: expected no-wait, got no-wait  ok
+fffff800bd0563bf Windows: expected no-wait, got no-wait  ok
+# 2026-10-25T04:49:19-04:00 the gate as written (hook lines 20-28 executed verbatim, wait_for_self_recovery stubbed, record file faked):
+PEI 000000007bfe35d3 -> bash: line 3: [[: invalid regular expression `^0*7bfe[1-9a-d][0-9a-f]{3$}': Invalid content of \{\}
+HANG t: DXE variant (RIP=000000007bfe35d3), not waiting (hang-t-wait.txt)
+   wait file: t: no self-recovery wait: CPU#0 RIP=000000007bfe35d3 is not in CpuMpPei (SMOKE_HANG_WAIT_RIP), so this is the 
+DXE 000000007bf7c483 -> bash: line 3: [[: invalid regular expression `^0*7bfe[1-9a-d][0-9a-f]{3$}': Invalid content of \{\}
+HANG t: DXE variant (RIP=000000007bf7c483), not waiting (hang-t-wait.txt)
+   wait file: t: no self-recovery wait: CPU#0 RIP=000000007bf7c483 is not in CpuMpPei (SMOKE_HANG_WAIT_RIP), so this is the 
+# 2026-10-25T04:52:25-04:00 fixed gate (hook lines 20-31 executed verbatim, wait_for_self_recovery stubbed, record file faked). The first version's default regex came out as '{3$}' because its '}' closed the ${:-} expansion; it never waited.
+PEI 000000007bfe35d3: expected wait, got wait  ok   (WAIT CALLED for t 4800 s)
+DXE 000000007bf7c483: expected no-wait, got no-wait  ok   (HANG t: DXE variant (RIP=000000007bf7c483), not waiting (hang-t-wait.t)
+DXE 000000007ad5926e: expected no-wait, got no-wait  ok   (HANG t: DXE variant (RIP=000000007ad5926e), not waiting (hang-t-wait.t)
+Windows fffff800bd0563bf: expected no-wait, got no-wait  ok   (HANG t: DXE variant (RIP=fffff800bd0563bf), not waiting (hang-t-wait.t)
+gate control exit 0

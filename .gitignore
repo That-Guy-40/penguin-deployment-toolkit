@@ -42,5 +42,21 @@ http/collector/
 # Evidence kept in spikes/ is tracked even when it is a log
 !spikes/**/*.log
 spikes/2026-10-25-reboot-hang/layout/*.bin.gz
-spikes/2026-10-25-reboot-hang/smoke-rerun-[2-9]/
+spikes/2026-10-25-reboot-hang/smoke-rerun-[2-8]/
+# the OVMF 2024.11 control runs (9-12): keep the report, the log and boot.out (which
+# firmware QEMU was given), not the 5 MB of shots and console frames each
+spikes/2026-10-25-reboot-hang/smoke-rerun-9/*
+spikes/2026-10-25-reboot-hang/smoke-rerun-1[0-2]/*
+!spikes/2026-10-25-reboot-hang/smoke-rerun-9/report.md
+!spikes/2026-10-25-reboot-hang/smoke-rerun-9/smoke.log
+!spikes/2026-10-25-reboot-hang/smoke-rerun-9/boot.out
+!spikes/2026-10-25-reboot-hang/smoke-rerun-1[0-2]/report.md
+!spikes/2026-10-25-reboot-hang/smoke-rerun-1[0-2]/smoke.log
+!spikes/2026-10-25-reboot-hang/smoke-rerun-1[0-2]/boot.out
+# reruns 3, 5 and 6 caught hangs: kept, memory dumps gzipped (rerun 6's 80 MB dump stays local)
+!spikes/2026-10-25-reboot-hang/smoke-rerun-3/
+!spikes/2026-10-25-reboot-hang/smoke-rerun-5/
+!spikes/2026-10-25-reboot-hang/smoke-rerun-6/
+spikes/2026-10-25-reboot-hang/smoke-rerun-[356]/*.bin
+spikes/2026-10-25-reboot-hang/smoke-rerun-6/*-bsp-*.bin.gz
 spikes/2026-10-25-reboot-hang/*.stdout

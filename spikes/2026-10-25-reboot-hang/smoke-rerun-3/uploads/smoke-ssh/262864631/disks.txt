@@ -1,0 +1,5 @@
+disk 0|QEMU HARDDISK|SATA|64GB|GPT
+disk 1|QEMU QEMU HARDDISK|USB|8GB|MBR
+vol C: NTFS 63GB label=Windows
+vol D: FAT32 8GB label=PDTUSB
+marker D: pdt smoke marker: smoke-ssh usb stick 2026-10-25T02:12:47-04:00

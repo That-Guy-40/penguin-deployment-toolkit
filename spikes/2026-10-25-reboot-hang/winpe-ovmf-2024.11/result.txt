@@ -1,0 +1,1 @@
+rh-base 5 0 5 --firmware /tmp/claude-1000/-home-sqs-scripts-Windows-install-via-Linux/db333f61-18fb-420a-8c91-36dad1f2e3d0/scratchpad/ovmf-2024.11-dl/x/usr/share/OVMF/OVMF_CODE_4M.secboot.fd PRE='' IDLE=0 LOAD=

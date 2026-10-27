@@ -1,0 +1,91 @@
+03:45:11 +    0s  smoke: output in /home/sqs/scripts/Windows-install-via-Linux/spikes/2026-10-25-reboot-hang/smoke-rerun-6
+03:45:11 +    0s  preflight: build-tools check, lint, lab keys
+03:45:11 +    0s  PASS  [tools] every served binary is the one built-tools recorded (pdt-sha256, pdt-screen, pdt-console, openssl)  (build-tools-check.out)
+03:45:11 +    0s  PASS  [roles] lab keys written into every role with SSH=on (fetch-tools keys)  (keys.out)
+03:45:15 +    4s  PASS  [lint] bin/lint passes with the two demo roles and no lab VMs  (231 PASS, 0 FAIL, 0 UNKNOWN   (-v lists every row))
+03:45:15 +    4s  create: smoke-ssh (demo-ssh, AHCI disk + USB stick, STOP_AFTER=25-download) and smoke-rdp (demo-rdp, virtio disk + SD card), both UPDATES=lcu
+03:45:15 +    4s  media: formatting the USB stick and the SD card, writing the markers
+03:45:16 +    5s  PASS  [media] marker files written to the USB stick and the SD card images before boot  (media-prep.out)
+03:45:16 +    5s  boot: smoke-ssh (host 2224 -> 22, 3392 -> 3389), smoke-rdp (host 3391 -> 3389, 2225 -> 22)
+03:46:01 +   50s  shot: shots/smoke-ssh-034601-pxe-winpe.png
+03:46:01 +   50s  shot: shots/smoke-rdp-034601-pxe-winpe.png
+03:46:01 +   50s  waiting for smoke-ssh to stop after 25-download
+03:46:12 +   61s  PASS  [sequence] smoke-ssh stopped at the WinPE prompt after 25-download (STOP_AFTER)  (  2026-10-25T03:46:11-04:00  +   46.9s  (+   0.2s)  stop        ok    after=25-download)
+03:46:12 +   61s  shot: shots/smoke-ssh-034612-stopped-prompt.png
+03:46:12 +   61s  pushed screen of smoke-ssh saved (stopped-prompt)
+03:46:12 +   61s  shot: shots/smoke-rdp-034612-while-A-stopped.png
+03:46:14 +   63s  PASS  [console] the deploy window's text frame shows the stop within 60 s of the beacon (pdt-console.exe dump, bin/console --await)  (smoke-ssh-console-at-stop.txt)
+03:46:14 +   63s  PASS  [verify] 25-download on smoke-ssh: the image's SHA-256 matches images/base.json (pdt-sha256 on the machine)  (sha256 0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279 matches images/base.json)
+03:46:14 +   63s  on smoke-ssh: hashes by hand (bin/shell)
+03:46:18 +   67s  PASS  [tools] pdt-sha256.exe on smoke-ssh hashes itself to the hash built-tools recorded  (cd0965834efb92c03499bc327ca7e6ed72c6e10176c53bea13a411bda1356aa0)
+03:46:20 +   69s  PASS  [tools] curl on smoke-ssh fetched openssl.exe and pdt-sha256 gives the recorded hash  (5384210784f5a4182192316bba6d2b0a0381f65ed8e0e6ea6067c889354f687c)
+03:46:31 +   80s  PASS  [verify] openssl dgst -sha256 on smoke-ssh agrees with the sidecar for the 3.5 GB image (the second opinion)  (0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279)
+03:46:43 +   92s  PASS  [verify] pdt-sha256 --check on smoke-ssh: image against the sidecar 25-download saved  (exit 0 = matches)
+03:46:47 +   96s  PASS  [verify] verified.cmd on smoke-ssh with a truthful sidecar: exit 0, the file kept  (rc=0 kept=0)
+03:46:52 +  101s  PASS (control fired, rc=1)  [verify] CONTROL: verified.cmd on smoke-ssh with a lying sidecar must fail and delete the download  (verified.cmd rc=1, deleted=yes; tools/pdt-screen.exe does not match the sha256 in cmd/smoke/bad.json: download deleted)
+03:46:54 +  103s  PASS  [diskguard] 17-diskguard on smoke-ssh listed the USB stick as not eligible (removable media / on USB) and chose the one fixed disk  (disk 0:QEMU HARDDISK 64GiB of 2 (the only fixed disk); 1|Removable Media|USB|8|QEMU QEMU HARDDISK USB Device|not eligible: removable media (Removable Media))
+03:46:54 +  103s  shot: shots/smoke-ssh-034654-after-hand-checks.png
+03:46:54 +  103s  typing 'deploy 30' into smoke-ssh's deploy window (bin/keys)
+03:46:58 +  107s  PASS  [console] bin/keys resumed smoke-ssh (deploy 30) and the next frame shows 30-apply  (keys rc=0, console --await rc=0)
+03:47:18 +  127s  shot: shots/smoke-ssh-034718-applying.png
+03:47:18 +  127s  shot: shots/smoke-rdp-034718-applying.png
+03:47:18 +  127s  pushed screen of smoke-rdp saved (applying)
+03:47:18 +  127s  waiting for both to reach 'deployed' (first logon, roles)
+04:02:26 + 1035s  shot: shots/smoke-rdp-040226-firstlogon.png
+04:32:34 + 2843s  shot: shots/smoke-ssh-043234-firstlogon.png
+04:47:39 + 3748s  shot: shots/smoke-ssh-044739-reboot-hang-recovered.png
+04:47:39 + 3748s  REBOOT HANG on smoke-ssh: no specialize 300 s after ts-done; force-stopped and booted again (smoke-ssh-reboot-hang.txt)
+04:49:47 + 3876s  FAIL  [deploy] smoke-ssh deployed (PXE -> WinPE -> apply -> first logon -> role) in 3870 s wall  (rc=2; )
+04:49:47 + 3876s  shot: shots/smoke-ssh-044947-deployed.png
+04:49:47 + 3876s  PASS  [deploy] smoke-rdp deployed, with the driver pack, in 3871 s wall  (  2026-10-25T04:02:51-04:00  + 1047.1s  (+   0.1s)  deployed    ok    host=WIN-VKBOO68QH2T role=demo-rdp)
+04:49:47 + 3876s  shot: shots/smoke-rdp-044947-deployed.png
+04:49:47 + 3876s  FAIL  [firmware] smoke-ssh hung at a guest-initiated reboot (out of WinPE, or Setup's after specialize); recovered by a force stop and a boot from its disk; TODO.md's QEMU 10.2 / OVMF item  (smoke-ssh-reboot-hang.txt)
+04:49:47 + 3876s  PASS  [firmware] smoke-rdp came through both reboots (WinPE -> Setup, specialize -> first logon) on its own  (  2026-10-25T04:02:11-04:00  + 1007.7s  (+  67.8s)  firstlogon  ok    host=WIN-VKBOO68QH2T build=26100.9550 secureboot=False user=deploy)
+04:49:47 + 3876s  PASS  [verify] 25-download on smoke-rdp: the image verified  (sha256 0c947e482585e95418832fa74b37e67dd9c4fd92bc3c83229dc8034f0020a279 matches images/base.json)
+04:49:47 + 3876s  PASS  [verify] 35-updates on smoke-ssh: the update pack verified against updates/lcu.json before DISM added it  (package 26100.9550 is installed in the image; sha256 254b71a462b33ea450ef84eca1749c67599284272115b881a31d76326646c697 matches updates/lcu.json)
+04:49:47 + 3876s  PASS  [verify] 35-updates on smoke-rdp: the update pack verified against updates/lcu.json before DISM added it  (package 26100.9550 is installed in the image; sha256 254b71a462b33ea450ef84eca1749c67599284272115b881a31d76326646c697 matches updates/lcu.json)
+04:49:47 + 3876s  PASS  [verify] 40-drivers on smoke-rdp: the driver pack verified against drivers/virtio-w11.json  (sha256 0318467bc1adf768b54e54b97de367b52f0c5053ad966d1b5acdf66cff325330 matches drivers/virtio-w11.json)
+04:49:48 + 3877s  PASS  [verify] 45-winre on smoke-ssh: Winre.wim from the image itself (base.wim carries one), or the server's verified against its sidecar  (Winre.wim from the image itself, W:\Windows\System32\Recovery)
+04:49:48 + 3877s  PASS  [boot] 50-boot on smoke-ssh: the firmware's first entry is Windows Boot Manager  (boot files written; the firmware boots Windows Boot Manager first)
+04:49:48 + 3877s  FAIL  [roles] FASTSTARTUP=off applied on smoke-ssh  (rc=1; )
+04:49:48 + 3877s  PASS  [verify] 45-winre on smoke-rdp: Winre.wim from the image itself (base.wim carries one), or the server's verified against its sidecar  (Winre.wim from the image itself, W:\Windows\System32\Recovery)
+04:49:48 + 3877s  PASS  [boot] 50-boot on smoke-rdp: the firmware's first entry is Windows Boot Manager  (boot files written; the firmware boots Windows Boot Manager first)
+04:49:48 + 3877s  PASS  [roles] FASTSTARTUP=off applied on smoke-rdp  (  2026-10-25T04:02:43-04:00  + 1039.2s  (+   0.2s)  faststartup ok    state=off)
+04:49:48 + 3877s  PASS  [diskguard] 17-diskguard on smoke-rdp chose the one fixed (virtio) disk, whatever its number  (disk 1:Red Hat VirtIO SCSI Disk Device 64GiB of 2 (the only fixed disk))
+04:49:48 + 3877s  PASS  [diskguard] WinPE on smoke-rdp saw the SD card as a disk and the guard rejected it as removable media  (0|Removable Media|SCSI|8|Generic QEMU! SD Card|not eligible: removable media (Removable Media))
+04:49:48 + 3877s  FAIL  [roles] users on smoke-ssh: ops and carol created, carol's key installed  (rc=1; )
+04:49:48 + 3877s  FAIL  [roles] SSH=on on smoke-ssh: OpenSSH Server installed, listening  (rc=1; )
+04:49:48 + 3877s  PASS  [roles] no rdp beacon from smoke-ssh (the role has no RDP=on)  (demo-ssh/role.cfg)
+04:49:49 + 3878s  PASS  [roles] users on smoke-rdp: helpdesk and bob created with generated passwords  (  2026-10-25T04:02:23-04:00  + 1019.0s  (+   5.6s)  users       ok    created=helpdesk,bob set=deploy)
+04:49:49 + 3878s  PASS  [roles] RDP=on on smoke-rdp: Remote Desktop listening  (  2026-10-25T04:02:47-04:00  + 1043.7s  (+   4.4s)  rdp         ok    listening=yes)
+04:49:49 + 3878s  PASS  [roles] APPS on smoke-rdp: 7-Zip installed by winget at first logon  (  2026-10-25T04:02:43-04:00  + 1039.0s  (+   6.7s)  apps        ok    installed=7zip.7zip)
+04:49:49 + 3878s  PASS  [roles] no ssh beacon from smoke-rdp (the role has no SSH=on)  (demo-rdp/role.cfg)
+04:49:49 + 3878s  FAIL  [media] post.cmd on smoke-ssh: the installed Windows sees the removable medium and reads its marker (disks.txt)  (rc=1; )
+04:49:49 + 3878s  PASS  [media] post.cmd on smoke-rdp: the installed Windows sees the removable medium and reads its marker (disks.txt)  (  2026-10-25T04:02:51-04:00  + 1047.1s  (+   3.2s)  role-post   ok    disks=2 markers=1)
+04:49:49 + 3878s  PASS  [updates] smoke-ssh runs build 26100.9550, the one the update pack expects (firstlogon beacon)  (  2026-10-25T04:49:46-04:00  + 3861.9s  (+  60.1s)  firstlogon  ok    host=WIN-SMA9FB7OEG6 build=26100.9550 secureboot=False user=deploy)
+04:49:49 + 3878s  PASS  [updates] smoke-rdp runs build 26100.9550, the one the update pack expects (firstlogon beacon)  (  2026-10-25T04:02:11-04:00  + 1007.7s  (+  67.8s)  firstlogon  ok    host=WIN-VKBOO68QH2T build=26100.9550 secureboot=False user=deploy)
+04:49:49 + 3878s  SSH into smoke-ssh as ops and carol, with controls
+04:50:17 + 3906s  PASS  [ssh] ops (Administrators, SSHKEYS) logs in to smoke-ssh with the lab key  (ssh.out)
+04:50:19 + 3908s  PASS  [ssh] carol (Users, keys=carol.pub) logs in to smoke-ssh with her own key, whoami says carol  (ssh.out)
+04:50:19 + 3908s  PASS (control fired, rc=255)  [ssh] CONTROL: carol with the administrators' key is refused  (ssh.out)
+04:50:19 + 3908s  PASS (control fired, rc=255)  [ssh] CONTROL: ops without a key is refused (passwords are off)  (ssh.out)
+04:50:19 + 3908s  PASS (control fired, rc=255)  [ssh] CONTROL: carol with another lab user's key (alice's) is refused  (ssh.out)
+04:50:23 + 3912s  PASS  [media] the installed Windows on smoke-ssh lists the USB stick (Get-Disk BusType USB) over SSH  (ssh.out)
+04:50:23 + 3912s  PASS  [ssh] the host key fingerprint offered to this host is the one smoke-ssh reported in ssh.txt  (SHA256:a8imKFYgteciyWiV6qHAWTtNxHQWUvnc6U1FDoRcoyk)
+04:50:53 + 3942s  PASS (control fired, rc=124)  [rdp] CONTROL: RDP to smoke-ssh (no RDP=on) fails (QEMU's port forward accepts the TCP connection, the guest has no listener: xfreerdp hangs and the 30 s timeout ends it, rc 124)  (ssh.out)
+04:50:53 + 3942s  waiting for smoke-rdp to remove the deploy account and come back (DEPLOY=remove)
+04:50:53 + 3942s  PASS  [roles] DEPLOY=remove on smoke-rdp: deploy account deleted, restart, profile gone  (  2026-10-25T04:04:50-04:00  + 1166.0s  (+   5.5s)  deploy-removed ok    profile_gone=ok)
+04:51:14 + 3963s  shot: shots/smoke-rdp-045113-login-screen.png
+04:51:14 + 3963s  PASS  [roles] generated passwords for every account were uploaded as users.txt by both machines  (bin/logs <vm> --cat users.txt (masked in this directory))
+04:51:14 + 3963s  PASS  [rdp] helpdesk (Administrators) authenticates over RDP to smoke-rdp with the generated password (xfreerdp /auth-only)  (rdp.out)
+04:51:14 + 3963s  PASS  [rdp] bob (Users, Remote Desktop Users) authenticates over RDP to smoke-rdp  (rdp.out)
+04:51:14 + 3963s  PASS (control fired, rc=134)  [rdp] CONTROL: bob with a wrong password is refused  (rdp.out)
+04:51:14 + 3963s  PASS (control fired, rc=134)  [rdp] CONTROL: the deleted deploy account is refused  (rdp.out)
+04:51:24 + 3973s  PASS (control fired, rc=255)  [ssh] CONTROL: SSH to smoke-rdp (no SSH=on) is refused  (rdp.out)
+04:51:24 + 3973s  collecting uploads, console frames, screens
+04:51:25 + 3974s  shutting both down (a real shutdown: fast startup is off), reading the markers back
+04:52:28 + 4037s  FAIL  [shutdown] smoke-rdp at its login screen powers down on the ACPI button within 60 s (vm-stop); run 3 needed the forced stop  (rc=1; shutdown.out)
+04:53:16 + 4085s  PASS  [media] the USB stick's marker survived the install on smoke-ssh (read back with mtools)  (media-readback.out)
+04:53:16 + 4085s  PASS  [media] the SD card's marker survived the install on smoke-rdp  (media-readback.out)
+04:53:16 + 4085s  purging smoke-ssh and smoke-rdp
+04:53:19 + 4088s  report: /home/sqs/scripts/Windows-install-via-Linux/spikes/2026-10-25-reboot-hang/smoke-rerun-6/report.md  (45 PASS, 8 controls fired, 7 FAIL, 0 UNKNOWN)

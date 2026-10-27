@@ -1,0 +1,12 @@
+rerun 2 rc=0
+rerun 3 rc=1
+rerun 4 rc=0
+rerun 5 rc=1 (traced, hook + 4800 s self-recovery wait)
+rerun 6 rc=1 (traced, hook + 4800 s self-recovery wait)
+rerun 7 rc=0 (traced, hook + 4800 s self-recovery wait)
+rerun 8 rc=0 (traced, hook + 4800 s self-recovery wait)
+05:37:35 queue of reruns 5-8 finished; starting OVMF 2024.11 smoke runs
+rerun 9 rc=0 (OVMF 2024.11 via VM_BOOT_FIRMWARE, traced, hook + 4800 s wait)
+rerun 10 rc=0 (OVMF 2024.11 via VM_BOOT_FIRMWARE, traced, hook + 4800 s wait)
+rerun 11 rc=0 (OVMF 2024.11 via VM_BOOT_FIRMWARE, traced, hook + 4800 s wait)
+rerun 12 rc=0 (OVMF 2024.11 via VM_BOOT_FIRMWARE, traced, hook + 4800 s wait)
