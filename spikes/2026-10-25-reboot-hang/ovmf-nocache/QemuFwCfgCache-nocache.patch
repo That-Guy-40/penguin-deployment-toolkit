@@ -1,0 +1,23 @@
+--- edk2/OvmfPkg/Library/QemuFwCfgLib/QemuFwCfgCache.c	2026-10-27 18:08:59.130391900 -0400
++++ edk2-nocache/OvmfPkg/Library/QemuFwCfgLib/QemuFwCfgCache.c	2026-10-27 18:07:38.191412004 -0400
+@@ -84,6 +84,9 @@
+   VOID
+   )
+ {
++  // PDT-NOCACHE bisection build: the cache is never being read.
++  return FALSE;
++
+   BOOLEAN                Reading;
+   QEMU_FW_CFG_WORK_AREA  *QemuFwCfgWorkArea;
+ 
+@@ -103,6 +106,10 @@
+ {
+   QEMU_FW_CFG_WORK_AREA  *QemuFwCfgWorkArea;
+ 
++  // PDT-NOCACHE bisection build: never serve a select from the cache, so every
++  // read goes to QEMU (DMA or the data port) as in edk2-stable202502 and before.
++  return FALSE;
++
+   // Walk thru cached fw_items to see if Item is cached.
+   if (InternalQemuFwCfgItemCached (Item) == NULL) {
+     return FALSE;

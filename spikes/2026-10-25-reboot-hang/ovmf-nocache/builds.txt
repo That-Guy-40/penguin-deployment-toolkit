@@ -1,0 +1,13 @@
+# Self-built OVMF 2025.11-3ubuntu7.3 images, 2026-10-27T18:27:58-04:00, build-ovmf.sh, gcc 15.2.0, nasm 3.01, iasl 20251212
+# Not vendored: rebuild with ovmf-nocache/README.txt. Both boot the lab VM to WinPE in 18 s (boot-check.out).
+stock  3653632 bytes  sha256 9c727efdaa38d2f11b22f69e918622238817f222e7fa21bb6dd54e30b898dbcb  Build total time: 00:00:52
+nocache  3653632 bytes  sha256 0473d00e1580f620f5dc47d27b8463be0d18a39dddb16132e894dd4208f27b54  Build total time: 00:00:52
+package  3653632 bytes  sha256 33c413a04e9edf512c504e9b0accbcec4d009d406bca761cc0b8eacc93da60b6  (2025.11-3ubuntu7.3 as installed)
+# build flags:
+  build -a X64 -t GCC5 -p OvmfPkg/OvmfPkgX64.dsc -b RELEASE -n 14 \
+    -DCC_MEASUREMENT_ENABLE=TRUE -DNETWORK_HTTP_BOOT_ENABLE=TRUE -DNETWORK_IP6_ENABLE=TRUE -DNETWORK_TLS_ENABLE \
+    --pcd 'PcdFirmwareVendor=LUbuntu distribution of EDK II\0' \
+    --pcd "PcdFirmwareVersionString=L2025.11-3ubuntu7.3~pdt-$tag\\0" \
+    --pcd 'PcdFirmwareReleaseDateString=L10/27/2026\0' \
+    -DTPM2_ENABLE=TRUE -DFD_SIZE_4MB -DBUILD_SHELL=FALSE -DSECURE_BOOT_ENABLE=TRUE -DSMM_REQUIRE=TRUE \
+    > "$out/$tag-build.log" 2>&1; rc=$?

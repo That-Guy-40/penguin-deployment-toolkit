@@ -53,6 +53,15 @@ spikes/2026-10-25-reboot-hang/smoke-rerun-1[0-2]/*
 !spikes/2026-10-25-reboot-hang/smoke-rerun-1[0-2]/report.md
 !spikes/2026-10-25-reboot-hang/smoke-rerun-1[0-2]/smoke.log
 !spikes/2026-10-25-reboot-hang/smoke-rerun-1[0-2]/boot.out
+# the self-built OVMF 2025.11 bisection runs (ovmf-nocache/): same three files kept
+spikes/2026-10-25-reboot-hang/smoke-nocache-[0-9]/*
+spikes/2026-10-25-reboot-hang/smoke-stock-[0-9]/*
+!spikes/2026-10-25-reboot-hang/smoke-nocache-[0-9]/report.md
+!spikes/2026-10-25-reboot-hang/smoke-nocache-[0-9]/smoke.log
+!spikes/2026-10-25-reboot-hang/smoke-nocache-[0-9]/boot.out
+!spikes/2026-10-25-reboot-hang/smoke-stock-[0-9]/report.md
+!spikes/2026-10-25-reboot-hang/smoke-stock-[0-9]/smoke.log
+!spikes/2026-10-25-reboot-hang/smoke-stock-[0-9]/boot.out
 # reruns 3, 5 and 6 caught hangs: kept, memory dumps gzipped (rerun 6's 80 MB dump stays local)
 !spikes/2026-10-25-reboot-hang/smoke-rerun-3/
 !spikes/2026-10-25-reboot-hang/smoke-rerun-5/

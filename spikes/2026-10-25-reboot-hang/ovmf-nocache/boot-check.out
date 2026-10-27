@@ -1,0 +1,15 @@
+# 2026-10-27T18:25:44-04:00 do the two self-built images boot the lab VM to WinPE? (vm-create fwtest --mode none; vm-boot with VM_BOOT_FIRMWARE; await shell 180)
+next: bin/vm-boot fwtest
+## nocache
+qemu 1713564 pflash unit 0: OVMF_CODE_4M.secboot.nocache.fd
+nocache: WinPE shell beacon after 18 s  PASS
+VM fwtest stopped
+## stock
+qemu 1719108 pflash unit 0: OVMF_CODE_4M.secboot.stock.fd
+stock: WinPE shell beacon after 18 s  PASS
+VM fwtest stopped
+## negative control: a truncated image must not boot
+ERROR: QEMU failed to start
+truncated: no beacon in 60 s  control ok
+VM fwtest is not running
+deleted VM fwtest (and machines/9b80c440-ea99-44b2-8550-95ed42b72a18.cfg, its boot override and command files)

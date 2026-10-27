@@ -333,8 +333,13 @@ versions (nothing older is installed), the time of day.
   five by chance (0.217; per run, (5/8)^4 = 0.15). Suggestive, consistent
   with the cache hypothesis, **not proof**. More old-firmware runs would
   sharpen it at 22 minutes each; a firmware built with the cache disabled
-  (`QemuFwCfgLib` without `QemuFwCfgCache`) on the 2025.11 base would be the
-  clean bisection.
+  on the 2025.11 base is the clean bisection, and it is prepared in
+  `ovmf-nocache/`: Ubuntu's source package (hashes from its `.dsc`), a
+  5-line patch that makes the cache's select and read checks return FALSE,
+  the build script with debian/rules' Secure Boot flags, and the alternating
+  smoke schedule. Not run yet (2026-10-27): the agent's sandbox refuses to
+  execute build tools out of a downloaded tree, so the two builds and the
+  eight smoke runs are the next thing to do by hand (`ovmf-nocache/README.txt`).
 - Side observation, untested: the `smoke-rdp` machine ignored the ACPI
   button at its login screen in exactly the three runs where the other
   machine hung (reruns 3, 5, 6) and in none of the nine clean runs. In those

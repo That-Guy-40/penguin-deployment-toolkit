@@ -1,0 +1,13 @@
+# The GCC5 RELEASE objects are LTO (no machine code in .obj), so the check is on the linked PlatformPei.dll with symbols (DEBUG dir of each build):
+=== stock 97472 bytes Build/OvmfX64/RELEASE_GCC5/X64/OvmfPkg/PlatformPei/PlatformPei/DEBUG/PlatformPei.dll
+   (symbols not present: folded away by LTO)
+   -- QemuFwCfgSelectItem (the caller) first 12 instructions:
+=== nocache 96592 bytes Build/OvmfX64/RELEASE_GCC5/X64/OvmfPkg/PlatformPei/PlatformPei/DEBUG/PlatformPei.dll
+   (symbols not present: folded away by LTO)
+   -- QemuFwCfgSelectItem (the caller) first 12 instructions:
+# 2026-10-27T18:29:06-04:00 functional proof the cache is off: fw_cfg selects per firmware run in the live QEMU trace of smoke-nocache-1 (2025.11 stock/package: etc/e820 1x, file_dir 9x per run; 2024.11: 8x and 38x; fw-cfg-items.out)
+smoke-ssh: signature selects 20 (2 per firmware run), etc/e820 (0x25) 9, file_dir (0x19) 55  -> per run: e820 0, file_dir 5
+smoke-rdp: signature selects 20 (2 per firmware run), etc/e820 (0x25) 9, file_dir (0x19) 55  -> per run: e820 0, file_dir 5
+     55 key 0x0019 'file_dir'
+      9 key 0x0025 'unknown'
+# correction: 'signature selects = 2 per run' was a wrong assumption (the 2024.11 loop showed 15 per run), so the 'per run' column above is wrong; the raw counts are the evidence: at this point each VM had done ONE firmware run (cold boot into WinPE), and it selected etc/e820 9 times and file_dir 55 times, where the packaged 2025.11 selects them 1 and 9 times per run and 2024.11 8 and 38 (fw-cfg-items.out, winpe-ovmf-2024.11/README.txt). The cache is off in the nocache build.
