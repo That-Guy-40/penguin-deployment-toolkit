@@ -1,0 +1,135 @@
+# smoke-stock-3: smoke-rdp hung at its first guest-initiated reboot (21:08:30 ts-done, recorded 21:13:31), self-built stock OVMF 2025.11
+# 1. CPU#0 and CPU#1 placed in the firmware images of the dump (find-module.py --fv stock DXE volume)
+  0x7ad0d000..0x7ad11540     17728  PciHostBridgeDxe
+  0x7ad57000..0x7ad6da80     92800  CpuDxe
+  0x7b31e0ec..0x7b3219ec     14592  PlatformDxe  (header says ImageBase 0x0)
+  0x7b59e094..0x7b59f1d4      4416  SmbiosPlatformDxe  (header says ImageBase 0x0)
+  0x7b858034..0x7b859ab4      6784  ConPlatformDxe  (header says ImageBase 0x0)
+  0x7b8910c8..0x7b895608     17728  PciHostBridgeDxe  (header says ImageBase 0x0)
+  0x7b89a070..0x7b8ab4b0     70720  CpuDxe  (header says ImageBase 0x0)
+  0x7b8ac070..0x7b8c2af0     92800  CpuDxe  (header says ImageBase 0x0)
+  0x7bf7c000..0x7bf9fbc0    146368  DxeCore
+RIP 0x7ad5726e: in CpuDxe at image offset 0x26e (image at 0x7ad57000)
+RIP 0x7ad63d71: in CpuDxe at image offset 0xcd71 (image at 0x7ad57000)
+RIP 0x7bf7c462: in DxeCore at image offset 0x462 (image at 0x7bf7c000)
+
+# 2. CPU#0's stack (hang-smoke-rdp-reboot-1.txt, 64 qwords at RSP) placed, in stack order
+RIP 0x7ad1086b: in PciHostBridgeDxe at image offset 0x386b (image at 0x7ad0d000)
+RIP 0x7ad11260: in PciHostBridgeDxe at image offset 0x4260 (image at 0x7ad0d000)
+RIP 0x7bf8685e: in DxeCore at image offset 0xa85e (image at 0x7bf7c000)
+RIP 0x7bf7ce00: in DxeCore at image offset 0xe00 (image at 0x7bf7c000)
+
+# 3. CPU#0's registers at the second sample (RDI/R12 = the address the GCD walk asks for; R14 -> the root bridge's MemAbove4G aperture)
+
+CPU#0
+RAX=0000000000000000 RBX=000000007bf7bc78 RCX=000000007bf7ba90 RDX=000000007bf7ba98
+RSI=0000000000000001 RDI=0000400000000000 RBP=000000007bf7bac0 RSP=000000007bf7ba88
+R8 =000000007bf94f30 R9 =0000000000000001 R10=000000007bf939e0 R11=900287a000000000
+# aperture at R14 (Base, Limit) read from the dump:
+  Base 0x9002879800000000  Limit 0x9002879fffffffff
+
+# 4. CpuDxe at the two RIPs (self-built CpuDxe.debug, nm + objdump)
+  0x26e in CpuEnableInterrupt @0x0000000000000262
+  0xcd71 in CpuSleep @0x000000000000cd70
+       262:	f3 0f 1e fa          	endbr64
+       266:	fb                   	sti
+       267:	c6 05 22 63 01 00 01 	movb   $0x1,0x16322(%rip)        # 16590 <InterruptState>
+       26e:	31 c0                	xor    %eax,%eax
+       270:	c3                   	ret
+      cd70:	f4                   	hlt
+      cd71:	c3                   	ret
+
+# 5. QEMU fw_cfg/cpuhp trace split per firmware run (a 'signature' select starts one): the hung reboot (hung VM, last segment) against every segment of the healthy VM of the same run (smoke-ssh-qemu-trace-healthy.log: its cold boot, its two warm reboots)
+  smoke-stock-3/hang-smoke-rdp-reboot-1-qemu-trace.log:
+    seg 1: selects 1 reads 0 e820 0 file_dir 0 cpuhp 0
+    seg 2: selects 10 reads 336 e820 0 file_dir 8 cpuhp 0
+    seg 3: selects 20 reads 20 e820 1 file_dir 1 cpuhp 92
+    seg 4: selects 1 reads 0 e820 0 file_dir 0 cpuhp 0
+    seg 5: selects 10 reads 336 e820 0 file_dir 8 cpuhp 0
+    seg 6: selects 8 reads 8 e820 1 file_dir 1 cpuhp 16 (last)
+  smoke-stock-3/smoke-ssh-qemu-trace-healthy.log:
+    seg 1: selects 1 reads 0 e820 0 file_dir 0 cpuhp 0
+    seg 2: selects 10 reads 336 e820 0 file_dir 8 cpuhp 0
+    seg 3: selects 20 reads 20 e820 1 file_dir 1 cpuhp 92
+    seg 4: selects 1 reads 0 e820 0 file_dir 0 cpuhp 0
+    seg 5: selects 10 reads 336 e820 0 file_dir 8 cpuhp 0
+    seg 6: selects 20 reads 20 e820 1 file_dir 1 cpuhp 93
+    seg 7: selects 1 reads 0 e820 0 file_dir 0 cpuhp 0
+    seg 8: selects 10 reads 336 e820 0 file_dir 8 cpuhp 0
+    seg 9: selects 20 reads 20 e820 1 file_dir 1 cpuhp 77 (last)
+  (a segment of 10 selects / 336 reads is iPXE or Windows reading fw_cfg, not the firmware)
+  the hung segment, in full:
+    fw_cfg_select key 0x0000 'signature'
+    fw_cfg_read = 0x0
+    fw_cfg_select key 0x0001 'id'
+    fw_cfg_read = 0x0
+    fw_cfg_select key 0x0019 'file_dir'
+    fw_cfg_read = 0x0
+    fw_cfg_select key 0x0025 'unknown'
+    fw_cfg_read = 0x0
+    fw_cfg_select key 0x002b 'unknown'
+    fw_cfg_read = 0x0
+    fw_cfg_select key 0x000e 'boot_menu'
+    fw_cfg_read = 0x0
+    fw_cfg_select key 0x0021 'unknown'
+    fw_cfg_read = 0x0
+    fw_cfg_select key 0x0005 'nb_cpus'
+    fw_cfg_read = 0x0
+    cpuhp_acpi_write_idx set active cpu idx: 0x0
+    cpuhp_acpi_write_idx set active cpu idx: 0x0
+    cpuhp_acpi_write_cmd idx[0x0] cmd: 0x0
+    cpuhp_acpi_read_cmd_data2 idx[0x0] data: 0x0
+    cpuhp_acpi_write_idx set active cpu idx: 0x0
+    cpuhp_acpi_read_flags idx[0x0] flags: 0x1
+    cpuhp_acpi_write_idx set active cpu idx: 0x1
+    cpuhp_acpi_read_cmd_data idx[0x1] data: 0x1
+    cpuhp_acpi_read_flags idx[0x1] flags: 0x1
+    cpuhp_acpi_write_idx set active cpu idx: 0x2
+    cpuhp_acpi_read_cmd_data idx[0x2] data: 0x2
+    cpuhp_acpi_read_flags idx[0x2] flags: 0x1
+    cpuhp_acpi_write_idx set active cpu idx: 0x3
+    cpuhp_acpi_read_cmd_data idx[0x3] data: 0x3
+    cpuhp_acpi_read_flags idx[0x3] flags: 0x1
+    cpuhp_acpi_write_idx set active cpu idx: 0x4
+  the healthy VM's second warm reboot (seg 9), first 40 lines:
+    fw_cfg_select key 0x0000 'signature'
+    fw_cfg_read = 0x0
+    fw_cfg_select key 0x0001 'id'
+    fw_cfg_read = 0x0
+    fw_cfg_select key 0x0019 'file_dir'
+    fw_cfg_read = 0x0
+    fw_cfg_select key 0x0025 'unknown'
+    fw_cfg_read = 0x0
+    fw_cfg_select key 0x002b 'unknown'
+    fw_cfg_read = 0x0
+    fw_cfg_select key 0x000e 'boot_menu'
+    fw_cfg_read = 0x0
+    fw_cfg_select key 0x0021 'unknown'
+    fw_cfg_read = 0x0
+    fw_cfg_select key 0x0005 'nb_cpus'
+    fw_cfg_read = 0x0
+    cpuhp_acpi_write_idx set active cpu idx: 0x0
+    cpuhp_acpi_write_idx set active cpu idx: 0x0
+    cpuhp_acpi_write_cmd idx[0x0] cmd: 0x0
+    cpuhp_acpi_read_cmd_data2 idx[0x0] data: 0x0
+    cpuhp_acpi_write_idx set active cpu idx: 0x0
+    cpuhp_acpi_read_flags idx[0x0] flags: 0x1
+    cpuhp_acpi_write_idx set active cpu idx: 0x1
+    cpuhp_acpi_read_cmd_data idx[0x1] data: 0x1
+    cpuhp_acpi_read_flags idx[0x1] flags: 0x1
+    cpuhp_acpi_write_idx set active cpu idx: 0x2
+    cpuhp_acpi_read_cmd_data idx[0x2] data: 0x2
+    cpuhp_acpi_read_flags idx[0x2] flags: 0x1
+    cpuhp_acpi_write_idx set active cpu idx: 0x3
+    cpuhp_acpi_read_cmd_data idx[0x3] data: 0x3
+    cpuhp_acpi_read_flags idx[0x3] flags: 0x1
+    cpuhp_acpi_write_idx set active cpu idx: 0x4
+    fw_cfg_select key 0x0026 'unknown'
+    fw_cfg_read = 0x0
+    fw_cfg_select key 0x002a 'unknown'
+    fw_cfg_read = 0x0
+    fw_cfg_select key 0x0029 'unknown'
+    fw_cfg_read = 0x0
+    fw_cfg_select key 0x0028 'unknown'
+    fw_cfg_read = 0x0
+  keys (platform-info.out, the cached file directory): 0x25 etc/e820, 0x26 etc/smbios/smbios-anchor, 0x27 etc/smbios/smbios-tables, 0x28-0x2a etc/smi/*, 0x2b etc/system-states, 0x2c etc/table-loader, 0x21 bootorder, 0x22/0x23 etc/acpi/*

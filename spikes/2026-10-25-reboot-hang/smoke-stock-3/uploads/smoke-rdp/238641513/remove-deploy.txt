@@ -1,0 +1,14 @@
+remove-deploy (first logon) Wed 10/28/2026  1:16:20.48
+The command completed successfully.
+
+SUCCESS: The scheduled task "PDT-remove-deploy" has successfully been created.
+remove-deploy (next boot) Wed 10/28/2026  1:18:16.25
+=== accounts after
+
+User accounts for \\
+
+-------------------------------------------------------------------------------
+Administrator            bob                      DefaultAccount           
+Guest                    helpdesk                 WDAGUtilityAccount       
+The command completed with one or more errors.
+

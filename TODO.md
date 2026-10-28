@@ -145,13 +145,19 @@ parked are in `DEFERRED.md`, not here.
   of the firmware comparison (same smoke, same QEMU): 2025.11 3 hangs in 8
   runs / 80 reboots; 2024.11 (`VM_BOOT_FIRMWARE`, reruns 9-12) 0 in 4 runs /
   40 reboots.** Chance of 40 clean reboots at the new firmware's rate is
-  about 0.22, so suggestive, not proof. Next: the clean bisection prepared in
-  `spikes/2026-10-25-reboot-hang/ovmf-nocache/` (Ubuntu's 2025.11 source built
-  stock and with the fw_cfg cache patched out, four alternating smoke runs
-  each; the builds need a human to run them, the agent's sandbox will not
-  execute a downloaded tree's build tools); then upstream (edk2 #12441) with
-  the dumps and the table. Phase 5 (the Dell) is blocked separately: the
-  laptop was not on the LAN on 2026-10-27.
+  about 0.22, so suggestive, not proof. **The clean bisection ran on
+  2026-10-27** (`spikes/2026-10-25-reboot-hang/ovmf-nocache/`: Ubuntu's
+  2025.11 source built stock and with the fw_cfg cache patched out, four
+  alternating smoke runs each): **stock hung in 2 of 4 runs (one caught
+  whole, `smoke-stock-3/`: the DXE variant, `PcdPciMmio64Base` garbage while
+  the cached e820 is intact; one lost at the third reboot, which `bin/smoke`
+  now watches too), the no-cache build 0 of 4.** Totals: cache 5 hangs in 12
+  runs, no cache 0 in 8; Fisher p = 0.051, `(7/12)^8 = 0.013`. The cache is
+  implicated at the usual line, the mechanism (which cached `etc/e820` read
+  fails at a warm reset, and why) is open. Next: upstream (edk2 #12441) with
+  the dumps and the table, or more alternating runs to sharpen p. Phase 5
+  (the Dell) is blocked separately: the laptop was not on the LAN on
+  2026-10-27.
 - [ ] `bin/vm-stop` (the ACPI button) at an installed Windows's login screen
   is honoured within 60 s sometimes and ignored sometimes: smoke run 3 ignored,
   runs 4-5 and the 2026-10-25 reruns 1, 2, 4, 7-12 honoured, reruns 3, 5 and 6 ignored (all

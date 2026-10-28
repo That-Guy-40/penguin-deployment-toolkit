@@ -67,5 +67,9 @@ spikes/2026-10-25-reboot-hang/smoke-stock-[0-9]/*
 !spikes/2026-10-25-reboot-hang/smoke-rerun-5/
 !spikes/2026-10-25-reboot-hang/smoke-rerun-6/
 spikes/2026-10-25-reboot-hang/smoke-rerun-[356]/*.bin
+# smoke-stock-3 (2026-10-27): the self-built stock firmware's recorded hang, kept whole like reruns 3/5/6, minus the 80 MB dump
+!spikes/2026-10-25-reboot-hang/smoke-stock-3/*
+spikes/2026-10-25-reboot-hang/smoke-stock-3/*.bin
+spikes/2026-10-25-reboot-hang/smoke-stock-3/*-bsp-*.bin.gz
 spikes/2026-10-25-reboot-hang/smoke-rerun-6/*-bsp-*.bin.gz
 spikes/2026-10-25-reboot-hang/*.stdout

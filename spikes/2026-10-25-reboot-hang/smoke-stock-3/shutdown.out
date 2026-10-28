@@ -1,0 +1,7 @@
+
+$ ssh_a -i /home/sqs/.ssh/id_ed25519 ops@127.0.0.1 shutdown /s /t 0
+rc=0
+
+$ /home/sqs/scripts/Windows-install-via-Linux/bin/vm-stop smoke-rdp
+VM smoke-rdp stopped
+rc=0
