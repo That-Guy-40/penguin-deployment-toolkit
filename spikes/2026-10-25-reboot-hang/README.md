@@ -337,9 +337,18 @@ versions (nothing older is installed), the time of day.
   `ovmf-nocache/`: Ubuntu's source package (hashes from its `.dsc`), a
   5-line patch that makes the cache's select and read checks return FALSE,
   the build script with debian/rules' Secure Boot flags, and the alternating
-  smoke schedule. Not run yet (2026-10-27): the agent's sandbox refuses to
-  execute build tools out of a downloaded tree, so the two builds and the
-  eight smoke runs are the next thing to do by hand (`ovmf-nocache/README.txt`).
+  smoke schedule. Both images built on 2026-10-27 (`ovmf-nocache/builds.txt`,
+  both boot WinPE, the nocache one reads `etc/e820` 9 times per run:
+  `objdump-check.out`), and the eight alternating smoke runs started at 18:27
+  (`smoke-reruns.log`, `smoke-{nocache,stock}-<n>/`). So far: `smoke-nocache-1`
+  52 PASS / 0 FAIL; `smoke-stock-1` lost `smoke-rdp` at the restart after
+  `deploy-remove` (no `deploy-removed` beacon, a black screen 12 min later,
+  SSH banner timeouts, the ACPI button ignored, forced stop): the hang
+  signature at the *third* guest-initiated reboot, which `bin/smoke` did not
+  watch, so no hook ran and no dump exists; which variant it was is
+  [unknown]. `bin/smoke` now records, hooks and recovers that reboot too
+  (`reboot-3`), from `smoke-stock-2` on. The table above is updated when the
+  queue ends.
 - Side observation, untested: the `smoke-rdp` machine ignored the ACPI
   button at its login screen in exactly the three runs where the other
   machine hung (reruns 3, 5, 6) and in none of the nine clean runs. In those

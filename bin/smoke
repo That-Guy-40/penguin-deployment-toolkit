@@ -385,7 +385,26 @@ run $S timeout 30 xfreerdp "/v:127.0.0.1:$A_RDP" /u:ops /p:not-a-password /cert:
 
 # ------------------------------------------------------- RDP into smoke-rdp
 log "waiting for $B to remove the deploy account and come back (DEPLOY=remove)"
-run await.out "$BIN/await" "$B" deploy-removed 600 --run latest; check roles "DEPLOY=remove on $B: deploy account deleted, restart, profile gone" ok $? "$(event_line "$B" deploy-removed)"
+# The restart after deploy-remove is the third guest-initiated reboot that can hang
+# (self-built stock OVMF 2025.11, run smoke-stock-1 on 2026-10-27: no deploy-removed
+# beacon, a black screen 12 min later, SSH banner timeouts, the ACPI button ignored;
+# nothing recorded because only the first two reboots were watched). Same record,
+# hook and recovery as deploy_watch's; then one more, shorter wait for the beacon.
+if ! run await.out "$BIN/await" "$B" deploy-removed 600 --run latest; then
+    f="$OUT/$B-reboot-hang.txt"
+    {
+        echo "deploy-remove at $(event_line "$B" deploy-remove | awk '{ print $1 }'), no deploy-removed within 600 s; QEMU at $(date -Is):"
+        vm_monitor "$B" "info status"; vm_monitor "$B" "info registers -a" | grep -aE "^CPU|RIP"
+        echo "serial.log: $(stat -c '%y %s bytes' "$VMS_DIR/$B/serial.log")  disk.qcow2: $(stat -c '%y' "$VMS_DIR/$B/disk.qcow2")"
+        hang_hook "$B" reboot-3
+        echo "recovering: vm-stop --force, vm-boot --fwd $B_RDP:3389,$B_SSH:22"
+        "$BIN/vm-stop" "$B" --force; "$BIN/vm-boot" "$B" --fwd "$B_RDP:3389,$B_SSH:22"
+    } >> "$f" 2>&1
+    shot "$B" reboot-hang-3-recovered
+    log "REBOOT HANG on $B: no deploy-removed 600 s after deploy-remove; force-stopped and booted again ($(basename "$f"))"
+    run await.out "$BIN/await" "$B" deploy-removed 300 --run latest
+fi
+check roles "DEPLOY=remove on $B: deploy account deleted, restart, profile gone" ok $? "$(event_line "$B" deploy-removed)"
 "$BIN/status" "$B" > "$OUT/$B-timeline.txt" 2>&1
 sleep 20; shot "$B" login-screen
 R="rdp.out"
