@@ -1,0 +1,18 @@
+ts-done at 2026-10-27T21:08:30-04:00, no specialize within 300 s; QEMU at 2026-10-27T21:13:31-04:00:
+QEMU 10.2.1 monitor - type 'help' for more information
+(qemu) i[K[Din[K[D[Dinf[K[D[D[Dinfo[K[D[D[D[Dinfo [K[D[D[D[D[Dinfo s[K[D[D[D[D[D[Dinfo st[K[D[D[D[D[D[D[Dinfo sta[K[D[D[D[D[D[D[D[Dinfo stat[K[D[D[D[D[D[D[D[D[Dinfo statu[K[D[D[D[D[D[D[D[D[D[Dinfo status[K
+VM status: running
+(qemu) CPU#0
+RIP=000000007ad5726e RFL=00000206 [-----P-] CPL=0 II=0 A20=1 SMM=0 HLT=0
+CPU#1
+RIP=000000007ad63d71 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1
+CPU#2
+RIP=000000007ad63d71 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1
+CPU#3
+RIP=000000007ad63d71 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1
+serial.log: 2026-10-27 20:54:21.470567784 -0400 30890 bytes  disk.qcow2: 2026-10-27 21:08:36.299828329 -0400
+HANG smoke-rdp-reboot-1 recorded in /home/sqs/scripts/Windows-install-via-Linux/spikes/2026-10-25-reboot-hang/smoke-stock-3/hang-smoke-rdp-reboot-1.txt; RIP=000000007ad5726e RFL=00000206 [-----P-] CPL=0 II=0 A20=1 SMM=0 HLT=0
+recovering: vm-stop --force, vm-boot --fwd 3391:3389,2225:22
+VM smoke-rdp stopped
+VM smoke-rdp running: pid 539659, nic virtio-net-pci, firmware /tmp/claude-1000/-home-sqs-scripts-Windows-install-via-Linux/db333f61-18fb-420a-8c91-36dad1f2e3d0/scratchpad/ovmf-builds/OVMF_CODE_4M.secboot.stock.fd smm=on, boot disk then network, monitor 127.0.0.1:7002
+id for bin/status and bin/await: b1cfc394-66b2-4b3f-8701-009b5d864cbb

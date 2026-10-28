@@ -1,0 +1,212 @@
+smoke-rdp-reboot-1: bin/smoke: no next beacon after the reboot; recorded 21:13:31
+VM status: running
+
+-- registers
+CPU#0
+RIP=000000007ad5726e RFL=00000206 [-----P-] CPL=0 II=0 A20=1 SMM=0 HLT=0
+CPU#1
+RIP=000000007ad63d71 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1
+CPU#2
+RIP=000000007ad63d71 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1
+CPU#3
+RIP=000000007ad63d71 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1
+-- 2 s later
+CPU#0
+RIP=000000007bf7c49a RFL=00000246 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=0
+CPU#1
+RIP=000000007ad63d71 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1
+CPU#2
+RIP=000000007ad63d71 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1
+CPU#3
+RIP=000000007ad63d71 RFL=00000046 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=1
+-- CPU#0 code bytes at 0x000000007bf7c49a (this QEMU has no disassembler; objdump them on the host)
+000000007bf7c49a: 0x74 0x12 0x48 0x3b 0x48 0x10 0x72 0x0c
+000000007bf7c4a2: 0x48 0x39 0x48 0x18 0x72 0x06 0x48 0x89
+000000007bf7c4aa: 0x06 0x31 0xc0 0xc3 0x48 0x8b 0x00 0xeb
+000000007bf7c4b2: 0xc3 0x48 0xb8 0x0e 0x00 0x00 0x00 0x00
+000000007bf7c4ba: 0x00 0x00 0x80 0xc3 0x48 0x8b 0x04 0x25
+000000007bf7c4c2: 0x18 0x00 0x00 0x00 0x0f 0x0b 0x48 0xb8
+
+-- memory dumps: hang-smoke-rdp-reboot-1-ap-7ad60000.bin hang-smoke-rdp-reboot-1-bsp-77000000.bin 
+-- CPU#0 stack at RSP 0x000000007bf7bac8 (64 qwords)
+000000007bf7bac8: 0x000000007ad1086b 0x0000000000000001
+000000007bf7bad8: 0x000000007b8ecb18 0x000000007bf7bce8
+000000007bf7bae8: 0x000000007ad76618 0x0000000000000000
+000000007bf7baf8: 0x0000000000000000 0x00000000000000ff
+000000007bf7bb08: 0x000000007bf7bbc8 0x000000007bf7bbe0
+000000007bf7bb18: 0x000000007bf7bbf8 0x000000007ad11260
+000000007bf7bb28: 0x000000007ad11260 0x000000007ad75a98
+000000007bf7bb38: 0x000000007bf8685e 0x000000007ad75540
+000000007bf7bb48: 0x000000007ad75588 0x0000000000000000
+000000007bf7bb58: 0x000000007ad75b38 0x000000007ad75b20
+000000007bf7bb68: 0x000000007bf7bc40 0x000000007ad75ba8
+000000007bf7bb78: 0x0000000000000000 0x0000000000000001
+000000007bf7bb88: 0x000000007bf7ce00 0x0000000000000001
+000000007bf7bb98: 0x000000007ad75a98 0x000000007b9ec018
+000000007bf7bba8: 0x0000000000000002 0x0000000000000015
+000000007bf7bbb8: 0x000000007bf7bbb8 0x000000007bf7bbb8
+000000007bf7bbc8: 0x0000000000006000 0x000000000000ffff
+000000007bf7bbd8: 0x0000000000000000 0x0000000080000000
+000000007bf7bbe8: 0x00000000dfffffff 0x0000000000000000
+000000007bf7bbf8: 0x9002879800000000 0x9002879fffffffff
+000000007bf7bc08: 0x0000000000000000 0x9002879800000000
+000000007bf7bc18: 0x0000000000000000 0x0000000000000000
+000000007bf7bc28: 0x000000000000002a 0x0000000000000000
+000000007bf7bc38: 0x0000000000000000 0x000000007ad71018
+000000007bf7bc48: 0x0000000000000000 0x0000000000000000
+000000007bf7bc58: 0x000000007ad75af0 0x000000007ad75b08
+000000007bf7bc68: 0x000000007ad75b20 0x000000007ad75b38
+000000007bf7bc78: 0x0000010000000000 0x00003f0000000000
+000000007bf7bc88: 0x0000000000000000 0x0000000000000000
+000000007bf7bc98: 0x0000000000000000 0x0000000000000000
+000000007bf7bca8: 0x0000000000000000 0x000000007bf7bcf0
+000000007bf7bcb8: 0x0000000000000000 0x000000007ad75018
+
+-- CPU#0 full registers
+
+CPU#0
+RAX=0000000000000000 RBX=000000007bf7bc78 RCX=000000007bf7ba90 RDX=000000007bf7ba98
+RSI=0000000000000001 RDI=0000400000000000 RBP=000000007bf7bac0 RSP=000000007bf7ba88
+R8 =000000007bf94f30 R9 =0000000000000001 R10=000000007bf939e0 R11=900287a000000000
+R12=0000400000000000 R13=000000007ad75b98 R14=000000007ad75b08 R15=000000000000002a
+RIP=000000007bf7c462 RFL=00000246 [---Z-P-] CPL=0 II=0 A20=1 SMM=0 HLT=0
+ES =0030 0000000000000000 ffffffff 00c09300 DPL=0 DS   [-WA]
+CS =0038 0000000000000000 ffffffff 00a09b00 DPL=0 CS64 [-RA]
+SS =0030 0000000000000000 ffffffff 00c09300 DPL=0 DS   [-WA]
+DS =0030 0000000000000000 ffffffff 00c09300 DPL=0 DS   [-WA]
+FS =0030 0000000000000000 ffffffff 00c09300 DPL=0 DS   [-WA]
+GS =0030 0000000000000000 ffffffff 00c09300 DPL=0 DS   [-WA]
+LDT=0000 0000000000000000 0000ffff 00008200 DPL=0 LDT
+TR =0048 000000007b9dd058 00000067 00008b00 DPL=0 TSS64-busy
+GDT=     000000007b9dd000 00000057
+IDT=     000000007b1a7018 00000fff
+CR0=80010033 CR2=0000000000000000 CR3=000000007bc01000 CR4=00000668
+DR0=0000000000000000 DR1=0000000000000000 DR2=0000000000000000 DR3=0000000000000000 
+DR6=00000000ffff0ff0 DR7=0000000000000400
+EFER=0000000000000d00
+FCW=037f FSW=0000 [ST=0] FTW=00 MXCSR=00001f80
+FPR0=0000000000000000 0000 FPR1=0000000000000000 0000
+FPR2=0000000000000000 0000 FPR3=0000000000000000 0000
+FPR4=0000000000000000 0000 FPR5=0000000000000000 0000
+FPR6=0000000000000000 0000 FPR7=0000000000000000 0000
+XMM00=0000000000000000 0000000000000000 XMM01=0000000000000000 0000000000000000
+XMM02=0000000000000000 0000000000000000 XMM03=0000000000000000 0000000000000000
+XMM04=0000000000000000 0000000000000000 XMM05=0000000000000000 0000000000000000
+XMM06=0000000000000000 0000000000000000 XMM07=0000000000000000 0000000000000000
+XMM08=0000000000000000 0000000000000000 XMM09=0000000000000000 0000000000000000
+XMM10=0000000000000000 0000000000000000 XMM11=0000000000000000 0000000000000000
+XMM12=0000000000000000 0000000000000000 XMM13=0000000000000000 0000000000000000
+XMM14=0000000000000000 0000000000000000 XMM15=0000000000000000 0000000000000000
+
+-- info lapic 0
+dumping local APIC state for CPU 0 
+
+LVT0	 0x00000700 active-hi edge                              ExtINT (vec 0)
+LVT1	 0x00000400 active-hi edge                              NMI   
+LVTPC	 0x00010000 active-hi edge  masked                      Fixed  (vec 0)
+LVTERR	 0x00010000 active-hi edge  masked                      Fixed  (vec 0)
+LVTTHMR	 0x00010000 active-hi edge  masked                      Fixed  (vec 0)
+LVTT	 0x00020020 active-hi edge                 periodic     Fixed  (vec 32)
+Timer	 DCR=0xb (divide by 1) initial_count = 10000000 current_count = 9977347
+SPIV	 0x0000010f APIC enabled, focus=off, spurious vec 15
+ICR	 0x000c4687 physical edge assert all
+ICR2	 0x00000000
+ESR	 0x00000000
+ISR	 (none)
+IRR	 (none)
+
+APR 0x00 TPR 0x00 DFR 0x0f LDR 0x00 PPR 0x00
+
+-- info lapic 1
+dumping local APIC state for CPU 1 
+
+LVT0	 0x00010700 active-hi edge  masked                      ExtINT (vec 0)
+LVT1	 0x00010400 active-hi edge  masked                      NMI   
+LVTPC	 0x00010000 active-hi edge  masked                      Fixed  (vec 0)
+LVTERR	 0x00010000 active-hi edge  masked                      Fixed  (vec 0)
+LVTTHMR	 0x00010000 active-hi edge  masked                      Fixed  (vec 0)
+LVTT	 0x00030005 active-hi edge  masked         periodic     Fixed  (vec 5)
+Timer	 DCR=0x0 (divide by 2) initial_count = 4294967295 current_count = 4294956735
+SPIV	 0x0000010f APIC enabled, focus=off, spurious vec 15
+ICR	 0x00000000 physical edge de-assert no-shorthand
+ICR2	 0x00000000 cpu 0 (X2APIC ID)
+ESR	 0x00000000
+ISR	 (none)
+IRR	 (none)
+
+APR 0x00 TPR 0x00 DFR 0x0f LDR 0x00 PPR 0x00
+
+-- info lapic 2
+dumping local APIC state for CPU 2 
+
+LVT0	 0x00010700 active-hi edge  masked                      ExtINT (vec 0)
+LVT1	 0x00010400 active-hi edge  masked                      NMI   
+LVTPC	 0x00010000 active-hi edge  masked                      Fixed  (vec 0)
+LVTERR	 0x00010000 active-hi edge  masked                      Fixed  (vec 0)
+LVTTHMR	 0x00010000 active-hi edge  masked                      Fixed  (vec 0)
+LVTT	 0x00030005 active-hi edge  masked         periodic     Fixed  (vec 5)
+Timer	 DCR=0x0 (divide by 2) initial_count = 4294967295 current_count = 4294956875
+SPIV	 0x0000010f APIC enabled, focus=off, spurious vec 15
+ICR	 0x00000000 physical edge de-assert no-shorthand
+ICR2	 0x00000000 cpu 0 (X2APIC ID)
+ESR	 0x00000000
+ISR	 (none)
+IRR	 (none)
+
+APR 0x00 TPR 0x00 DFR 0x0f LDR 0x00 PPR 0x00
+
+-- info lapic 3
+dumping local APIC state for CPU 3 
+
+LVT0	 0x00010700 active-hi edge  masked                      ExtINT (vec 0)
+LVT1	 0x00010400 active-hi edge  masked                      NMI   
+LVTPC	 0x00010000 active-hi edge  masked                      Fixed  (vec 0)
+LVTERR	 0x00010000 active-hi edge  masked                      Fixed  (vec 0)
+LVTTHMR	 0x00010000 active-hi edge  masked                      Fixed  (vec 0)
+LVTT	 0x00030005 active-hi edge  masked         periodic     Fixed  (vec 5)
+Timer	 DCR=0x0 (divide by 2) initial_count = 4294967295 current_count = 4294957997
+SPIV	 0x0000010f APIC enabled, focus=off, spurious vec 15
+ICR	 0x00000000 physical edge de-assert no-shorthand
+ICR2	 0x00000000 cpu 0 (X2APIC ID)
+ESR	 0x00000000
+ISR	 (none)
+IRR	 (none)
+
+APR 0x00 TPR 0x00 DFR 0x0f LDR 0x00 PPR 0x00
+
+-- I/O map (hang-smoke-rdp-reboot-1-mtree.txt):  0000000000000600-000000000000067f (prio 0, i/o): ich9-pm; 0000000000000600-0000000000000603 (prio 0, i/o): acpi-evt; 0000000000000604-0000000000000605 (prio 0, i/o): acpi-cnt; 0000000000000608-000000000000060b (prio 0, i/o): acpi-tmr;
+-- serial.log: 2026-10-27 20:54:21.470567784 -0400 30890 bytes
+-- disk.qcow2: 2026-10-27 21:08:36.299828329 -0400
+-- vars.fd now: 7c470d08f4971f14
+-- qemu:       19:20  184
+-- qemu trace: hang-smoke-rdp-reboot-1-qemu-trace.log, 858 lines; last nb_cpus select + cpuhp probe:
+467:cpuhp_acpi_read_flags idx[0x1] flags: 0x1
+468:cpuhp_acpi_write_idx set active cpu idx: 0x2
+469:cpuhp_acpi_read_flags idx[0x2] flags: 0x1
+470:cpuhp_acpi_write_idx set active cpu idx: 0x3
+471:cpuhp_acpi_read_flags idx[0x3] flags: 0x1
+472:cpuhp_acpi_write_idx set active cpu idx: 0x0
+473:cpuhp_acpi_read_flags idx[0x0] flags: 0x1
+474:cpuhp_acpi_write_idx set active cpu idx: 0x1
+475:cpuhp_acpi_read_flags idx[0x1] flags: 0x1
+476:cpuhp_acpi_write_idx set active cpu idx: 0x2
+477:cpuhp_acpi_read_flags idx[0x2] flags: 0x1
+478:cpuhp_acpi_write_idx set active cpu idx: 0x3
+479:cpuhp_acpi_read_flags idx[0x3] flags: 0x1
+841:fw_cfg_select 0x598c17180d90 key 0x0005 'nb_cpus', ret: 1
+843:cpuhp_acpi_write_idx set active cpu idx: 0x0
+844:cpuhp_acpi_write_idx set active cpu idx: 0x0
+845:cpuhp_acpi_write_cmd idx[0x0] cmd: 0x0
+846:cpuhp_acpi_read_cmd_data2 idx[0x0] data: 0x0
+847:cpuhp_acpi_write_idx set active cpu idx: 0x0
+848:cpuhp_acpi_read_flags idx[0x0] flags: 0x1
+849:cpuhp_acpi_write_idx set active cpu idx: 0x1
+850:cpuhp_acpi_read_cmd_data idx[0x1] data: 0x1
+851:cpuhp_acpi_read_flags idx[0x1] flags: 0x1
+852:cpuhp_acpi_write_idx set active cpu idx: 0x2
+853:cpuhp_acpi_read_cmd_data idx[0x2] data: 0x2
+854:cpuhp_acpi_read_flags idx[0x2] flags: 0x1
+855:cpuhp_acpi_write_idx set active cpu idx: 0x3
+856:cpuhp_acpi_read_cmd_data idx[0x3] data: 0x3
+857:cpuhp_acpi_read_flags idx[0x3] flags: 0x1
+858:cpuhp_acpi_write_idx set active cpu idx: 0x4

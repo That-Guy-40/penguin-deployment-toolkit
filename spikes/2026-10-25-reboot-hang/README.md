@@ -324,6 +324,17 @@ versions (nothing older is installed), the time of day.
   |---|---|---|---|---|
   | OVMF 2025.11-3ubuntu7.3 (fw_cfg cache) | 8 | 80 | 3 | reruns 1-8 (hangs in 3, 5, 6) |
   | OVMF 2024.11-3 (no cache) | 4 | 40 | 0 | reruns 9-12, all 52 PASS / 8 controls / 0 FAIL |
+  | 2025.11-3ubuntu7.3 rebuilt from source, stock (cache) | 4 | 40 | 2 | smoke-stock-1..4: stock-1 lost at the third reboot (unrecorded), stock-3 caught (DXE variant) |
+  | the same source with the cache patched out | 4 | 40 | 0 | smoke-nocache-1..4, all 52 PASS / 8 controls / 0 FAIL |
+
+  Totals, 2026-10-27 22:03: firmware with the fw_cfg cache 5 hangs in 12 runs
+  (120 reboots); firmware without it 0 in 8 runs (80 reboots). The clean
+  pair (same source, same build flags, one 5-line patch) is 2 in 4 against 0
+  in 4. Fisher's exact test on the totals gives p = 0.051 one-sided
+  (`C(12,5)/C(20,5)`); at the cache firmware's observed rate, eight clean runs
+  happen by chance about once in 70 (`(7/12)^8 = 0.013`). The cache is
+  implicated, just at the usual line; the mechanism (which cached read of
+  `etc/e820` fails, and why only at some warm resets) is still open.
 
   The old firmware was confirmed in QEMU's command line for both VMs of
   rerun 9 (`smoke-rerun-9/boot.out`, full path in vm-boot's line) and its
@@ -347,8 +358,50 @@ versions (nothing older is installed), the time of day.
   signature at the *third* guest-initiated reboot, which `bin/smoke` did not
   watch, so no hook ran and no dump exists; which variant it was is
   [unknown]. `bin/smoke` now records, hooks and recovers that reboot too
-  (`reboot-3`), from `smoke-stock-2` on. The table above is updated when the
-  queue ends.
+  (`reboot-3`), from `smoke-stock-2` on. The queue ended at 22:03: nocache
+  4 of 4 clean, stock hung in 2 of 4 (the table above).
+- **`smoke-stock-3` caught the DXE variant on the self-built stock firmware,
+  complete** (`smoke-stock-3/`, 2026-10-27 21:08 ts-done, no specialize in
+  300 s, recorded at 21:13 by the hook, recovered; 51 PASS / 1 FAIL).
+  [verified, `hang-analysis.out`, `platform-info.out`]:
+  - CPU#0 sampled at CpuDxe `CpuEnableInterrupt` (the instruction after
+    `sti`) and in DxeCore, with PciHostBridgeDxe `+0x386b` and `+0x4260`
+    on its stack and `RDI = R12 = 0x400000000000`: the `AddMemoryMappedIoSpace`
+    walk asking the GCD for the first byte past the 46-bit space, as in
+    reruns 5 and 6. The three APs halted in CpuDxe `CpuSleep`. The root
+    bridge's `MemAbove4G` aperture (at R14) is `0x9002879800000000 ..
+    0x9002879fffffffff`: the classic 32 GiB at an impossible base.
+  - The PEI HOB list and DXE's copy are byte-identical to the healthy
+    reference except the two words that hold `PcdPciMmio64Base`
+    (`0x9002879800000000`, healthy `0x380000000000`) and its size (32 GiB,
+    healthy 8 TiB): `FirstNonAddress = 2^46`, width 46, boot/max CPU count
+    4/4, the fw_cfg work area (item file_dir, offset 964, reading) all as
+    healthy. The cached `etc/e820` in the same HOB list is intact: two
+    reserved ranges, 2 GiB at 0 and 2 GiB at 4 GiB. So the first e820 scan
+    (`PlatformGetFirstNonAddress`, before PEI memory, every read served
+    from the cache) produced a candidate of about `0x90028798xxxxxxxx`
+    while the cache's bytes were right. The three captures' garbage
+    (`0x800b2010…`, `0xb00006e8…`, `0x90028798…`) contains no byte sequence
+    of the real e820 data, so it is not a misaligned read of it; it is
+    stale memory, which is what an unfilled `E820Entry` (a stack local,
+    `PlatformScanE820`) holds when `InternalQemuFwCfgReadBytes` discards a
+    failed cached read [read, MemDetect.c, QemuFwCfgCache.c in the 2025.11
+    source]. Which of the four 20-byte reads fails, and why only at some
+    warm resets, is still [unknown]: nothing in that path reads memory it
+    did not write, except the stack itself.
+  - The QEMU trace of the hung reset is the healthy sequence up to the
+    hang: the cache init's seven selects (signature, id, file_dir, e820,
+    system-states, boot_menu, bootorder), `nb_cpus`, the CPU-hotplug probe
+    of 4 CPUs, then nothing. The twelve selects a healthy run shows after
+    that are all DXE readers that never ran (keys named from the cached
+    file directory in the dump: smbios-anchor/-tables, etc/smi/*,
+    table-loader, the kernel/initrd sizes, etc/acpi/*), so the trace
+    cannot tell a bad PEI read from a good one; the healthy VM of the same
+    run (`smoke-ssh-qemu-trace-healthy.log`, a cold boot and two warm
+    reboots) is the control.
+  - `platform-info.py <dump> <base> [layout/hob-list-healthy.out]` is the
+    parser, kept this time: PlatformInfoHob words and fields (byte-packed
+    struct), every fw_cfg cache HOB, the cached e820 and file directory.
 - Side observation, untested: the `smoke-rdp` machine ignored the ACPI
   button at its login screen in exactly the three runs where the other
   machine hung (reruns 3, 5, 6) and in none of the nine clean runs. In those

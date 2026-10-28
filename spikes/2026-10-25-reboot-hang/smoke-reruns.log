@@ -15,3 +15,9 @@ smoke-nocache-1 rc=0 (self-built OVMF 2025.11 nocache, traced, hook, no wait)
 smoke-stock-1 rc=1 (self-built OVMF 2025.11 stock, traced, hook, no wait)
 smoke-stock-1 note: no deploy-removed beacon after the DEPLOY=remove restart (19:06:59), screen black at 19:19:29, SSH banner timeouts, ACPI button ignored, forced stop: the hang signature at the THIRD reboot, which bin/smoke did not watch (no hook, no dump: UNKNOWN which variant). bin/smoke now records/hooks/recovers that reboot too (reboot-3); in force from smoke-stock-2 on
 smoke-nocache-2 rc=0 (self-built OVMF 2025.11 nocache, traced, hook, no wait)
+smoke-stock-2 rc=0 (self-built OVMF 2025.11 stock, traced, hook, no wait)
+smoke-nocache-3 rc=0 (self-built OVMF 2025.11 nocache, traced, hook, no wait)
+smoke-stock-3 rc=1 (self-built OVMF 2025.11 stock, traced, hook, no wait)
+smoke-nocache-4 rc=0 (self-built OVMF 2025.11 nocache, traced, hook, no wait)
+smoke-stock-4 rc=0 (self-built OVMF 2025.11 stock, traced, hook, no wait)
+22:02:50 self-built firmware queue done

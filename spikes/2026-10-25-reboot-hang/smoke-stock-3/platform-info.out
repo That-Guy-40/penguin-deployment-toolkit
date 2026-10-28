@@ -1,0 +1,92 @@
+PlatformInfoHob at 0x77f7fad0, HOB length 0xc0; non-zero 8-byte words:
+   +0x018: 0x00000000000029c0
+   +0x028: 0x8000000000400101
+   +0x030: 0x0000400000000000
+   +0x038: 0x000000800000002e
+   +0x040: 0x0000000000000080
+   +0x048: 0x8798000000000000   (healthy: 0x3800000000000000)
+   +0x050: 0x0008000000009002   (healthy: 0x0800000000000000)
+   +0x058: 0x0080000000000000
+   +0x060: 0x0000006000600000
+   +0x068: 0x000000a000000000
+   +0x078: 0x0400000004000000
+   +0x080: 0x0000000040000000
+   +0x098: 0x0003c40019010101
+   +0x0a0: 0x5aa55aa55aa50100
+   FirstNonAddress 0x400000000000  PhysMemAddressWidth 46  Uc32Base 0x80000000 Uc32Size 0x80000000
+   PcdPciMmio64Base 0x9002879800000000  PcdPciMmio64Size 0x800000000
+   PcdCpuBootLogicalProcessorNumber 4  PcdCpuMaxLogicalProcessorNumber 4  DefaultMaxCpuNumber 64
+   QemuFwCfgChecked 1  work area: supported 1 dma 1 item 0x0019 offset 964 reading 1
+   differs from the healthy reference at: +0x048, +0x050
+PlatformInfoHob at 0x7b8e5ae8, HOB length 0xc0; non-zero 8-byte words:
+   +0x018: 0x00000000000029c0
+   +0x028: 0x8000000000400101
+   +0x030: 0x0000400000000000
+   +0x038: 0x000000800000002e
+   +0x040: 0x0000000000000080
+   +0x048: 0x8798000000000000   (healthy: 0x3800000000000000)
+   +0x050: 0x0008000000009002   (healthy: 0x0800000000000000)
+   +0x058: 0x0080000000000000
+   +0x060: 0x0000006000600000
+   +0x068: 0x000000a000000000
+   +0x078: 0x0400000004000000
+   +0x080: 0x0000000040000000
+   +0x098: 0x0003c40019010101
+   +0x0a0: 0x5aa55aa55aa50100
+   FirstNonAddress 0x400000000000  PhysMemAddressWidth 46  Uc32Base 0x80000000 Uc32Size 0x80000000
+   PcdPciMmio64Base 0x9002879800000000  PcdPciMmio64Size 0x800000000
+   PcdCpuBootLogicalProcessorNumber 4  PcdCpuMaxLogicalProcessorNumber 4  DefaultMaxCpuNumber 64
+   QemuFwCfgChecked 1  work area: supported 1 dma 1 item 0x0019 offset 964 reading 1
+   differs from the healthy reference at: +0x048, +0x050
+fw_cfg cache HOB at 0x77f7fb90: item 0x0000, 4 bytes
+fw_cfg cache HOB at 0x77f7fbb8: item 0x0001, 4 bytes
+fw_cfg cache HOB at 0x77f7fbe0: item 0x0019, 964 bytes
+   0x0020        0 bios-geometry
+   0x0021       64 bootorder
+   0x0022       20 etc/acpi/rsdp
+   0x0023   131072 etc/acpi/tables
+   0x0024        4 etc/boot-fail-wait
+   0x0025       80 etc/e820
+   0x0026       31 etc/smbios/smbios-anchor
+   0x0027      330 etc/smbios/smbios-tables
+   0x0028        1 etc/smi/features-ok
+   0x0029        8 etc/smi/requested-features
+   0x002a        8 etc/smi/supported-features
+   0x002b        6 etc/system-states
+   0x002c     4096 etc/table-loader
+   0x002d        0 etc/tpm/log
+   0x002e     9216 genroms/kvmvapic.bin
+fw_cfg cache HOB at 0x77f7ffc8: item 0x0025, 80 bytes
+   e820[0] base 0xfeffc000 len 0x4000 type 2
+   e820[1] base 0xfd00000000 len 0x300000000 type 2
+   e820[2] base 0x0 len 0x80000000 type 1
+   e820[3] base 0x100000000 len 0x80000000 type 1
+fw_cfg cache HOB at 0x77f80038: item 0x002b, 6 bytes
+fw_cfg cache HOB at 0x77f80060: item 0x000e, 2 bytes
+fw_cfg cache HOB at 0x77f80080: item 0x0021, 64 bytes
+fw_cfg cache HOB at 0x7b8e5ba8: item 0x0000, 4 bytes
+fw_cfg cache HOB at 0x7b8e5bd0: item 0x0001, 4 bytes
+fw_cfg cache HOB at 0x7b8e5bf8: item 0x0019, 964 bytes
+   0x0020        0 bios-geometry
+   0x0021       64 bootorder
+   0x0022       20 etc/acpi/rsdp
+   0x0023   131072 etc/acpi/tables
+   0x0024        4 etc/boot-fail-wait
+   0x0025       80 etc/e820
+   0x0026       31 etc/smbios/smbios-anchor
+   0x0027      330 etc/smbios/smbios-tables
+   0x0028        1 etc/smi/features-ok
+   0x0029        8 etc/smi/requested-features
+   0x002a        8 etc/smi/supported-features
+   0x002b        6 etc/system-states
+   0x002c     4096 etc/table-loader
+   0x002d        0 etc/tpm/log
+   0x002e     9216 genroms/kvmvapic.bin
+fw_cfg cache HOB at 0x7b8e5fe0: item 0x0025, 80 bytes
+   e820[0] base 0xfeffc000 len 0x4000 type 2
+   e820[1] base 0xfd00000000 len 0x300000000 type 2
+   e820[2] base 0x0 len 0x80000000 type 1
+   e820[3] base 0x100000000 len 0x80000000 type 1
+fw_cfg cache HOB at 0x7b8e6050: item 0x002b, 6 bytes
+fw_cfg cache HOB at 0x7b8e6078: item 0x000e, 2 bytes
+fw_cfg cache HOB at 0x7b8e6098: item 0x0021, 64 bytes
