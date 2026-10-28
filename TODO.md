@@ -6,6 +6,28 @@ parked are in `DEFERRED.md`, not here.
 
 ## Next
 
+- [ ] **Reboot hang, after the bisection (2026-10-27):** the fw_cfg cache is
+  implicated (cache firmware 5 hangs in 12 smoke runs, cache-off 0 in 8,
+  Fisher p = 0.051; `spikes/2026-10-25-reboot-hang/README.md`). Two ways on,
+  either or both:
+  1. Report upstream on edk2 #12441: the three DXE-variant dumps
+     (`smoke-rerun-5/6`, `smoke-stock-3/`: `PcdPciMmio64Base` garbage, cached
+     `etc/e820` intact), the PEI variant (`smoke-rerun-3`), the table, the
+     5-line patch (`ovmf-nocache/QemuFwCfgCache-nocache.patch`) and the
+     build procedure (`ovmf-nocache/README.txt`). Ask which cached read of
+     `etc/e820` can fail at a warm reset; the capture to add would be the
+     PEI stack around `PlatformScanE820`'s `E820Entry` (temp RAM at
+     `PcdOvmfSecPeiTempRamBase`, not in the 80 MB dump) and a DEBUG build's
+     serial log ("Invalid Item Offset" would name the failing read).
+  2. Sharpen p with more alternating runs: rebuild both images first (they
+     live only in the agent's scratchpad; `ovmf-nocache/build-ovmf.sh <tree>
+     <tag>` with `OVMF_WORK` set, hashes to match `ovmf-nocache/builds.txt`),
+     then the same queue as `smoke-reruns.log` records (`VM_BOOT_FIRMWARE`,
+     `QEMU_TRACE`, `SMOKE_HANG_HOOK`, no wait), 22 minutes a run; four more
+     pairs at the observed rates would put p near 0.01.
+  Until then the lab runs on the stock package; `bin/smoke` recovers all three
+  reboots and records each hang (`spikes/2026-10-25-reboot-hang/smoke-hang-hook.sh`).
+
 - [ ] Phase 5: real hardware over the network via iPXE (the goal): `pxe-lan`
   on the real LAN, machine allow-list gating destructive steps, per-model driver
   packs, Secure Boot, measured PXE→desktop time; one physical model deployed
