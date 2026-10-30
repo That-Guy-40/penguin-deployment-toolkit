@@ -12,6 +12,9 @@
 > documentation or source, not executed) or **[unknown]** (nobody has checked).
 > Nothing in this file was run on 2026-10-25. `PLAN.md` is the design of the
 > toolkit itself; this file is about putting that design on more than one LAN.
+> **Amended 2026-10-30:** §7.1 added after reading the Phase 6 control pane's
+> code; it names what the pane is, how the toolkit joins it, and a gap in the
+> pane (it cannot report a failure). Still nothing run.
 
 ## 1. The question, and the shape of the answer
 
@@ -236,12 +239,116 @@ collector already borrows its chroot-to-initrd recipe (`docs/COLLECTOR.md`).
 | `examples/lab-ca/` | a root CA with `issue-server-cert.sh` (TLS leaves with IP SANs) and `issue-codesign-cert.sh` (for iPXE `imgverify`); public anchor in git, key out of it | **[verified: LAB_CREATE_V2]** |
 | `examples/libvirt-ipxe-http-pxe/https/` | the iPXE build recipe for HTTPS with a private CA baked in (`TRUST=`), including the two build-time traps (BIOS builds drop HTTPS; only baked CAs are trusted), with positive and negative controls | **[verified: LAB_CREATE_V2, in QEMU]** |
 | `examples/metal-as-a-service/` | a fleet registry, per-node iPXE scripts chained `hostname → mac → a dead-end default`, and the chaos harness of §5 | **[verified: LAB_CREATE_V2, headless; live runs author-run]** |
-| `tools/control-pane` | a fleet progress view (TUI and web) that the review's "read-only status page" (`docs/REVIEW-2026-10-12.md` item 8) could grow into, one row per machine across sites | **[verified: LAB_CREATE_V2]** |
+| `tools/control-pane` + `phase6-tui/` + `phase6b-web/` | a per-node **progress engine** with three renderers (CLI, Textual TUI, web with server-sent events) that a lab joins by writing one `node.toml` per node; the toolkit's way onto a Phase 6 screen, and the shape the review's "read-only status page" (`docs/REVIEW-2026-10-12.md` item 8) can take. **Not a fleet view and it cannot say "failed"**: §7.1 | **[verified: LAB_CREATE_V2]**, the gap **[read: `tools/control_pane/cli.py`]** |
 | `examples/podman-netboot-server.toml` | rootless nginx in a container as a packaging shape for the appliance (a quadlet unit, so it survives reboots: `PLAN.md` §3.1) | **[verified: LAB_CREATE_V2]** |
 | `examples/pxe-boot-mechanics/` | Secure Boot enforced in OVMF with a signed iPXE, and `curl`-based probes of what a PXE client actually fetches | **[verified: LAB_CREATE_V2]** |
 
 TLS between appliance and origin is optional inside a tunnel and listed for
 when the tunnel is not trusted or a public origin is ever reconsidered (§2).
+
+### 7.1 The Phase 6 control pane: what it is, how the toolkit plugs in, and the gap
+
+*Added 2026-10-30, after reading the pane's code. The row above used to call it
+a "fleet progress view"; it is narrower and more useful than that, and it has
+one hole that matters here.*
+
+**What it is.** `tools/control_pane/engine.py` is a small, dependency-free
+progress engine: fed the lines of one node's console, with a *profile* of
+milestones (`match` = a regex, `at` = an explicit percent, optionally
+`terminal = true`), it keeps a percent that only moves forward and a label.
+Three renderers draw it: `tools/control-pane watch|list|inspect` (headless),
+the Textual TUI (`phase6-tui/lab_tui/backends/control_pane.py`, which shells
+out to the CLI) and the web UI (`phase6b-web/lab_web/routes/stream.py`, a
+server-sent-events bar). A lab joins by writing one file per node under the
+fleet directory, `$LAB_STATE_DIR/control-pane/<node>/node.toml`
+**[verified: LAB_CREATE_V2, `examples/control-pane/README.md` and its tests]**:
+
+```toml
+profile    = "install"                  # a profile in a milestones.toml
+console    = "/path/to/<node>.console"  # one text file per node, read top to bottom
+milestones = "/path/to/custom.toml"     # optional; else the tool's defaults
+[[action]] key = "s"  label = "Status"  argv = ["…"]   # verbs the panel may run
+```
+
+The TUI maps the result onto four statuses: not started, running, built
+(terminal reached) and error (stalled). The actions panel runs **only** the
+`argv` the node's owner declared, so the panel is never a second
+implementation of the lab's CLI; the bare-metal lab asserts that every
+declared `argv[0]` is its own script. `maas-lab.sh watch` is the exemplar: it
+writes the node file and points `console` at the node's serial log.
+
+**How the toolkit plugs in: one script and one profile, nothing in LAB_CREATE_V2.**
+The two inputs the contract wants already exist here, in a different shape:
+
+| the pane wants | the toolkit has | the gap between them |
+|---|---|---|
+| one console file per node | `run/beacons.log`: one URL-encoded line per event (`id=…&run=…&step=…&ev=…`), **every machine in one file** | split by `id` |
+| a console that describes *this* boot | beacons carry the run token; the engine is monotonic over the whole file | truncate the per-machine file when a new run token appears, or a second deploy reads as finished before it starts (a record outliving its subject, §5) |
+| declared actions | `bin/status`, `bin/logs`, `bin/shell --off`, `bin/netboot <m> local`, `bin/netboot <m> winpe` | declare them; the last one re-images and is marked `destructive`, which makes the panel demand `--yes` |
+
+So the toolkit side is a `bin/pane` with two verbs. `register <machine>` writes
+the node file with `profile = "pdt"`, `console = run/pane/<name>.log`,
+`milestones = <this repo>/pane/milestones.toml` and the actions. `tail` follows
+`run/beacons.log` and appends each machine's decoded events to its own console,
+truncating it at a new run token. `pane/milestones.toml` is the toolkit's
+profile, about a dozen lines; the percents are the steps' share of a measured
+deploy (`README.md` Verification: download 12 s, apply 47 s, first boot to
+first logon 67 s), rounded:
+
+| beacon line matches | label | at |
+|---|---|---|
+| `step=ts-start` | WinPE up | 5 |
+| `step=20-disk&ev=ok` | partitioned | 15 |
+| `step=25-download&ev=ok` | image verified | 35 |
+| `step=30-apply&ev=ok` | applied | 60 |
+| `step=50-boot&ev=ok` | bootable | 75 |
+| `step=ts-done` | WinPE done | 80 |
+| `step=specialize` | first boot | 85 |
+| `step=firstlogon` | first logon | 90 |
+| `step=deployed&ev=ok` | deployed | 100, `terminal` |
+
+Every lab VM and every physical machine then appears in the TUI tree and the
+web inventory with a bar that fills live, a log pane tailing its event stream,
+and keys bound to the toolkit's own verbs. **For this design** that is the
+visibility story §4 and §5 left vague: a Tier A appliance runs `lab-web` (its
+README's recommended recipe is an SSH port-forward, which works unchanged over
+a tailnet; binding to the tailnet address needs its explicit network flag and a
+credential, by its own refusal table) and the operator opens it from anywhere
+on the tailnet; a Tier B origin registers nodes named `<site>--<machine>`, fed
+from the mirrored beacons, and one screen shows every site.
+
+**The gap: the engine cannot say "failed".** The toolkit's most valuable event
+is `ev=fail`, and the engine has nowhere to put it. A milestone can only move
+progress forward (`at` must be ≥ the current percent), so a failure at
+`25-download` cannot become a status without claiming a percent the machine
+never reached; and a `terminal` milestone for it would render as *built*, which
+is the LIED rung of §5's ladder inside the instrument meant to catch it. The
+only error status is *stalled*, and `list`, the verb the TUI and web UI call,
+never computes it: `_node_progress` in `cli.py` calls `tick(None)` and feeds
+every line with no timestamp, and the engine documents that with no clock
+`stalled` is always false **[read: `cli.py`, `engine.py`]**. So a machine that
+died during `30-apply` shows *running* in Phase 6 for ever. The engine's own
+honesty rules guard against a fake finish, not a fake "still going". Until
+this is closed, `bin/status` stays the honest view: it flags `FAIL`, and it
+tells a *busy* step from a *stuck* one by the freshness of the machine's log
+uploads, which the pane also cannot see.
+
+Two small changes close it, and they belong in LAB_CREATE_V2's engine, not in a
+toolkit workaround:
+
+1. a `failed = true` flag on a milestone, setting an error state whatever the
+   percent, so `ev=fail` maps to *error* with the step as the label;
+2. in `list`, pass the console file's modification time as the clock, so
+   *stalled* can fire for a machine that has gone silent.
+
+**The spike** (`spikes/<date>-control-pane/`), in the order the house rules
+want: the profile and `bin/pane`; register one lab VM, deploy it, the bar
+reaches the terminal milestone and the web detail panel shows the same. Then
+the controls: `vm-stop --force` during `30-apply` and watch the bar sit on
+*running* with no failure anywhere (the evidence for change 1); make the two
+engine changes and watch it turn to *error*; deploy the same VM twice and watch
+the truncation restart the bar (the control for the stale record). About a
+hundred lines on this side, twenty in the engine.
 
 ## 8. Multicast: no
 
